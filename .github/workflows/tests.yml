@@ -11,13 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verificar estructura del proyecto
-        run: |
-          pwd
-          echo "Contenido de la raíz:"
-          ls -la
-          echo "Contenido de tests/tdd:"
-          ls -la tests/tdd
       - name: Obtener código
         uses: actions/checkout@v4
 
@@ -25,6 +18,14 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+
+      - name: Verificar estructura del proyecto
+        run: |
+          pwd
+          echo "Contenido de la raíz:"
+          ls -la
+          echo "Contenido de tests/tdd:"
+          ls -la tests/tdd
 
       - name: Restaurar dependencias de pruebas TDD
         run: dotnet restore tests/tdd/Optica.Api.Tdd.Tests.csproj
