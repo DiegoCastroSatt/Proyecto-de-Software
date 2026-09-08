@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Optica.Api.Data;
-using Xunit;
+global using Xunit;
+
 
 namespace Optica.Api.Tdd.Tests.Soporte;
 
