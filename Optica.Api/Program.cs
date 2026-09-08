@@ -49,3 +49,5 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
 });
 
 app.Run();
+
+public partial class Program { }
