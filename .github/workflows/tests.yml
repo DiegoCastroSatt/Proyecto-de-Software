@@ -1,0 +1,26 @@
+name: Pruebas .NET
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    name: Ejecutar pruebas TDD
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restaurar dependencias de pruebas TDD
+        run: dotnet restore tests/tdd/Optica.Api.Tdd.Tests.csproj
+
+      - name: Ejecutar pruebas TDD
+        run: dotnet test tests/tdd/Optica.Api.Tdd.Tests.csproj --no-restore
