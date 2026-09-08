@@ -1,3 +1,4 @@
+using Optica.Api.Modules.AgendaReservas.Models;
 public class ReservaService : IReservaService
 {
     private readonly IReservaRepository _reservaRepository;

@@ -1,3 +1,4 @@
+using Optica.Api.Modules.AgendaReservas.Models;
 public class MemoriaReservaRepository : IReservaRepository
 {
     private readonly List<Reserva> _reservas = [];

@@ -1,3 +1,4 @@
+using Optica.Api.Modules.AgendaReservas.Models;
 public interface IReservaRepository
 {
     Task<bool> ExisteReserva(

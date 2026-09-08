@@ -1,3 +1,6 @@
+using Optica.Api.Data;
+using Optica.Api.Modules.AgendaReservas.Models;
+using Microsoft.EntityFrameworkCore;
 public class ReservaRepository : IReservaRepository
 {
     private readonly OpticaDbContext _context;

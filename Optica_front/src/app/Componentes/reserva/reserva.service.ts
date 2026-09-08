@@ -21,7 +21,7 @@ export interface ReservaResponse {
 @Injectable({ providedIn: 'root' })
 export class ReservaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5107/api/Reservas';
+  private readonly apiUrl = 'http://localhost:8080/api/Reservas';
 
   crearReserva(reserva: CrearReserva): Observable<ReservaResponse> {
     return this.http.post<ReservaResponse>(this.apiUrl, reserva);
