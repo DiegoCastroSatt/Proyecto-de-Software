@@ -3,6 +3,7 @@ using Xunit;
 using System.Net;
 using System.Net.Http.Json;
 using Optica.Api.Tdd.Tests.Soporte;
+using Xunit;
 
 namespace Optica.Api.Tdd.Tests.AgendaYReservas;
 
