@@ -9,7 +9,7 @@ builder.Services.AddDbContext<OpticaDbContext>(options =>
         ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'OpticaDb'.")
     )
 );
-// Registra controllers, OpenAPI y el acceso del frontend Angular.
+// Register controllers, OpenAPI, and Angular frontend access.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -23,9 +23,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Implementación temporal hasta configurar la base de datos.
-builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
-builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 var app = builder.Build();
 
@@ -39,12 +38,12 @@ app.MapControllers();
 
 app.MapGet("/test-db", async (OpticaDbContext db) =>
 {
-    var cantidad = await db.Clientes.CountAsync();
+    var customerCount = await db.Customers.CountAsync();
 
     return Results.Ok(new
     {
-        mensaje = "Conexión a MySQL funcionando",
-        clientes = cantidad
+        message = "Conexión a MySQL funcionando",
+        customers = customerCount
     });
 });
 
