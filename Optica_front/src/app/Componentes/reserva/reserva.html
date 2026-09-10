@@ -76,7 +76,12 @@
 
           <div class="field">
             <label for="date">Día de atención</label>
-            <input id="date" type="date" formControlName="date" [min]="minDate" />
+            <select id="date" formControlName="date">
+              <option value="">Selecciona un día</option>
+              @for (date of availableDates(); track date) {
+                <option [value]="date">{{ date }}</option>
+              }
+            </select>
             @if (hasError('date', 'required')) {
               <small>Selecciona un día.</small>
             }
@@ -84,7 +89,12 @@
 
           <div class="field">
             <label for="time">Hora preferida</label>
-            <input id="time" type="time" formControlName="time" />
+            <select id="time" formControlName="time">
+              <option value="">Selecciona una hora</option>
+              @for (slot of availableTimes(); track slot.idHorario) {
+                <option [value]="slot.idHorario">{{ slot.hora }}</option>
+              }
+            </select>
             @if (hasError('time', 'required')) {
               <small>Selecciona una hora.</small>
             }

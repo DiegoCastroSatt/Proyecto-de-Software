@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReservaService } from './reserva.service';
 
@@ -8,11 +8,14 @@ import { ReservaService } from './reserva.service';
   templateUrl: './reserva.html',
   styleUrl: './reserva.css'
 })
-export class ReservaComponent {
+export class ReservaComponent implements OnInit {
   protected readonly minDate = new Date().toISOString().split('T')[0];
   protected readonly confirmedName = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');
+  protected readonly availableDates = signal<string[]>([]);
+  protected readonly availableTimes = signal<{ idHorario: number; hora: string }[]>([]);
+  private readonly availableSlots = signal<{ idHorario: number; fecha: string; hora: string }[]>([]);
 
   protected readonly reservationForm;
 
@@ -27,6 +30,28 @@ export class ReservaComponent {
       email: ['', [Validators.required, Validators.email]],
       date: ['', Validators.required],
       time: ['', Validators.required]
+    });
+
+    this.reservationForm.controls.date.valueChanges.subscribe((date) => {
+      this.availableTimes.set(
+        this.availableSlots().filter((slot) => slot.fecha === date).map(({ idHorario, hora }) => ({ idHorario, hora }))
+      );
+      this.reservationForm.controls.time.reset('');
+    });
+  }
+
+  ngOnInit(): void {
+    this.reservaService.obtenerDisponibles().subscribe({
+      next: (slots) => {
+        const normalizedSlots = slots.map((slot) => ({
+          idHorario: slot.idHorario,
+          fecha: slot.fecha.slice(0, 10),
+          hora: slot.hora.slice(0, 5)
+        }));
+        this.availableSlots.set(normalizedSlots);
+        this.availableDates.set([...new Set(normalizedSlots.map((slot) => slot.fecha))]);
+      },
+      error: () => this.errorMessage.set('No hay horarios disponibles en este momento.')
     });
   }
 
@@ -45,8 +70,7 @@ export class ReservaComponent {
       rut: formValue.rut ?? '',
       telefono: formValue.phone ?? '',
       correo: formValue.email ?? '',
-      fecha: formValue.date ?? '',
-      hora: `${formValue.time ?? ''}:00`
+      idHorario: Number(formValue.time ?? 0)
     }).subscribe({
       next: () => {
         this.confirmedName.set(formValue.name ?? '');

@@ -4,11 +4,15 @@ public class MemoriaReservaRepository : IReservaRepository
     private readonly List<Reserva> _reservas = [];
     private int _siguienteId;
 
+    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
+        Task.FromResult<IReadOnlyList<Horario>>([]);
+
+    public Task<Reserva> CrearReserva(CrearReservaDto dto) =>
+        throw new NotSupportedException();
+
     public Task<bool> ExisteReserva(DateTime fecha, TimeSpan hora)
     {
         bool existe = _reservas.Any(reserva =>
-            reserva.Fecha.Date == fecha.Date &&
-            reserva.Hora == hora &&
             reserva.Estado != "Cancelada");
 
         return Task.FromResult(existe);

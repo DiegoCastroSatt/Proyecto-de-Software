@@ -65,19 +65,6 @@ FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 ON DELETE SET NULL
 );
 
-CREATE TABLE reservas (
-id_reserva INT AUTO_INCREMENT PRIMARY KEY,
-id_cliente INT NOT NULL,
-fecha DATE NOT NULL,
-hora TIME NOT NULL,
-motivo VARCHAR(150),
-estado ENUM('Pendiente', 'Confirmada', 'Cancelada', 'Realizada')
-NOT NULL DEFAULT 'Pendiente',
-CONSTRAINT fk_reservas_cliente
-FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
-ON DELETE CASCADE
-);
-
 CREATE TABLE ventas (
 id_venta INT AUTO_INCREMENT PRIMARY KEY,
 id_cliente INT NOT NULL,
@@ -102,11 +89,63 @@ CONSTRAINT fk_detalle_producto
 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
 ON DELETE RESTRICT
 );
+CREATE TABLE administradores (
+    id_administrador INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL,
+    apellido VARCHAR(60) NOT NULL,
+    correo VARCHAR(100) NOT NULL UNIQUE,
+    contrasena VARCHAR(255) NOT NULL,
+    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo'
+);
+CREATE TABLE horarios_atencion (
+    id_horario INT AUTO_INCREMENT PRIMARY KEY,
+
+    id_administrador INT NOT NULL,
+
+    fecha DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fin TIME NOT NULL,
+
+    estado ENUM('Habilitada', 'Inhabilitada') NOT NULL DEFAULT 'Habilitada',
+
+    CONSTRAINT fk_horarios_administrador
+        FOREIGN KEY (id_administrador)
+        REFERENCES administradores(id_administrador)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT uq_horario_fecha_hora
+        UNIQUE (fecha, hora_inicio)
+);
+
+CREATE TABLE reservas (
+    id_reserva INT AUTO_INCREMENT PRIMARY KEY,
+
+    id_cliente INT NOT NULL,
+    id_horario INT NOT NULL,
+
+    motivo VARCHAR(150),
+
+    estado ENUM('Pendiente', 'Confirmada', 'Cancelada', 'Realizada')
+        NOT NULL DEFAULT 'Pendiente',
+
+    CONSTRAINT fk_reservas_cliente
+        FOREIGN KEY (id_cliente)
+        REFERENCES clientes(id_cliente)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_reservas_horario
+        FOREIGN KEY (id_horario)
+        REFERENCES horarios_atencion(id_horario)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT uq_reserva_horario
+        UNIQUE (id_horario)
+);
 
 CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
 CREATE INDEX idx_pedidos_cliente ON pedidos(id_cliente);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
-CREATE INDEX idx_reservas_fecha_hora ON reservas(fecha, hora);
+CREATE INDEX idx_reservas_horario ON reservas(id_horario);
 CREATE INDEX idx_ventas_cliente ON ventas(id_cliente);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);
