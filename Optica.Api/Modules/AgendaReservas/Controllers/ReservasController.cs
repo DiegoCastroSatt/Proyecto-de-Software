@@ -12,6 +12,18 @@ public class ReservasController : ControllerBase
         _reservaService = reservaService;
     }
 
+    [HttpGet("disponibles")]
+    public async Task<IActionResult> ObtenerDisponibles()
+    {
+        var horarios = await _reservaService.ObtenerHorariosDisponibles();
+        return Ok(horarios.Select(h => new HorarioDisponibleResponseDto
+        {
+            IdHorario = h.Id,
+            Fecha = h.Fecha,
+            Hora = h.HoraInicio
+        }));
+    }
+
     [HttpPost]
     public async Task<IActionResult> CrearReserva(
         CrearReservaDto dto)

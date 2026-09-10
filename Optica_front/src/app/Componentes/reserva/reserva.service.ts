@@ -7,6 +7,11 @@ export interface CrearReserva {
   rut: string;
   telefono: string;
   correo: string;
+  idHorario: number;
+}
+
+export interface HorarioDisponible {
+  idHorario: number;
   fecha: string;
   hora: string;
 }
@@ -25,5 +30,9 @@ export class ReservaService {
 
   crearReserva(reserva: CrearReserva): Observable<ReservaResponse> {
     return this.http.post<ReservaResponse>(this.apiUrl, reserva);
+  }
+
+  obtenerDisponibles(): Observable<HorarioDisponible[]> {
+    return this.http.get<HorarioDisponible[]>(`${this.apiUrl}/disponibles`);
   }
 }

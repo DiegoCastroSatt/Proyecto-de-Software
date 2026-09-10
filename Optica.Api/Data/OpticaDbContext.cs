@@ -15,6 +15,8 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Reserva> Reservas => Set<Reserva>();
 
+    public DbSet<Horario> Horarios => Set<Horario>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -72,18 +74,26 @@ public class OpticaDbContext : DbContext
             entity.Property(r => r.ClienteId)
                 .HasColumnName("id_cliente");
 
-            entity.Property(r => r.Fecha)
-                .HasColumnName("fecha")
-                .HasColumnType("date");
+            entity.Property(r => r.HorarioId)
+                .HasColumnName("id_horario");
 
-            entity.Property(r => r.Hora)
-                .HasColumnName("hora")
-                .HasColumnType("time");
+            entity.Ignore(r => r.Fecha);
+            entity.Ignore(r => r.Hora);
 
             entity.Property(r => r.Estado)
                 .HasColumnName("estado");
 
-            entity.Ignore(r => r.FechaCreacion);
+        });
+
+        modelBuilder.Entity<Horario>(entity =>
+        {
+            entity.ToTable("horarios_atencion");
+            entity.HasKey(h => h.Id);
+            entity.Property(h => h.Id).HasColumnName("id_horario");
+            entity.Property(h => h.Fecha).HasColumnName("fecha").HasColumnType("date");
+            entity.Property(h => h.HoraInicio).HasColumnName("hora_inicio").HasColumnType("time");
+            entity.Property(h => h.HoraFin).HasColumnName("hora_fin").HasColumnType("time");
+            entity.Property(h => h.Estado).HasColumnName("estado");
         });
     }
 }
