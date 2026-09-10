@@ -2,7 +2,6 @@ services:
 
   database:
     image: mysql:8.0
-    container_name: optica-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
