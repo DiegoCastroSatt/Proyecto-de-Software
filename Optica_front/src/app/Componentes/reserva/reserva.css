@@ -157,7 +157,8 @@ label {
   letter-spacing: 0.02em;
 }
 
-input {
+input,
+select {
   width: 100%;
   min-height: 48px;
   box-sizing: border-box;

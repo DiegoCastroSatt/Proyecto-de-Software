@@ -12,45 +12,22 @@ public class ReservaService : IReservaService
     public async Task<ReservaResponseDto> CrearReserva(
         CrearReservaDto dto)
     {
-        // 1. Validar fecha
-        if (dto.Fecha.Date < DateTime.Today)
+        if (string.IsNullOrWhiteSpace(dto.NombreCompleto) || string.IsNullOrWhiteSpace(dto.Rut) || dto.IdHorario <= 0)
         {
-            throw new Exception(
-                "No se puede reservar una fecha pasada."
-            );
+            throw new ArgumentException("Los datos del cliente y el horario son obligatorios.");
         }
 
-        // 2. Comprobar si la hora ya está ocupada
-        bool existe = await _reservaRepository
-            .ExisteReserva(dto.Fecha, dto.Hora);
-
-        if (existe)
-        {
-            throw new Exception(
-                "La hora seleccionada ya está reservada."
-            );
-        }
-
-        // 3. Crear Model
-        var reserva = new Reserva
-        {
-            ClienteId = 1, // temporal
-            Fecha = dto.Fecha,
-            Hora = dto.Hora,
-            Estado = "Pendiente"
-        };
-
-        // 4. Guardar
-        var reservaCreada =
-            await _reservaRepository.Crear(reserva);
-
-        // 5. Crear respuesta
+        var reservaCreada = await _reservaRepository.CrearReserva(dto);
         return new ReservaResponseDto
         {
             Id = reservaCreada.Id,
+            IdHorario = reservaCreada.HorarioId,
             Fecha = reservaCreada.Fecha,
             Hora = reservaCreada.Hora,
             Estado = reservaCreada.Estado
         };
     }
+
+    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
+        _reservaRepository.ObtenerHorariosDisponibles();
 }
