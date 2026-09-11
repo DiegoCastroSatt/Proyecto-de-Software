@@ -32,13 +32,11 @@ git clone <URL_DEL_REPOSITORIO>
 cd Proyecto_de_Software
 ```
 
-2. Crear el archivo `.env` a partir de `.env.example` y reemplazar las claves de ejemplo por contraseñas locales robustas. Este archivo está ignorado por Git y no debe compartirse:
+2. Crear el archivo `.env` a partir de `.env.example`:
 
 ```powershell
 Copy-Item .env.example .env
 ```
-
-La API utiliza `MYSQL_ROOT_PASSWORD`, definido solo en el archivo local `.env`. No se deben versionar contraseñas reales, ni siquiera en archivos de configuración de la API.
 
 3. Construir y levantar la API junto con MySQL:
 
@@ -60,16 +58,7 @@ Para detener los servicios:
 docker compose down
 ```
 
-El volumen de MySQL conserva los datos. Para eliminar también esos datos y volver a crear la base desde cero, usar:
-
-```powershell
-docker compose down -v
-docker compose up --build -d
-```
-
-`database/schema.sql` es autocontenido: crea la base `optica_db`, todas las tablas, sus relaciones, restricciones e índices. Docker lo ejecuta automáticamente cuando el volumen está vacío.
-
-> Si una contraseña fue usada en un commit anterior, debe rotarse. Eliminarla de la versión actual no la elimina del historial de Git; para borrarla de este se requiere una reescritura coordinada del historial remoto.
+El volumen de MySQL conserva los datos. Para eliminar tambien esos datos, usar `docker compose down -v`.
 
 ### Frontend Angular
 

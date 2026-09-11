@@ -21,7 +21,7 @@
 
 - No edites manualmente carpetas generadas como `bin/`, `obj/`, `node_modules/` o `dist/`.
 - Conserva los nombres existentes en español de tablas y columnas, salvo que el cambio incluya una migración de base de datos.
-- Usa inglés para identificadores del código, nombres de archivos, nuevas rutas de API y comentarios técnicos.
+- Conserva los nombres en español del dominio, archivos y rutas de API existentes en main. Escribe los nuevos comentarios técnicos en español. No traduzcas ni renombres módulos sin una solicitud explícita del usuario.
 - Usa PascalCase para tipos y miembros públicos de C#; usa camelCase para variables locales y miembros de TypeScript.
 - Conserva los textos de la interfaz en español y la compatibilidad con los clientes existentes al cambiar nombres.
 - Revisa los cambios y ejecuta las comprobaciones de compilación pertinentes antes de crear un commit.
