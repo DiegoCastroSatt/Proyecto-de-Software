@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { ReservaComponent } from './Componentes/reserva/reserva';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [ReservaComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
-  protected readonly title = signal('optica-web');
-}
+export class App {}

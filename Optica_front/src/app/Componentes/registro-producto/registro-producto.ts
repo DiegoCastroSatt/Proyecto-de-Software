@@ -1,12 +1,12 @@
 import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RegistrarProductoService } from './registrar-producto.service';
+import { RegistrarProductoService } from './registro-producto.service';
 
 @Component({
   selector: 'app-producto',
   imports: [ReactiveFormsModule],
-  templateUrl: './registrar-producto.html',
-  styleUrl: './registrar-producto.css'
+  templateUrl: './registro-producto.html',
+  styleUrl: './registro-producto.css'
 })
 export class ProductoComponent {
   protected readonly categorias = [
