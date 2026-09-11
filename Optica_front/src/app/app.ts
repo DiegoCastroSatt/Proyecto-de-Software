@@ -1,10 +1,20 @@
 import { Component } from '@angular/core';
-import { ReservaComponent } from './Componentes/reserva/reserva';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
+import { ReservaComponent } from './components/reserva/reserva';
+import { ClientesComponent } from './components/clientes/clientes';
 
 @Component({
   selector: 'app-root',
-  imports: [ReservaComponent],
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, ReservaComponent, ClientesComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  host: {
+    'ngSkipHydration': 'true' 
+  }
 })
-export class App {}
+export class App {
+  title = 'optica-web';
+  pestanaActiva: 'reservas' | 'clientes' = 'clientes';
+}

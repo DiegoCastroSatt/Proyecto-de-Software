@@ -1,1 +1,35 @@
-<app-reserva></app-reserva>
+<div ngSkipHydration>
+  <!-- Barra de navegación por pestañas -->
+  <div style="background-color: #0d2b27; padding: 12px 24px; display: flex; gap: 12px; align-items: center;">
+    <span style="color: #ffffff; font-weight: bold; margin-right: 20px;">Centro Óptico San Francisco</span>
+    
+    <button 
+      type="button"
+      (click)="pestanaActiva = 'reservas'"
+      [style.background]="pestanaActiva === 'reservas' ? '#1b4d45' : 'transparent'"
+      style="color: #ffffff; border: 1px solid #1b4d45; padding: 6px 14px; border-radius: 4px; cursor: pointer;">
+      Agendar Reserva
+    </button>
+
+    <button 
+      type="button"
+      (click)="pestanaActiva = 'clientes'"
+      [style.background]="pestanaActiva === 'clientes' ? '#1b4d45' : 'transparent'"
+      style="color: #ffffff; border: 1px solid #1b4d45; padding: 6px 14px; border-radius: 4px; cursor: pointer;">
+      Gestión de Clientes
+    </button>
+  </div>
+
+  <!-- Contenedor condicional -->
+  <main>
+    @if (pestanaActiva === 'reservas') {
+      <app-reserva></app-reserva>
+    }
+
+    @if (pestanaActiva === 'clientes') {
+      <div class="container my-4">
+        <app-clientes></app-clientes>
+      </div>
+    }
+  </main>
+</div>
