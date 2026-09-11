@@ -1,21 +1,27 @@
-# Project agent instructions
+# Instrucciones para agentes del proyecto
 
-## Project structure
+## Estructura del proyecto
 
-- `Optica.Api/` contains the .NET API. Keep database mappings in `Data/` and domain code in `Modules/`.
-- `Optica_front/` contains the Angular application.
-- `database/schema.sql` is the database bootstrap script.
-- `docker-compose.yml` orchestrates the API and MySQL services.
+- `Optica.Api/` contiene la API de .NET. Mantén los mapeos de base de datos en `Data/` y el código de dominio en `Modules/`.
+- `Optica_front/` contiene la aplicación Angular.
+- `database/schema.sql` contiene el script de inicialización de la base de datos.
+- `docker-compose.yml` coordina la API y MySQL.
 
-## Safety rules
+## Contraseñas y configuración local
 
-- Do not edit generated folders such as `bin/`, `obj/`, `node_modules/`, or `dist/`.
-- Do not add, read aloud, or commit secrets. Use the ignored `.env` file and update only `.env.example` with placeholders.
-- Preserve the existing Spanish database table and column names unless a database migration is included in the change.
-- Review generated code, the diff, and relevant build checks before committing.
+- Nunca escribas contraseñas, tokens ni cadenas de conexión reales directamente en archivos versionados. No los muestres en respuestas, registros ni salidas de herramientas.
+- Guarda las credenciales locales en `.env`, excluido de Git, o en variables de entorno. Conserva los valores locales existentes.
+- Versiona `.env.example` únicamente con valores vacíos o marcadores de ejemplo, nunca con credenciales reales.
+- Docker Compose debe obtener `MYSQL_ROOT_PASSWORD` del entorno o de `.env`, sin una contraseña predeterminada.
+- Para ejecutar la API directamente, configura `ConnectionStrings__OpticaDb` mediante variables de entorno o secretos de usuario de .NET. No guardes credenciales en archivos `appsettings` versionados.
+- Antes de preparar cambios para un commit, verifica que Git ignore los archivos de secretos y que los cambios no contengan credenciales. Realiza estas comprobaciones sin imprimir valores secretos.
+- Si una credencial ya fue incluida en un commit, eliminarla del archivo actual no la elimina del historial. Informa al usuario y no reescribas el historial sin autorización.
 
-## Naming convention
+## Implementación y validación
 
-- Use English for source-code identifiers, file names, API route names, and technical comments.
-- Use PascalCase for C# types and public members; use camelCase for C# local variables and TypeScript members.
-- Keep user-facing Spanish text in the current product language.
+- No edites manualmente carpetas generadas como `bin/`, `obj/`, `node_modules/` o `dist/`.
+- Conserva los nombres existentes en español de tablas y columnas, salvo que el cambio incluya una migración de base de datos.
+- Usa inglés para identificadores del código, nombres de archivos, nuevas rutas de API y comentarios técnicos.
+- Usa PascalCase para tipos y miembros públicos de C#; usa camelCase para variables locales y miembros de TypeScript.
+- Conserva los textos de la interfaz en español y la compatibilidad con los clientes existentes al cambiar nombres.
+- Revisa los cambios y ejecuta las comprobaciones de compilación pertinentes antes de crear un commit.
