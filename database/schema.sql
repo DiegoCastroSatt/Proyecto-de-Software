@@ -41,6 +41,29 @@ ON DELETE CASCADE,
 CONSTRAINT uq_receta_ojo UNIQUE (id_receta, ojo)
 );
 
+CREATE TABLE catalogos (
+id_catalogo INT AUTO_INCREMENT PRIMARY KEY,
+tipo VARCHAR(20) NOT NULL,
+nombre VARCHAR(60) NOT NULL,
+CONSTRAINT uq_catalogo_tipo_nombre UNIQUE (tipo, nombre)
+);
+
+INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
+('Marca', 'Ray-Ban'),
+('Marca', 'Oakley'),
+('Marca', 'Vogue'),
+('Marca', 'Polaroid'),
+('Color', 'Negro'),
+('Color', 'Café'),
+('Color', 'Dorado'),
+('Color', 'Plateado'),
+('Color', 'Transparente'),
+('Categoria', 'Lentes ópticos'),
+('Categoria', 'Lentes de sol'),
+('Categoria', 'Armazones'),
+('Categoria', 'Lentes de contacto'),
+('Categoria', 'Accesorios');
+
 CREATE TABLE productos (
 id_producto INT AUTO_INCREMENT PRIMARY KEY,
 codigo VARCHAR(30) NOT NULL UNIQUE,
@@ -48,7 +71,7 @@ nombre VARCHAR(100) NOT NULL,
 marca VARCHAR(60),
 modelo VARCHAR(60),
 color VARCHAR(40),
-categoria VARCHAR(50),
+categoria VARCHAR(50) NOT NULL,
 precio DECIMAL(10,2) NOT NULL DEFAULT 0,
 stock INT NOT NULL DEFAULT 0,
 stock_minimo INT NOT NULL DEFAULT 0,

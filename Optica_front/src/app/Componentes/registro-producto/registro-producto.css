@@ -1,0 +1,384 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #eef2f0;
+  color: #1d3434;
+}
+
+/* Topbar */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 40px);
+  padding: 0 clamp(20px, 4vw, 48px);
+  height: 68px;
+  background: #1d4a47;
+  color: #f5f5e9;
+  border-bottom: 3px solid #bf8542;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(245, 245, 233, 0.5);
+  color: #e5c58d;
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.brand-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.5vw, 10px);
+  flex: 1 1 auto;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 3px;
+  color: #c6d8d1;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.nav-link:hover {
+  color: #f5f5e9;
+  background: rgba(245, 245, 233, 0.08);
+}
+
+.nav-link.is-active {
+  color: #1d4a47;
+  background: #e5c58d;
+}
+
+.topbar-user {
+  flex: 0 0 auto;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #bf8542;
+  color: #fffdf9;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+/* Page */
+
+.page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 52px) clamp(20px, 4vw, 24px) 64px;
+}
+
+.page-header .eyebrow {
+  margin: 0 0 10px;
+  color: #a96f32;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #1d3434;
+}
+
+.page-subtitle {
+  margin: 10px 0 28px;
+  color: #6c7b78;
+  font-size: 0.92rem;
+  max-width: 52ch;
+}
+
+.success-message,
+.error-message {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.success-message {
+  border-left: 3px solid #bf8542;
+  background: #f5eedf;
+  color: #38514d;
+}
+
+.success-message strong {
+  color: #1d4a47;
+}
+
+.error-message {
+  border-left: 3px solid #bb5e4a;
+  background: #f7e9e6;
+  color: #7a3527;
+}
+
+/* Product card */
+
+.product-card {
+  background: #fffdf9;
+  border: 1px solid rgba(29, 52, 52, 0.1);
+  box-shadow: 0 18px 50px rgba(35, 67, 65, 0.1);
+}
+
+.form-section {
+  padding: 26px clamp(20px, 4vw, 32px);
+}
+
+.form-section + .form-section {
+  border-top: 1px solid #e6e1d6;
+}
+
+.form-section h2 {
+  margin: 0 0 18px;
+  color: #1d4a47;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.add-option {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.add-option input {
+  min-width: 0;
+  flex: 1;
+}
+
+.add-option-button {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid #1d4a47;
+  border-radius: 2px;
+  background: #1d4a47;
+  color: #fffdf9;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-option-button:hover {
+  background: #2b625d;
+}
+
+.field-wide {
+  grid-column: span 2;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #36504d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid #c9d3ce;
+  border-radius: 2px;
+  outline: none;
+  background: #fff;
+  color: #1d3434;
+  font: inherit;
+  font-size: 0.9rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #6c7b78 50%), linear-gradient(135deg, #6c7b78 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+input::placeholder {
+  color: #9aa8a3;
+}
+
+input:focus,
+select:focus {
+  border-color: #1d4a47;
+  box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.12);
+}
+
+input.ng-touched.ng-invalid,
+select.ng-touched.ng-invalid {
+  border-color: #bb5e4a;
+}
+
+small {
+  display: block;
+  margin-top: 6px;
+  color: #a4483a;
+  font-size: 0.72rem;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px clamp(20px, 4vw, 32px);
+  background: #f7f4ec;
+  border-top: 1px solid #e6e1d6;
+}
+
+.form-footnote {
+  margin: 0;
+  color: #86938e;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  max-width: 34ch;
+}
+
+button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 2px;
+  background: #bf8542;
+  color: #fffdf9;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+button:hover {
+  background: #a96f32;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background: #cbb28d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(29, 74, 71, 0.3);
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    gap: 12px;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .topbar-nav {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 8px 9px;
+    font-size: 0;
+  }
+
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-wide {
+    grid-column: auto;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-footnote {
+    max-width: none;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+  }
+}
