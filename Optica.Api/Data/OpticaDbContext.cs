@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.Catalogos.Models;
 using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.Productos.Models;
 
@@ -19,6 +20,8 @@ public class OpticaDbContext : DbContext
     public DbSet<Horario> Horarios => Set<Horario>();
 
     public DbSet<Producto> Productos => Set<Producto>();
+
+    public DbSet<CatalogoItem> Catalogos => Set<CatalogoItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -115,6 +118,16 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.StockMinimo).HasColumnName("stock_minimo").IsRequired();
             entity.Property(p => p.Estado).HasColumnName("estado").HasMaxLength(9).IsRequired();
             entity.HasIndex(p => p.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<CatalogoItem>(entity =>
+        {
+            entity.ToTable("catalogos");
+            entity.HasKey(c => c.IdCatalogo);
+            entity.Property(c => c.IdCatalogo).HasColumnName("id_catalogo");
+            entity.Property(c => c.Tipo).HasColumnName("tipo").HasMaxLength(20).IsRequired();
+            entity.Property(c => c.Nombre).HasColumnName("nombre").HasMaxLength(60).IsRequired();
+            entity.HasIndex(c => new { c.Tipo, c.Nombre }).IsUnique();
         });
     }
 }

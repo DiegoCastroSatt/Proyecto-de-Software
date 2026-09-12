@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { RegistrarProductoService } from './registro-producto.service';
 
 @Component({
@@ -9,18 +10,12 @@ import { RegistrarProductoService } from './registro-producto.service';
   styleUrl: './registro-producto.css'
 })
 export class ProductoComponent {
-  protected readonly marcas = ['Ray-Ban', 'Oakley', 'Vogue', 'Polaroid'];
-  protected readonly colores = ['Negro', 'Café', 'Dorado', 'Plateado', 'Transparente'];
+  protected readonly marcas: string[] = [];
+  protected readonly colores: string[] = [];
+  protected readonly categorias: string[] = [];
   protected readonly nuevaMarcaValue = '__nueva_marca__';
   protected readonly nuevoColorValue = '__nuevo_color__';
-
-  protected readonly categorias = [
-    'Lentes ópticos',
-    'Lentes de sol',
-    'Armazones',
-    'Lentes de contacto',
-    'Accesorios'
-  ];
+  protected readonly nuevaCategoriaValue = '__nueva_categoria__';
 
   protected readonly savedName = signal('');
   protected readonly isSubmitting = signal(false);
@@ -41,10 +36,28 @@ export class ProductoComponent {
       color: [''],
       nuevoColor: [''],
       categoria: ['', Validators.required],
+      nuevaCategoria: [''],
       precio: ['', [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
       estado: ['Disponible', Validators.required]
+    });
+
+    this.loadCatalogos();
+  }
+
+  private loadCatalogos(): void {
+    forkJoin({
+      marcas: this.productoService.obtenerCatalogo('Marca'),
+      colores: this.productoService.obtenerCatalogo('Color'),
+      categorias: this.productoService.obtenerCatalogo('Categoria')
+    }).subscribe({
+      next: (catalogos) => {
+        this.marcas.push(...catalogos.marcas.map((item) => item.nombre));
+        this.colores.push(...catalogos.colores.map((item) => item.nombre));
+        this.categorias.push(...catalogos.categorias.map((item) => item.nombre));
+      },
+      error: () => this.errorMessage.set('No se pudieron cargar las opciones del formulario.')
     });
   }
 
@@ -60,6 +73,12 @@ export class ProductoComponent {
     }
   }
 
+  protected handleCategoriaChange(value: string): void {
+    if (value !== this.nuevaCategoriaValue) {
+      this.productForm.controls.nuevaCategoria.reset('');
+    }
+  }
+
   protected addMarca(): void {
     this.addOption('marca', 'nuevaMarca', this.marcas);
   }
@@ -68,9 +87,13 @@ export class ProductoComponent {
     this.addOption('color', 'nuevoColor', this.colores);
   }
 
+  protected addCategoria(): void {
+    this.addOption('categoria', 'nuevaCategoria', this.categorias);
+  }
+
   private addOption(
-    optionControl: 'marca' | 'color',
-    newOptionControl: 'nuevaMarca' | 'nuevoColor',
+    optionControl: 'marca' | 'color' | 'categoria',
+    newOptionControl: 'nuevaMarca' | 'nuevoColor' | 'nuevaCategoria',
     options: string[]
   ): void {
     const newOption = this.productForm.controls[newOptionControl].value?.trim();
@@ -80,15 +103,26 @@ export class ProductoComponent {
       return;
     }
 
-    const existingOption = options.find((option) => option.toLowerCase() === newOption.toLowerCase());
-    const selectedOption = existingOption ?? newOption;
+    const tipo = optionControl === 'marca'
+      ? 'Marca'
+      : optionControl === 'color' ? 'Color' : 'Categoria';
 
-    if (!existingOption) {
-      options.push(newOption);
-    }
+    this.productoService.crearCatalogoItem(tipo, newOption).subscribe({
+      next: (item) => {
+        const existingOption = options.find((option) => option.toLowerCase() === item.nombre.toLowerCase());
+        const selectedOption = existingOption ?? item.nombre;
 
-    this.productForm.patchValue({ [optionControl]: selectedOption });
-    this.productForm.controls[newOptionControl].reset('');
+        if (!existingOption) {
+          options.push(item.nombre);
+        }
+
+        this.productForm.patchValue({ [optionControl]: selectedOption });
+        this.productForm.controls[newOptionControl].reset('');
+      },
+      error: (error: { error?: { mensaje?: string } }) => {
+        this.errorMessage.set(error.error?.mensaje ?? 'No se pudo guardar la nueva opción.');
+      }
+    });
   }
 
   protected submitProduct(): void {
@@ -116,7 +150,7 @@ export class ProductoComponent {
       next: () => {
         this.savedName.set(formValue.nombre ?? '');
         this.isSubmitting.set(false);
-        this.productForm.reset({ stock: 0, stockMinimo: 0, estado: 'Disponible', nuevaMarca: '', nuevoColor: '' });
+        this.productForm.reset({ stock: 0, stockMinimo: 0, estado: 'Disponible', nuevaMarca: '', nuevoColor: '', nuevaCategoria: '' });
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(

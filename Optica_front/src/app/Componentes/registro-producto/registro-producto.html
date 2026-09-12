@@ -117,12 +117,19 @@
         <div class="form-grid">
           <div class="field">
             <label for="categoria">Categoría</label>
-            <select id="categoria" formControlName="categoria">
+            <select id="categoria" formControlName="categoria" (change)="handleCategoriaChange($any($event.target).value)">
               <option value="" disabled>Selecciona una categoría</option>
               @for (categoria of categorias; track categoria) {
                 <option [value]="categoria">{{ categoria }}</option>
               }
+              <option [value]="nuevaCategoriaValue">Agregar nueva categoría...</option>
             </select>
+            @if (productForm.controls.categoria.value === nuevaCategoriaValue) {
+              <div class="add-option">
+                <input id="nuevaCategoria" type="text" formControlName="nuevaCategoria" placeholder="Escribe una categoría" />
+                <button type="button" class="add-option-button" (click)="addCategoria()">Añadir</button>
+              </div>
+            }
             @if (hasError('categoria', 'required')) {
               <small>Selecciona una categoría.</small>
             }
