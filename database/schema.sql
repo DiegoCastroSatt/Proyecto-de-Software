@@ -16,6 +16,7 @@ id_receta INT AUTO_INCREMENT PRIMARY KEY,
 id_cliente INT NOT NULL,
 fecha DATE NOT NULL,
 observaciones TEXT,
+imagen_path VARCHAR(255) NULL,
 CONSTRAINT fk_recetas_cliente
 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
 ON DELETE CASCADE
