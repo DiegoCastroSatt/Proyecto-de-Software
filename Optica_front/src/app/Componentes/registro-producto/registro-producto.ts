@@ -9,6 +9,11 @@ import { RegistrarProductoService } from './registro-producto.service';
   styleUrl: './registro-producto.css'
 })
 export class ProductoComponent {
+  protected readonly marcas = ['Ray-Ban', 'Oakley', 'Vogue', 'Polaroid'];
+  protected readonly colores = ['Negro', 'Café', 'Dorado', 'Plateado', 'Transparente'];
+  protected readonly nuevaMarcaValue = '__nueva_marca__';
+  protected readonly nuevoColorValue = '__nuevo_color__';
+
   protected readonly categorias = [
     'Lentes ópticos',
     'Lentes de sol',
@@ -31,14 +36,59 @@ export class ProductoComponent {
       codigo: ['', [Validators.required, Validators.maxLength(30)]],
       nombre: ['', [Validators.required, Validators.minLength(2)]],
       marca: [''],
+      nuevaMarca: [''],
       modelo: [''],
       color: [''],
+      nuevoColor: [''],
       categoria: ['', Validators.required],
       precio: ['', [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
       estado: ['Disponible', Validators.required]
     });
+  }
+
+  protected handleMarcaChange(value: string): void {
+    if (value !== this.nuevaMarcaValue) {
+      this.productForm.controls.nuevaMarca.reset('');
+    }
+  }
+
+  protected handleColorChange(value: string): void {
+    if (value !== this.nuevoColorValue) {
+      this.productForm.controls.nuevoColor.reset('');
+    }
+  }
+
+  protected addMarca(): void {
+    this.addOption('marca', 'nuevaMarca', this.marcas);
+  }
+
+  protected addColor(): void {
+    this.addOption('color', 'nuevoColor', this.colores);
+  }
+
+  private addOption(
+    optionControl: 'marca' | 'color',
+    newOptionControl: 'nuevaMarca' | 'nuevoColor',
+    options: string[]
+  ): void {
+    const newOption = this.productForm.controls[newOptionControl].value?.trim();
+
+    if (!newOption) {
+      this.productForm.controls[newOptionControl].markAsTouched();
+      return;
+    }
+
+    const existingOption = options.find((option) => option.toLowerCase() === newOption.toLowerCase());
+    const selectedOption = existingOption ?? newOption;
+
+    if (!existingOption) {
+      options.push(newOption);
+    }
+
+    this.productForm.patchValue({ [optionControl]: selectedOption });
+    this.productForm.controls[newOptionControl].reset('');
   }
 
   protected submitProduct(): void {
@@ -66,7 +116,7 @@ export class ProductoComponent {
       next: () => {
         this.savedName.set(formValue.nombre ?? '');
         this.isSubmitting.set(false);
-        this.productForm.reset({ stock: 0, stockMinimo: 0, estado: 'Disponible' });
+        this.productForm.reset({ stock: 0, stockMinimo: 0, estado: 'Disponible', nuevaMarca: '', nuevoColor: '' });
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(

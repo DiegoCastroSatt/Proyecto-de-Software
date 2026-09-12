@@ -197,6 +197,35 @@
   min-width: 0;
 }
 
+.add-option {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.add-option input {
+  min-width: 0;
+  flex: 1;
+}
+
+.add-option-button {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid #1d4a47;
+  border-radius: 2px;
+  background: #1d4a47;
+  color: #fffdf9;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-option-button:hover {
+  background: #2b625d;
+}
+
 .field-wide {
   grid-column: span 2;
 }

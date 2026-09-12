@@ -73,7 +73,19 @@
 
           <div class="field">
             <label for="marca">Marca</label>
-            <input id="marca" type="text" formControlName="marca" autocomplete="off" placeholder="Ej. Ray-Ban" />
+            <select id="marca" formControlName="marca" (change)="handleMarcaChange($any($event.target).value)">
+              <option value="">Selecciona una marca</option>
+              @for (marca of marcas; track marca) {
+                <option [value]="marca">{{ marca }}</option>
+              }
+              <option [value]="nuevaMarcaValue">Agregar nueva marca...</option>
+            </select>
+            @if (productForm.controls.marca.value === nuevaMarcaValue) {
+              <div class="add-option">
+                <input id="nuevaMarca" type="text" formControlName="nuevaMarca" placeholder="Escribe una marca" />
+                <button type="button" class="add-option-button" (click)="addMarca()">Añadir</button>
+              </div>
+            }
           </div>
 
           <div class="field">
@@ -83,7 +95,19 @@
 
           <div class="field">
             <label for="color">Color</label>
-            <input id="color" type="text" formControlName="color" autocomplete="off" placeholder="Ej. Negro mate" />
+            <select id="color" formControlName="color" (change)="handleColorChange($any($event.target).value)">
+              <option value="">Selecciona un color</option>
+              @for (color of colores; track color) {
+                <option [value]="color">{{ color }}</option>
+              }
+              <option [value]="nuevoColorValue">Agregar nuevo color...</option>
+            </select>
+            @if (productForm.controls.color.value === nuevoColorValue) {
+              <div class="add-option">
+                <input id="nuevoColor" type="text" formControlName="nuevoColor" placeholder="Escribe un color" />
+                <button type="button" class="add-option-button" (click)="addColor()">Añadir</button>
+              </div>
+            }
           </div>
         </div>
       </section>
