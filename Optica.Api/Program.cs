@@ -26,6 +26,8 @@ builder.Services.AddCors(options =>
 // Implementación temporal hasta configurar la base de datos.
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IRecetaRepository, RecetaRepository>();
+builder.Services.AddScoped<IRecetaService, RecetaService>();
 
 var app = builder.Build();
 
@@ -34,6 +36,7 @@ app.UseSwaggerUI();
 
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("Angular");
 app.MapControllers();
 
