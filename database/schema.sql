@@ -1,10 +1,10 @@
 
 -- Script autocontenido: puede ejecutarse directamente en MySQL o mediante Docker.
-CREATE DATABASE IF NOT EXISTS optica_db
+CREATE DATABASE IF NOT EXISTS optica_database
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE optica_db;
+USE optica_database;
 
 CREATE TABLE clientes (
 id_cliente INT AUTO_INCREMENT PRIMARY KEY,
