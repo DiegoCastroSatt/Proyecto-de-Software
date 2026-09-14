@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { ReservaComponent } from './Componentes/reserva/reserva';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [ReservaComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {}
+export class App { }
