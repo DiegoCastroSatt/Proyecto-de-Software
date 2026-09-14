@@ -17,7 +17,6 @@ export class RegistroVentaComponent implements OnInit {
 
   constructor(private readonly fb: FormBuilder, private readonly servicio: RegistroVentaService) {
     this.formulario = this.fb.group({
-      rutCliente: ['', Validators.required],
       codigoProducto: ['', Validators.required],
       cantidad: [1, [Validators.required, Validators.min(1)]]
     });
@@ -39,11 +38,11 @@ export class RegistroVentaComponent implements OnInit {
       this.formulario.markAllAsTouched();
       return;
     }
-    const { rutCliente, codigoProducto, cantidad } = this.formulario.getRawValue();
+    const { codigoProducto, cantidad } = this.formulario.getRawValue();
     this.guardando.set(true);
     this.error.set('');
     this.mensaje.set('');
-    this.servicio.crear(rutCliente!.trim(), codigoProducto!.trim(), Number(cantidad)).subscribe({
+    this.servicio.crear(codigoProducto!.trim(), Number(cantidad)).subscribe({
       next: venta => {
         this.mensaje.set('Venta #' + venta.idVenta + ' registrada correctamente.');
         this.formulario.patchValue({ codigoProducto: '', cantidad: 1 });
