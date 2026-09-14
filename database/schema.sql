@@ -96,12 +96,8 @@ ON DELETE SET NULL
 
 CREATE TABLE ventas (
 id_venta INT AUTO_INCREMENT PRIMARY KEY,
-id_cliente INT NOT NULL,
 fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-total DECIMAL(10,2) NOT NULL DEFAULT 0,
-CONSTRAINT fk_ventas_cliente
-FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
-ON DELETE CASCADE
+total DECIMAL(10,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE detalle_venta (
@@ -175,6 +171,5 @@ CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
 CREATE INDEX idx_pedidos_cliente ON pedidos(id_cliente);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX idx_reservas_horario ON reservas(id_horario);
-CREATE INDEX idx_ventas_cliente ON ventas(id_cliente);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);
