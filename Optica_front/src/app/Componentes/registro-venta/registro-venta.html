@@ -37,8 +37,6 @@
   @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
 
   <form [formGroup]="formulario" (ngSubmit)="registrar()">
-    <label for="rut">RUT del cliente</label>
-    <input id="rut" formControlName="rutCliente" autocomplete="off" placeholder="12.345.678-9">
     <label for="codigo">Código del producto · ingreso manual o lector</label>
     <!-- aqui va el codigo paara la pistola -->
     <input id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="30" placeholder="Escribe o escanea el código">
@@ -53,7 +51,6 @@
     <article>
       <strong>Venta #{{ venta.idVenta }}</strong>
       <span>{{ venta.fecha }}</span>
-      <span>{{ venta.cliente }}</span>
       @for (producto of venta.productos; track producto.productoId) {
         <span>{{ producto.nombre }} × {{ producto.cantidad }}</span>
       }
