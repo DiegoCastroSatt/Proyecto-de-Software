@@ -1,0 +1,191 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-mark" aria-hidden="true">SF</span>
+      <span class="brand-name">Centro Óptico San Francisco</span>
+    </div>
+
+    <nav class="topbar-nav" aria-label="Secciones del panel">
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="6.5" height="6.5"/><rect x="11" y="2.5" width="6.5" height="4.5"/><rect x="11" y="9.5" width="6.5" height="8"/><rect x="2.5" y="11.5" width="6.5" height="6"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6.5" r="3.3"/><path d="M3.5 17c.7-3.6 3.4-5.5 6.5-5.5s5.8 1.9 6.5 5.5"/></svg>
+        Clientes
+      </a>
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="14" rx="0.5"/><path d="M2.5 7.5h15M6 2v3M14 2v3"/></svg>
+        Agenda
+      </a>
+      <a class="nav-link is-active" href="#" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 6.5 10 2.5l7.5 4v7l-7.5 4-7.5-4Z"/><path d="M2.5 6.5 10 10.5l7.5-4M10 10.5v7"/></svg>
+        Productos
+      </a>
+    </nav>
+
+    <div class="topbar-user" aria-hidden="true">
+      <span class="user-avatar">V</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="page-header">
+      <p class="eyebrow">Inventario</p>
+      <h1>Nuevo producto</h1>
+      <p class="page-subtitle">Registra un producto para dejarlo disponible en el catálogo de la óptica.</p>
+    </div>
+
+    @if (savedName()) {
+      <div class="success-message" role="status">
+        <strong>Producto guardado.</strong>
+        <span>{{ savedName() }} ya quedó registrado en el inventario.</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="error-message" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <form class="product-card" [formGroup]="productForm" (ngSubmit)="submitProduct()" novalidate>
+      <section class="form-section">
+        <h2>Identificación</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="codigo">Código</label>
+            <input id="codigo" type="text" formControlName="codigo" autocomplete="off" placeholder="OPT-00145" />
+            @if (hasError('codigo', 'required')) {
+              <small>Ingresa el código del producto.</small>
+            } @else if (hasError('codigo', 'maxlength')) {
+              <small>El código es demasiado largo.</small>
+            }
+          </div>
+
+          <div class="field field-wide">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" type="text" formControlName="nombre" autocomplete="off" placeholder="Ej. Armazón Vista Clásico" />
+            @if (hasError('nombre', 'required')) {
+              <small>Ingresa el nombre del producto.</small>
+            } @else if (hasError('nombre', 'minlength')) {
+              <small>El nombre debe tener al menos 2 caracteres.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="marca">Marca</label>
+            <select id="marca" formControlName="marca" (change)="handleMarcaChange($any($event.target).value)">
+              <option value="">Selecciona una marca</option>
+              @for (marca of marcas; track marca) {
+                <option [value]="marca">{{ marca }}</option>
+              }
+              <option [value]="nuevaMarcaValue">Agregar nueva marca...</option>
+            </select>
+            @if (productForm.controls.marca.value === nuevaMarcaValue) {
+              <div class="add-option">
+                <input id="nuevaMarca" type="text" formControlName="nuevaMarca" placeholder="Escribe una marca" />
+                <button type="button" class="add-option-button" (click)="addMarca()">Añadir</button>
+              </div>
+            }
+          </div>
+
+          <div class="field">
+            <label for="modelo">Modelo</label>
+            <input id="modelo" type="text" formControlName="modelo" autocomplete="off" placeholder="Ej. RB2140" />
+          </div>
+
+          <div class="field">
+            <label for="color">Color</label>
+            <select id="color" formControlName="color" (change)="handleColorChange($any($event.target).value)">
+              <option value="">Selecciona un color</option>
+              @for (color of colores; track color) {
+                <option [value]="color">{{ color }}</option>
+              }
+              <option [value]="nuevoColorValue">Agregar nuevo color...</option>
+            </select>
+            @if (productForm.controls.color.value === nuevoColorValue) {
+              <div class="add-option">
+                <input id="nuevoColor" type="text" formControlName="nuevoColor" placeholder="Escribe un color" />
+                <button type="button" class="add-option-button" (click)="addColor()">Añadir</button>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>Clasificación y precio</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="categoria">Categoría</label>
+            <select id="categoria" formControlName="categoria" (change)="handleCategoriaChange($any($event.target).value)">
+              <option value="" disabled>Selecciona una categoría</option>
+              @for (categoria of categorias; track categoria) {
+                <option [value]="categoria">{{ categoria }}</option>
+              }
+              <option [value]="nuevaCategoriaValue">Agregar nueva categoría...</option>
+            </select>
+            @if (productForm.controls.categoria.value === nuevaCategoriaValue) {
+              <div class="add-option">
+                <input id="nuevaCategoria" type="text" formControlName="nuevaCategoria" placeholder="Escribe una categoría" />
+                <button type="button" class="add-option-button" (click)="addCategoria()">Añadir</button>
+              </div>
+            }
+            @if (hasError('categoria', 'required')) {
+              <small>Selecciona una categoría.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="precio">Precio</label>
+            <input id="precio" type="number" formControlName="precio" min="0" step="1" placeholder="0" />
+            @if (hasError('precio', 'required')) {
+              <small>Ingresa el precio.</small>
+            } @else if (hasError('precio', 'min')) {
+              <small>El precio no puede ser negativo.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="estado">Estado</label>
+            <select id="estado" formControlName="estado">
+              <option value="Disponible">Disponible</option>
+              <option value="Agotado">Agotado</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>Inventario</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="stock">Stock inicial</label>
+            <input id="stock" type="number" formControlName="stock" min="0" step="1" />
+            @if (hasError('stock', 'required')) {
+              <small>Ingresa el stock inicial.</small>
+            } @else if (hasError('stock', 'min')) {
+              <small>El stock no puede ser negativo.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="stockMinimo">Stock mínimo</label>
+            <input id="stockMinimo" type="number" formControlName="stockMinimo" min="0" step="1" />
+            @if (hasError('stockMinimo', 'required')) {
+              <small>Ingresa el stock mínimo.</small>
+            } @else if (hasError('stockMinimo', 'min')) {
+              <small>El stock mínimo no puede ser negativo.</small>
+            }
+          </div>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <p class="form-footnote">El producto quedará visible en el catálogo según el estado seleccionado.</p>
+        <button type="submit" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Guardando...' : 'Guardar producto' }}
+        </button>
+      </div>
+    </form>
+  </main>
+</div>
