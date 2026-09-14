@@ -4,6 +4,12 @@ namespace Optica.Api.Modules.Ventas.DTOs;
 
 public class CrearVentaDto
 {
+    [Required, MinLength(1)]
+    public List<ProductoVentaDto> Productos { get; set; } = [];
+}
+
+public class ProductoVentaDto
+{
     [Required]
     public string CodigoProducto { get; set; } = string.Empty;
 
