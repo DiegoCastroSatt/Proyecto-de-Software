@@ -6,7 +6,6 @@ export interface Venta {
   idVenta: number;
   fecha: string;
   total: number;
-  cliente: string;
   productos: { productoId: number; nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[];
 }
 
@@ -14,7 +13,6 @@ export interface VentaCreada {
   idVenta: number;
   fecha: string;
   total: number;
-  cliente: string;
   producto: string;
   cantidad: number;
 }
@@ -28,7 +26,7 @@ export class RegistroVentaService {
     return this.http.get<Venta[]>(this.url);
   }
 
-  crear(rutCliente: string, codigoProducto: string, cantidad: number): Observable<VentaCreada> {
-    return this.http.post<VentaCreada>(this.url, { rutCliente, codigoProducto, cantidad });
+  crear(codigoProducto: string, cantidad: number): Observable<VentaCreada> {
+    return this.http.post<VentaCreada>(this.url, { codigoProducto, cantidad });
   }
 }
