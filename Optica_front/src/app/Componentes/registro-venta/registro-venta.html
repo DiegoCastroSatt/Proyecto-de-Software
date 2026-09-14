@@ -31,30 +31,50 @@
   </header>
 <main class="ventas">
   <h1>Registrar venta</h1>
-  <p>Ingresa el código del producto manualmente o enfoca el campo y escanéalo con la pistola lectora de códigos de barras.</p>
-
+  <p>Escanea un código o escríbelo y presiona Enter. Cada lectura agrega el producto a esta venta.</p>
   @if (mensaje()) { <p class="exito" role="status">{{ mensaje() }}</p> }
-  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
-
-  <form [formGroup]="formulario" (ngSubmit)="registrar()">
-    <label for="codigo">Código del producto · ingreso manual o lector</label>
-    <!-- aqui va el codigo paara la pistola -->
-    <input id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="30" placeholder="Escribe o escanea el código">
-    <label for="cantidad">Cantidad</label>
-    <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
-    <button type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Registrar venta' }}</button>
-  </form>
-
+  @if (error()) { <p class="error" role="alert">{{ error() }} <button type="button" (click)="error.set('')">Cerrar</button></p> }
+  <div class="caja">
+    <section>
+      <form [formGroup]="formulario" (ngSubmit)="agregar()">
+        <label for="codigo">Código del producto</label>
+        <input #codigo id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="30" placeholder="Escanea o escribe el código">
+        <label for="cantidad">Unidades por lectura</label>
+        <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
+        <button type="submit" [disabled]="guardando()">Agregar producto</button>
+      </form>
+      @if (pendientes()) { <p role="status">Consultando {{ pendientes() }} código(s)…</p> }
+      <h2>Productos de la venta</h2>
+      @if (!productos().length) { <p class="vacio">La venta está vacía. Escanea el primer producto.</p> }
+      @for (producto of productos(); track producto.idProducto) {
+        <article class="linea">
+          <div><strong>{{ producto.nombre }}</strong><small>{{ producto.codigoProducto }} · ${{ producto.precio | number:'1.0-2' }} c/u</small></div>
+          <div class="cantidad">
+            <button type="button" [disabled]="guardando() || pendientes() > 0 || producto.cantidad <= 1" (click)="cambiarCantidad(producto.idProducto, -1)" [attr.aria-label]="'Restar unidad de ' + producto.nombre">−</button>
+            <span>{{ producto.cantidad }}</span>
+            <button type="button" [disabled]="guardando() || pendientes() > 0" (click)="cambiarCantidad(producto.idProducto, 1)" [attr.aria-label]="'Sumar unidad de ' + producto.nombre">+</button>
+          </div>
+          <strong>${{ producto.precio * producto.cantidad | number:'1.0-2' }}</strong>
+          <button type="button" class="quitar" [disabled]="guardando() || pendientes() > 0" (click)="quitar(producto.codigoProducto)">Quitar</button>
+        </article>
+      }
+    </section>
+    <aside class="resumen">
+      <h2>Resumen de venta</h2>
+      <p>{{ productos().length }} productos · {{ unidades() }} unidades</p>
+      <span>Total</span>
+      <strong class="total">${{ total() | number:'1.0-2' }}</strong>
+      <button type="button" [disabled]="guardando() || pendientes() > 0 || productos().length === 0" (click)="registrar()">{{ guardando() ? 'Registrando…' : 'Registrar compra' }}</button>
+      <small>El total definitivo se calcula con los precios vigentes al confirmar.</small>
+    </aside>
+  </div>
   <h2>Historial de ventas</h2>
-  @if (ventas().length === 0) { <p>Aún no hay ventas registradas.</p> }
+  @if (!ventas().length) { <p>Aún no hay ventas registradas.</p> }
   @for (venta of ventas(); track venta.idVenta) {
     <article>
-      <strong>Venta #{{ venta.idVenta }}</strong>
-      <span>{{ venta.fecha }}</span>
-      @for (producto of venta.productos; track producto.productoId) {
-        <span>{{ producto.nombre }} × {{ producto.cantidad }}</span>
-      }
-      <strong>Total: {{ venta.total }}</strong>
+      <strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span>
+      @for (producto of venta.productos; track producto.productoId) { <span>{{ producto.nombre }} × {{ producto.cantidad }}</span> }
+      <strong>Total: ${{ venta.total | number:'1.0-2' }}</strong>
     </article>
   }
 </main>

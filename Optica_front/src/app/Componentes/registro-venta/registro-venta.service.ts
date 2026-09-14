@@ -13,7 +13,19 @@ export interface VentaCreada {
   idVenta: number;
   fecha: string;
   total: number;
-  producto: string;
+  productos: { productoId: number; cantidad: number; precioUnitario: number; subtotal: number }[];
+}
+
+export interface ProductoCaja {
+  idProducto: number;
+  codigoProducto: string;
+  nombre: string;
+  precio: number;
+  cantidad: number;
+}
+
+export interface ProductoVenta {
+  codigoProducto: string;
   cantidad: number;
 }
 
@@ -22,11 +34,15 @@ export class RegistroVentaService {
   private readonly http = inject(HttpClient);
   private readonly url = 'http://localhost:8080/api/Ventas';
 
+  buscar(codigo: string): Observable<ProductoCaja> {
+    return this.http.get<ProductoCaja>(`${this.url}/producto`, { params: { codigo } });
+  }
+
   listar(): Observable<Venta[]> {
     return this.http.get<Venta[]>(this.url);
   }
 
-  crear(codigoProducto: string, cantidad: number): Observable<VentaCreada> {
-    return this.http.post<VentaCreada>(this.url, { codigoProducto, cantidad });
+  crear(productos: ProductoVenta[]): Observable<VentaCreada> {
+    return this.http.post<VentaCreada>(this.url, { productos });
   }
 }

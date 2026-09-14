@@ -101,3 +101,15 @@ button { padding: 12px; background: #1d4a47; border: 0; border-radius: 4px; colo
 button:disabled { opacity: .6; cursor: wait; }
 .exito { color: #176442; }
 .error { color: #a12b2b; }
+
+.ventas { max-width: 1200px; }
+.caja { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.resumen { background: white; border-radius: 8px; padding: 24px; display: grid; gap: 16px; position: sticky; top: 20px; margin-top: 16px; }
+.total { font-size: 2.5rem; color: #1d4a47; }
+.linea { grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; padding: 18px; }
+.linea small, .resumen small { display: block; margin-top: 8px; color: #526965; }
+.cantidad { display: flex; align-items: center; gap: 10px; }
+.cantidad button { padding: 8px 12px; }
+.quitar { background: #f3e4e4; color: #8c2525; }
+.vacio { padding: 28px; border: 1px dashed #a9b9b4; border-radius: 8px; }
+@media (max-width: 800px) { .caja { grid-template-columns: 1fr; } .resumen { position: static; } .linea { grid-template-columns: 1fr auto; } .topbar { overflow-x: auto; } }
