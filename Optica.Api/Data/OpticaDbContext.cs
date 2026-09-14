@@ -130,7 +130,6 @@ public class OpticaDbContext : DbContext
             entity.ToTable("ventas");
             entity.HasKey(v => v.IdVenta);
             entity.Property(v => v.IdVenta).HasColumnName("id_venta");
-            entity.Property(v => v.ClienteId).HasColumnName("id_cliente");
             entity.Property(v => v.Fecha).HasColumnName("fecha");
             entity.Property(v => v.Total).HasColumnName("total").HasPrecision(10, 2);
             entity.HasMany(v => v.Detalles).WithOne().HasForeignKey(d => d.VentaId);
