@@ -3,6 +3,7 @@ using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Catalogos.Models;
 using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.Productos.Models;
+using Optica.Api.Modules.Ventas.Models;
 
 namespace Optica.Api.Data;
 
@@ -22,6 +23,10 @@ public class OpticaDbContext : DbContext
     public DbSet<Producto> Productos => Set<Producto>();
 
     public DbSet<CatalogoItem> Catalogos => Set<CatalogoItem>();
+
+    public DbSet<Venta> Ventas => Set<Venta>();
+
+    public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -118,6 +123,28 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.StockMinimo).HasColumnName("stock_minimo").IsRequired();
             entity.Property(p => p.Estado).HasColumnName("estado").HasMaxLength(9).IsRequired();
             entity.HasIndex(p => p.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<Venta>(entity =>
+        {
+            entity.ToTable("ventas");
+            entity.HasKey(v => v.IdVenta);
+            entity.Property(v => v.IdVenta).HasColumnName("id_venta");
+            entity.Property(v => v.Fecha).HasColumnName("fecha");
+            entity.Property(v => v.Total).HasColumnName("total").HasPrecision(10, 2);
+            entity.HasMany(v => v.Detalles).WithOne().HasForeignKey(d => d.VentaId);
+        });
+
+        modelBuilder.Entity<DetalleVenta>(entity =>
+        {
+            entity.ToTable("detalle_venta");
+            entity.HasKey(d => d.IdDetalle);
+            entity.Property(d => d.IdDetalle).HasColumnName("id_detalle");
+            entity.Property(d => d.VentaId).HasColumnName("id_venta");
+            entity.Property(d => d.ProductoId).HasColumnName("id_producto");
+            entity.Property(d => d.Cantidad).HasColumnName("cantidad");
+            entity.Property(d => d.PrecioUnitario).HasColumnName("precio_unitario").HasPrecision(10, 2);
+            entity.Property(d => d.Subtotal).HasColumnName("subtotal").HasPrecision(10, 2);
         });
 
         modelBuilder.Entity<CatalogoItem>(entity =>
