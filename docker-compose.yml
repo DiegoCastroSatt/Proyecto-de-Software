@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: optica_database
+      MYSQL_DATABASE: optica_db
     ports:
       - "3307:3306"
     volumes:
