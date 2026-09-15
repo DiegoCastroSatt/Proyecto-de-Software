@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS optica_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE optica_optica_db;
+USE optica_db;
 
 CREATE TABLE clientes (
 id_cliente INT AUTO_INCREMENT PRIMARY KEY,
