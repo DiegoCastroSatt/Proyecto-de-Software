@@ -22,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      ConnectionStrings__OpticaDb: "Server=database;Port=3306;Database=optica_database;User=root;Password=${MYSQL_ROOT_PASSWORD};"
+      ConnectionStrings__OpticaDb: "Server=database;Port=3306;Database=optica_db;User=root;Password=${MYSQL_ROOT_PASSWORD};"
     depends_on:
       - database
 
