@@ -17,4 +17,4 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Ejecutar pruebas de ventas
-        run: dotnet run --project tests/Optica.Ventas.Tests/Optica.Ventas.Tests.csproj --configuration Release
+        run: dotnet test tests/Ventas/Optica.Ventas.Tests.csproj --configuration Release
