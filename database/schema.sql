@@ -75,7 +75,8 @@ categoria VARCHAR(50) NOT NULL,
 precio DECIMAL(10,2) NOT NULL DEFAULT 0,
 stock INT NOT NULL DEFAULT 0,
 stock_minimo INT NOT NULL DEFAULT 0,
-estado ENUM('Disponible', 'Agotado') NOT NULL DEFAULT 'Disponible'
+estado ENUM('Disponible', 'Agotado') NOT NULL DEFAULT 'Disponible',
+ruta_imagen VARCHAR(255)
 );
 
 CREATE TABLE pedidos (
