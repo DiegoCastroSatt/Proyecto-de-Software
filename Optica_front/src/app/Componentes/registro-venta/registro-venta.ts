@@ -37,7 +37,7 @@ export class RegistroVentaComponent implements OnInit, AfterViewInit {
       cantidad: 0
     };
   });
-  protected readonly maximoMensual = computed(() => Math.max(...this.meses().map(mes => mes.ingreso), 1));
+  protected readonly maximoMensual = computed(() => Math.max(...this.meses().map(mes => mes.ingreso), 0));
   protected readonly mensaje = signal('');
   protected readonly error = signal('');
   protected readonly guardando = signal(false);
@@ -62,7 +62,8 @@ export class RegistroVentaComponent implements OnInit, AfterViewInit {
   }
 
   protected alturaBarra(ingreso: number): number {
-    return Math.max(ingreso > 0 ? 8 : 0, ingreso / this.maximoMensual() * 100);
+    const maximo = this.maximoMensual();
+    return maximo === 0 ? 0 : Math.max(8, ingreso / maximo * 100);
   }
 
   protected mostrarInforme(): void {
