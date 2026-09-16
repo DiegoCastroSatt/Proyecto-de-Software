@@ -10,4 +10,5 @@ public class CrearProductoDto
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
     public string Estado { get; set; } = "Disponible";
+    public IFormFile? Imagen { get; set; }
 }

@@ -181,6 +181,18 @@
         </div>
       </section>
 
+      <section class="form-section">
+        <h2>Imagen del producto</h2>
+        <div class="field">
+          <label for="imagen">Imagen</label>
+          <input id="imagen" type="file" accept="image/jpeg,image/png,image/webp" (change)="handleImageChange($event)" />
+          <small>Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 5 MB.</small>
+          @if (selectedImage()) {
+            <small>{{ selectedImage()?.name }}</small>
+          }
+        </div>
+      </section>
+
       <div class="form-actions">
         <p class="form-footnote">El producto quedará visible en el catálogo según el estado seleccionado.</p>
         <button type="submit" [disabled]="isSubmitting()">

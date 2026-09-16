@@ -3,11 +3,14 @@ using Optica.Api.Modules.Productos.Models;
 public class ProductoService : IProductoService
 {
     private static readonly string[] EstadosValidos = ["Disponible", "Agotado"];
+    private static readonly string[] ExtensionesImagenValidas = [".jpg", ".jpeg", ".png", ".webp"];
     private readonly IProductoRepository _productoRepository;
+    private readonly IWebHostEnvironment _environment;
 
-    public ProductoService(IProductoRepository productoRepository)
+    public ProductoService(IProductoRepository productoRepository, IWebHostEnvironment environment)
     {
         _productoRepository = productoRepository;
+        _environment = environment;
     }
 
     public async Task<ProductoResponseDto> CrearProducto(CrearProductoDto dto)
@@ -46,6 +49,8 @@ public class ProductoService : IProductoService
             throw new InvalidOperationException("Ya existe un producto con ese código.");
         }
 
+        var rutaImagen = await GuardarImagen(dto.Imagen);
+
         var producto = await _productoRepository.Crear(new Producto
         {
             Codigo = codigo,
@@ -57,7 +62,8 @@ public class ProductoService : IProductoService
             Precio = dto.Precio,
             Stock = dto.Stock,
             StockMinimo = dto.StockMinimo,
-            Estado = EstadosValidos.First(estadoValido => string.Equals(estadoValido, estado, StringComparison.OrdinalIgnoreCase))
+            Estado = EstadosValidos.First(estadoValido => string.Equals(estadoValido, estado, StringComparison.OrdinalIgnoreCase)),
+            RutaImagen = rutaImagen
         });
 
         return new ProductoResponseDto
@@ -65,7 +71,37 @@ public class ProductoService : IProductoService
             Id = producto.IdProducto,
             Codigo = producto.Codigo,
             Nombre = producto.Nombre,
-            Estado = producto.Estado
+            Estado = producto.Estado,
+            RutaImagen = producto.RutaImagen
         };
+    }
+
+    private async Task<string?> GuardarImagen(IFormFile? imagen)
+    {
+        if (imagen is null || imagen.Length == 0)
+        {
+            return null;
+        }
+
+        if (imagen.Length > 5 * 1024 * 1024)
+        {
+            throw new ArgumentException("La imagen no puede superar los 5 MB.");
+        }
+
+        var extension = Path.GetExtension(imagen.FileName).ToLowerInvariant();
+        if (!ExtensionesImagenValidas.Contains(extension) || !imagen.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("La imagen debe ser JPG, PNG o WebP.");
+        }
+
+        var directorio = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "uploads", "productos");
+        Directory.CreateDirectory(directorio);
+
+        var nombreArchivo = $"{Guid.NewGuid():N}{extension}";
+        var rutaFisica = Path.Combine(directorio, nombreArchivo);
+
+        await using var stream = File.Create(rutaFisica);
+        await imagen.CopyToAsync(stream);
+        return $"/uploads/productos/{nombreArchivo}";
     }
 }

@@ -127,6 +127,10 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# Imágenes cargadas localmente por registrar-producto
+/Optica.Api/wwwroot/uploads/productos/*
+!/Optica.Api/wwwroot/uploads/productos/.gitkeep
+
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
