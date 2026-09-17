@@ -1,0 +1,117 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-mark" aria-hidden="true">SF</span>
+      <span class="brand-name">Centro Óptico San Francisco</span>
+    </div>
+
+    <nav class="topbar-nav" aria-label="Secciones del panel">
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="2.5" y="2.5" width="6.5" height="6.5" />
+          <rect x="11" y="2.5" width="6.5" height="4.5" />
+          <rect x="11" y="9.5" width="6.5" height="8" />
+          <rect x="2.5" y="11.5" width="6.5" height="6" />
+        </svg>
+        Dashboard
+      </a>
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="10" cy="6.5" r="3.3" />
+          <path d="M3.5 17c.7-3.6 3.4-5.5 6.5-5.5s5.8 1.9 6.5 5.5" />
+        </svg>
+        Clientes
+      </a>
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="2.5" y="3.5" width="15" height="14" rx="0.5" />
+          <path d="M2.5 7.5h15M6 2v3M14 2v3" />
+        </svg>
+        Agenda
+      </a>
+      <a class="nav-link" href="/registro-producto">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M2.5 6.5 10 2.5l7.5 4v7l-7.5 4-7.5-4Z" />
+          <path d="M2.5 6.5 10 10.5l7.5-4M10 10.5v7" />
+        </svg>
+        Productos
+      </a>
+      <a class="nav-link" href="/pedido">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="2" />
+          <rect x="3" y="9" width="14" height="2" />
+          <rect x="3" y="14" width="14" height="2" />
+        </svg>
+        Pedidos
+      </a>
+      <a class="nav-link is-active" href="/ventas" aria-current="page"><svg class="nav-icon" viewBox="0 0 20 20"
+          aria-hidden="true">
+          <path d="M4 2.5h12v15l-3-2-3 2-3-2-3 2Z" />
+          <path d="M7 7h6M7 10h6M7 13h3" />
+        </svg>Ventas</a>
+    </nav>
+
+    <div class="topbar-user" aria-hidden="true">
+      <span class="user-avatar">V</span>
+    </div>
+  </header>
+  <main class="ventas">
+    <h1>Registrar venta</h1>
+    <p>Escanea un código o escríbelo y presiona Enter. Cada lectura agrega el producto a esta venta.</p>
+    @if (mensaje()) { <p class="exito" role="status">{{ mensaje() }}</p> }
+    @if (error()) { <p class="error" role="alert">{{ error() }} <button type="button"
+        (click)="error.set('')">Cerrar</button></p> }
+    <div class="caja">
+      <section>
+        <form [formGroup]="formulario" (ngSubmit)="agregar()">
+          <label for="codigo">Código del producto</label>
+          <input #codigo id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="30"
+            placeholder="Escanea o escribe el código">
+          <label for="cantidad">Unidades por lectura</label>
+          <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
+          <button type="submit" [disabled]="guardando()">Agregar producto</button>
+        </form>
+        @if (pendientes()) { <p role="status">Consultando {{ pendientes() }} código(s)…</p> }
+        <h2>Productos de la venta</h2>
+        @if (!productos().length) { <p class="vacio">La venta está vacía. Escanea el primer producto.</p> }
+        @for (producto of productos(); track producto.idProducto) {
+        <article class="linea">
+          <div><strong>{{ producto.nombre }}</strong><small>{{ producto.codigoProducto }} · ${{ producto.precio |
+              number:'1.0-2' }} c/u</small></div>
+          <div class="cantidad">
+            <button type="button" [disabled]="guardando() || pendientes() > 0 || producto.cantidad <= 1"
+              (click)="cambiarCantidad(producto.idProducto, -1)"
+              [attr.aria-label]="'Restar unidad de ' + producto.nombre">−</button>
+            <span>{{ producto.cantidad }}</span>
+            <button type="button" [disabled]="guardando() || pendientes() > 0"
+              (click)="cambiarCantidad(producto.idProducto, 1)"
+              [attr.aria-label]="'Sumar unidad de ' + producto.nombre">+</button>
+          </div>
+          <strong>${{ producto.precio * producto.cantidad | number:'1.0-2' }}</strong>
+          <button type="button" class="quitar" [disabled]="guardando() || pendientes() > 0"
+            (click)="quitar(producto.codigoProducto)">Quitar</button>
+        </article>
+        }
+      </section>
+      <aside class="resumen">
+        <h2>Resumen de venta</h2>
+        <p>{{ productos().length }} productos · {{ unidades() }} unidades</p>
+        <span>Total</span>
+        <strong class="total">${{ total() | number:'1.0-2' }}</strong>
+        <button type="button" [disabled]="guardando() || pendientes() > 0 || productos().length === 0"
+          (click)="registrar()">{{ guardando() ? 'Registrando…' : 'Registrar compra' }}</button>
+        <small>El total definitivo se calcula con los precios vigentes al confirmar.</small>
+      </aside>
+    </div>
+    <h2>Historial de ventas</h2>
+    @if (!ventas().length) { <p>Aún no hay ventas registradas.</p> }
+    @for (venta of ventas(); track venta.idVenta) {
+    <article>
+      <strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span>
+      @for (producto of venta.productos; track producto.productoId) { <span>{{ producto.nombre }} × {{ producto.cantidad
+        }}</span> }
+      <strong>Total: ${{ venta.total | number:'1.0-2' }}</strong>
+    </article>
+    }
+  </main>
+</div>

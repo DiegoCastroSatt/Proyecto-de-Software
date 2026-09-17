@@ -1,3 +1,6 @@
+using Optica.Api.Modules.Ventas.Interfaces;
+using Optica.Api.Modules.Ventas.Repositories;
+using Optica.Api.Modules.Ventas.Services;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 
@@ -26,8 +29,39 @@ builder.Services.AddCors(options =>
 // Implementación temporal hasta configurar la base de datos.
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<ICatalogoRepository, CatalogoRepository>();
+builder.Services.AddScoped<ICatalogoService, CatalogoService>();
+
+builder.Services.AddScoped<IVentaRepository, VentaRepository>();
+builder.Services.AddScoped<IConsultaProductoVenta, ConsultaProductoVenta>();
+builder.Services.AddScoped<IVentaService, VentaService>();
+builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<OpticaDbContext>();
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS catalogos (
+            id_catalogo INT AUTO_INCREMENT PRIMARY KEY,
+            tipo VARCHAR(20) NOT NULL,
+            nombre VARCHAR(60) NOT NULL,
+            UNIQUE KEY uq_catalogo_tipo_nombre (tipo, nombre)
+        )
+        """);
+
+    db.Database.ExecuteSqlRaw("""
+        INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
+        ('Marca', 'Ray-Ban'), ('Marca', 'Oakley'), ('Marca', 'Vogue'), ('Marca', 'Polaroid'),
+        ('Color', 'Negro'), ('Color', 'Café'), ('Color', 'Dorado'), ('Color', 'Plateado'), ('Color', 'Transparente'),
+        ('Categoria', 'Lentes ópticos'), ('Categoria', 'Lentes de sol'), ('Categoria', 'Armazones'),
+        ('Categoria', 'Lentes de contacto'), ('Categoria', 'Accesorios')
+        """);
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -9,6 +9,7 @@ import { PedidoService } from './pedido.service';
   styleUrl: './pedido.css'
 })
 export class PedidoComponent {
+  protected readonly pedidos = signal<any[]>([]);
   protected readonly confirmedClient = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');

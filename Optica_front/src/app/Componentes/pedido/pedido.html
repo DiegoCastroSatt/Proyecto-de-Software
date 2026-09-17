@@ -1,72 +1,90 @@
-<main class="booking-page">
-  <section class="booking-shell" aria-labelledby="booking-title">
-    <div class="booking-intro">
-      <div class="brand-mark" aria-hidden="true">SF</div>
-      <p class="eyebrow">Centro Óptico San Francisco</p>
-      <h1 id="booking-title">Crear Nuevo Pedido</h1>
-      <p class="intro-copy">
-        Registra el pedido del lente para el cliente, especificando la receta y fecha de creación.
-      </p>
-
-      <div class="appointment-note">
-        <span class="note-icon" aria-hidden="true">i</span>
-        <p>El pedido se generará automáticamente con el estado "Pendiente".</p>
-      </div>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-mark" aria-hidden="true">SF</span>
+      <span class="brand-name">Centro Óptico San Francisco</span>
     </div>
 
-    <div class="booking-form-area">
-      <div class="form-heading">
-        <p class="eyebrow">Nuevo Pedido</p>
-        <h2>Datos del Pedido</h2>
-        <p>Todos los campos son obligatorios.</p>
-      </div>
+    <nav class="topbar-nav" aria-label="Secciones del panel">
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="2.5" y="2.5" width="6.5" height="6.5" />
+          <rect x="11" y="2.5" width="6.5" height="4.5" />
+          <rect x="11" y="9.5" width="6.5" height="8" />
+          <rect x="2.5" y="11.5" width="6.5" height="6" />
+        </svg>
+        Dashboard
+      </a>
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="10" cy="6.5" r="3.3" />
+          <path d="M3.5 17c.7-3.6 3.4-5.5 6.5-5.5s5.8 1.9 6.5 5.5" />
+        </svg>
+        Clientes
+      </a>
+      <a class="nav-link" href="#">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="2.5" y="3.5" width="15" height="14" rx="0.5" />
+          <path d="M2.5 7.5h15M6 2v3M14 2v3" />
+        </svg>
+        Agenda
+      </a>
+      <a class="nav-link" href="/registro-producto">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M2.5 6.5 10 2.5l7.5 4v7l-7.5 4-7.5-4Z" />
+          <path d="M2.5 6.5 10 10.5l7.5-4M10 10.5v7" />
+        </svg>
+        Productos
+      </a>
+      <a class="nav-link is-active" href="/pedido" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="2" />
+          <rect x="3" y="9" width="14" height="2" />
+          <rect x="3" y="14" width="14" height="2" />
+        </svg>
+        Pedidos
+      </a>
+      <a class="nav-link" href="/ventas"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M4 2.5h12v15l-3-2-3 2-3-2-3 2Z" />
+          <path d="M7 7h6M7 10h6M7 13h3" />
+        </svg>Ventas</a>
+    </nav>
 
-      @if (confirmedClient()) {
-        <div class="success-message" role="status">
-          <strong>Pedido creado exitosamente para {{ confirmedClient() }}.</strong>
-          <span>El pedido está ahora en estado Pendiente.</span>
-        </div>
-      }
-
-      @if (errorMessage()) {
-        <div class="error-message" role="alert">{{ errorMessage() }}</div>
-      }
-
-      <form [formGroup]="pedidoForm" (ngSubmit)="submitPedido()" novalidate>
-        <div class="form-grid">
-          <div class="field field-wide">
-            <label for="cliente">Cliente</label>
-            <input id="cliente" type="text" formControlName="cliente" autocomplete="name" placeholder="Ej. Juan Pérez" />
-            @if (hasError('cliente', 'required')) {
-              <small>Ingresa el nombre del cliente.</small>
-            } @else if (hasError('cliente', 'minlength')) {
-              <small>El nombre debe tener al menos 3 caracteres.</small>
-            }
-          </div>
-
-          <div class="field field-wide">
-            <label for="receta">Receta</label>
-            <textarea id="receta" formControlName="receta" placeholder="Detalles de la receta del lente..." rows="3" style="width: 100%; padding: 12px 14px; border: 1px solid #c9d3ce; border-radius: 2px; font: inherit; font-size: 0.92rem;"></textarea>
-            @if (hasError('receta', 'required')) {
-              <small>Ingresa la receta del lente.</small>
-            } @else if (hasError('receta', 'minlength')) {
-              <small>La receta debe tener al menos 10 caracteres.</small>
-            }
-          </div>
-
-          <div class="field field-wide">
-            <label for="fecha">Fecha del Pedido</label>
-            <input id="fecha" type="date" formControlName="fecha" />
-            @if (hasError('fecha', 'required')) {
-              <small>Selecciona la fecha del pedido.</small>
-            }
-          </div>
-        </div>
-
-        <button type="submit" [disabled]="isSubmitting()">
-          {{ isSubmitting() ? 'Creando...' : 'Crear Pedido' }}
-        </button>
-      </form>
+    <div class="topbar-user" aria-hidden="true">
+      <span class="user-avatar">V</span>
     </div>
-  </section>
-</main>
+  </header>
+
+  <main class="order-page">
+    <section class="booking-shell" aria-labelledby="booking-title">
+
+      <div class="booking-form-area">
+        <div class="form-heading"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div>
+            <p class="eyebrow">Gestión</p>
+            <h2 style="margin: 0;">Pedidos Guardados</h2>
+          </div>
+          <button type="button" style="width: auto; margin: 0; padding: 12px 24px;">Crear Pedido</button>
+        </div>
+
+        <div class="search-bar-container" style="margin-bottom: 24px;">
+          <input type="search" class="search-input" placeholder="Buscar pedido por cliente"
+            style="width: 100%; padding: 10px 14px; border: 1px solid #c9d3ce; border-radius: 4px; box-sizing: border-box;" />
+        </div>
+
+        @if (pedidos().length === 0) {
+        <div class="empty-state"
+          style="padding: 60px 20px; text-align: center; background: #f9fbfb; border: 1px dashed #c9d3ce; border-radius: 4px;">
+          <p style="color: #6c7b78; margin: 0; font-size: 1.1rem;">Sin pedidos</p>
+          <p style="color: #9aa8a3; font-size: 0.9rem; margin-top: 8px;">No hay pedidos registrados en el sistema.</p>
+        </div>
+        } @else {
+        <div class="pedidos-list">
+          <!-- Lista de pedidos irá aquí -->
+        </div>
+        }
+      </div>
+    </section>
+  </main>
+</div>

@@ -1,4 +1,10 @@
 
+-- Script autocontenido: puede ejecutarse directamente en MySQL o mediante Docker.
+CREATE DATABASE IF NOT EXISTS optica_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE optica_db;
 
 CREATE TABLE clientes (
 id_cliente INT AUTO_INCREMENT PRIMARY KEY,
@@ -35,6 +41,29 @@ ON DELETE CASCADE,
 CONSTRAINT uq_receta_ojo UNIQUE (id_receta, ojo)
 );
 
+CREATE TABLE catalogos (
+id_catalogo INT AUTO_INCREMENT PRIMARY KEY,
+tipo VARCHAR(20) NOT NULL,
+nombre VARCHAR(60) NOT NULL,
+CONSTRAINT uq_catalogo_tipo_nombre UNIQUE (tipo, nombre)
+);
+
+INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
+('Marca', 'Ray-Ban'),
+('Marca', 'Oakley'),
+('Marca', 'Vogue'),
+('Marca', 'Polaroid'),
+('Color', 'Negro'),
+('Color', 'Café'),
+('Color', 'Dorado'),
+('Color', 'Plateado'),
+('Color', 'Transparente'),
+('Categoria', 'Lentes ópticos'),
+('Categoria', 'Lentes de sol'),
+('Categoria', 'Armazones'),
+('Categoria', 'Lentes de contacto'),
+('Categoria', 'Accesorios');
+
 CREATE TABLE productos (
 id_producto INT AUTO_INCREMENT PRIMARY KEY,
 codigo VARCHAR(30) NOT NULL UNIQUE,
@@ -42,7 +71,7 @@ nombre VARCHAR(100) NOT NULL,
 marca VARCHAR(60),
 modelo VARCHAR(60),
 color VARCHAR(40),
-categoria VARCHAR(50),
+categoria VARCHAR(50) NOT NULL,
 precio DECIMAL(10,2) NOT NULL DEFAULT 0,
 stock INT NOT NULL DEFAULT 0,
 stock_minimo INT NOT NULL DEFAULT 0,
@@ -67,12 +96,8 @@ ON DELETE SET NULL
 
 CREATE TABLE ventas (
 id_venta INT AUTO_INCREMENT PRIMARY KEY,
-id_cliente INT NOT NULL,
 fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-total DECIMAL(10,2) NOT NULL DEFAULT 0,
-CONSTRAINT fk_ventas_cliente
-FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
-ON DELETE CASCADE
+total DECIMAL(10,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE detalle_venta (
@@ -146,6 +171,5 @@ CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
 CREATE INDEX idx_pedidos_cliente ON pedidos(id_cliente);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX idx_reservas_horario ON reservas(id_horario);
-CREATE INDEX idx_ventas_cliente ON ventas(id_cliente);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);

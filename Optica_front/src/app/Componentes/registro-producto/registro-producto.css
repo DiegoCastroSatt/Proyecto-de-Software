@@ -3,7 +3,14 @@
   min-height: 100%;
 }
 
-.app-shell { min-height: 100vh; background: #eef2f0; color: #1d3434; }
+.app-shell {
+  min-height: 100vh;
+  background: #eef2f0;
+  color: #1d3434;
+}
+
+/* Topbar */
+
 .topbar {
   display: flex;
   align-items: center;
@@ -97,84 +104,130 @@
   font-weight: 800;
 }
 
+/* Page */
 
-.booking-page {
-  min-height: 100vh;
-  padding: 32px 20px;
-  display: grid;
-  place-items: center;
-  background: #e8f0ed;
-  background-image: radial-gradient(circle at 9% 16%, rgba(179, 215, 204, 0.62), transparent 31%), radial-gradient(circle at 92% 84%, rgba(224, 193, 151, 0.32), transparent 27%);
-  color: #1d3434;
-}
-
-.booking-shell {
-  width: min(800px, 100%);
+.page {
+  max-width: 780px;
   margin: 0 auto;
-  overflow: hidden;
-  background: #fffdf9;
-  box-shadow: 0 24px 70px rgba(35, 67, 65, 0.15);
-  border: 1px solid rgba(29, 52, 52, 0.1);
-  border-radius: 8px;
+  padding: clamp(28px, 5vw, 52px) clamp(20px, 4vw, 24px) 64px;
 }
 
-.eyebrow {
-  margin: 0 0 14px;
-  color: #c28f50;
+.page-header .eyebrow {
+  margin: 0 0 10px;
+  color: #a96f32;
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-
-.booking-form-area {
-  padding: clamp(32px, 5vw, 66px) clamp(24px, 5vw, 66px);
-}
-
-.form-heading h2 {
+.page-header h1 {
   margin: 0;
-  color: #1d3434;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(1.9rem, 3.5vw, 2.5rem);
   font-weight: 400;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  color: #1d3434;
 }
 
-.form-heading>p:last-child {
-  margin: 9px 0 30px;
+.page-subtitle {
+  margin: 10px 0 28px;
   color: #6c7b78;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  max-width: 52ch;
+}
+
+.success-message,
+.error-message {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  font-size: 0.86rem;
+  line-height: 1.4;
 }
 
 .success-message {
-  display: grid;
-  gap: 4px;
-  margin-bottom: 24px;
-  padding: 14px 16px;
   border-left: 3px solid #bf8542;
   background: #f5eedf;
   color: #38514d;
-  font-size: 0.86rem;
-  line-height: 1.4;
 }
 
 .success-message strong {
   color: #1d4a47;
 }
 
+.error-message {
+  border-left: 3px solid #bb5e4a;
+  background: #f7e9e6;
+  color: #7a3527;
+}
+
+/* Product card */
+
+.product-card {
+  background: #fffdf9;
+  border: 1px solid rgba(29, 52, 52, 0.1);
+  box-shadow: 0 18px 50px rgba(35, 67, 65, 0.1);
+}
+
+.form-section {
+  padding: 26px clamp(20px, 4vw, 32px);
+}
+
+.form-section + .form-section {
+  border-top: 1px solid #e6e1d6;
+}
+
+.form-section h2 {
+  margin: 0 0 18px;
+  color: #1d4a47;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 19px 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 16px;
 }
 
 .field {
   min-width: 0;
 }
 
+.add-option {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.add-option input {
+  min-width: 0;
+  flex: 1;
+}
+
+.add-option-button {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid #1d4a47;
+  border-radius: 2px;
+  background: #1d4a47;
+  color: #fffdf9;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-option-button:hover {
+  background: #2b625d;
+}
+
 .field-wide {
-  grid-column: 1 / -1;
+  grid-column: span 2;
 }
 
 label {
@@ -187,35 +240,41 @@ label {
 }
 
 input,
-select,
-textarea {
+select {
   width: 100%;
-  min-height: 48px;
+  min-height: 46px;
   box-sizing: border-box;
-  padding: 12px 14px;
+  padding: 11px 13px;
   border: 1px solid #c9d3ce;
   border-radius: 2px;
   outline: none;
   background: #fff;
   color: #1d3434;
   font: inherit;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-input::placeholder,
-textarea::placeholder {
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #6c7b78 50%), linear-gradient(135deg, #6c7b78 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+input::placeholder {
   color: #9aa8a3;
 }
 
 input:focus,
-textarea:focus {
+select:focus {
   border-color: #1d4a47;
   box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.12);
 }
 
 input.ng-touched.ng-invalid,
-textarea.ng-touched.ng-invalid {
+select.ng-touched.ng-invalid {
   border-color: #bb5e4a;
 }
 
@@ -226,10 +285,28 @@ small {
   font-size: 0.72rem;
 }
 
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px clamp(20px, 4vw, 32px);
+  background: #f7f4ec;
+  border-top: 1px solid #e6e1d6;
+}
+
+.form-footnote {
+  margin: 0;
+  color: #86938e;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  max-width: 34ch;
+}
+
 button {
-  width: 100%;
-  min-height: 52px;
-  margin-top: 29px;
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 26px;
   border: 0;
   border-radius: 2px;
   background: #bf8542;
@@ -247,29 +324,61 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:disabled {
+  background: #cbb28d;
+  cursor: not-allowed;
+  transform: none;
+}
+
 button:focus-visible {
   outline: 3px solid rgba(29, 74, 71, 0.3);
   outline-offset: 3px;
 }
 
 @media (max-width: 720px) {
-  .booking-page {
-    padding: 0;
+  .topbar {
+    gap: 12px;
   }
 
-  .booking-shell {
-    min-height: 100vh;
-    border-radius: 0;
-    border: none;
+  .brand-name {
+    display: none;
+  }
+
+  .topbar-nav {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 8px 9px;
+    font-size: 0;
+  }
+
+  .nav-icon {
+    width: 18px;
+    height: 18px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .form-grid {
     grid-template-columns: 1fr;
   }
 
   .field-wide {
     grid-column: auto;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-footnote {
+    max-width: none;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
   }
 }

@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.Catalogos.Models;
 using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Productos.Models;
+using Optica.Api.Modules.Ventas.Models;
 
 namespace Optica.Api.Data;
 
@@ -16,6 +19,14 @@ public class OpticaDbContext : DbContext
     public DbSet<Reserva> Reservas => Set<Reserva>();
 
     public DbSet<Horario> Horarios => Set<Horario>();
+
+    public DbSet<Producto> Productos => Set<Producto>();
+
+    public DbSet<CatalogoItem> Catalogos => Set<CatalogoItem>();
+
+    public DbSet<Venta> Ventas => Set<Venta>();
+
+    public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,6 +105,56 @@ public class OpticaDbContext : DbContext
             entity.Property(h => h.HoraInicio).HasColumnName("hora_inicio").HasColumnType("time");
             entity.Property(h => h.HoraFin).HasColumnName("hora_fin").HasColumnType("time");
             entity.Property(h => h.Estado).HasColumnName("estado");
+        });
+
+        modelBuilder.Entity<Producto>(entity =>
+        {
+            entity.ToTable("productos");
+            entity.HasKey(p => p.IdProducto);
+            entity.Property(p => p.IdProducto).HasColumnName("id_producto");
+            entity.Property(p => p.Codigo).HasColumnName("codigo").HasMaxLength(30).IsRequired();
+            entity.Property(p => p.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            entity.Property(p => p.Marca).HasColumnName("marca").HasMaxLength(60);
+            entity.Property(p => p.Modelo).HasColumnName("modelo").HasMaxLength(60);
+            entity.Property(p => p.Color).HasColumnName("color").HasMaxLength(40);
+            entity.Property(p => p.Categoria).HasColumnName("categoria").HasMaxLength(50);
+            entity.Property(p => p.Precio).HasColumnName("precio").HasPrecision(10, 2).IsRequired();
+            entity.Property(p => p.Stock).HasColumnName("stock").IsRequired();
+            entity.Property(p => p.StockMinimo).HasColumnName("stock_minimo").IsRequired();
+            entity.Property(p => p.Estado).HasColumnName("estado").HasMaxLength(9).IsRequired();
+            entity.HasIndex(p => p.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<Venta>(entity =>
+        {
+            entity.ToTable("ventas");
+            entity.HasKey(v => v.IdVenta);
+            entity.Property(v => v.IdVenta).HasColumnName("id_venta");
+            entity.Property(v => v.Fecha).HasColumnName("fecha");
+            entity.Property(v => v.Total).HasColumnName("total").HasPrecision(10, 2);
+            entity.HasMany(v => v.Detalles).WithOne().HasForeignKey(d => d.VentaId);
+        });
+
+        modelBuilder.Entity<DetalleVenta>(entity =>
+        {
+            entity.ToTable("detalle_venta");
+            entity.HasKey(d => d.IdDetalle);
+            entity.Property(d => d.IdDetalle).HasColumnName("id_detalle");
+            entity.Property(d => d.VentaId).HasColumnName("id_venta");
+            entity.Property(d => d.ProductoId).HasColumnName("id_producto");
+            entity.Property(d => d.Cantidad).HasColumnName("cantidad");
+            entity.Property(d => d.PrecioUnitario).HasColumnName("precio_unitario").HasPrecision(10, 2);
+            entity.Property(d => d.Subtotal).HasColumnName("subtotal").HasPrecision(10, 2);
+        });
+
+        modelBuilder.Entity<CatalogoItem>(entity =>
+        {
+            entity.ToTable("catalogos");
+            entity.HasKey(c => c.IdCatalogo);
+            entity.Property(c => c.IdCatalogo).HasColumnName("id_catalogo");
+            entity.Property(c => c.Tipo).HasColumnName("tipo").HasMaxLength(20).IsRequired();
+            entity.Property(c => c.Nombre).HasColumnName("nombre").HasMaxLength(60).IsRequired();
+            entity.HasIndex(c => new { c.Tipo, c.Nombre }).IsUnique();
         });
     }
 }
