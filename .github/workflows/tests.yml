@@ -1,0 +1,20 @@
+name: Pruebas de ventas
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ventas:
+    name: Ejecutar pruebas de ventas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Ejecutar pruebas de ventas
+        run: dotnet run --project tests/Optica.Ventas.Tests/Optica.Ventas.Tests.csproj --configuration Release
