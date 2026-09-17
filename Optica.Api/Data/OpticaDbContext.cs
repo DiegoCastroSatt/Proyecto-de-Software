@@ -122,6 +122,7 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.Stock).HasColumnName("stock").IsRequired();
             entity.Property(p => p.StockMinimo).HasColumnName("stock_minimo").IsRequired();
             entity.Property(p => p.Estado).HasColumnName("estado").HasMaxLength(9).IsRequired();
+            entity.Property(p => p.RutaImagen).HasColumnName("ruta_imagen").HasMaxLength(255);
             entity.HasIndex(p => p.Codigo).IsUnique();
         });
 

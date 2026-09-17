@@ -1,20 +1,56 @@
-name: Pruebas de ventas
+name: Pruebas del sistema
 
 on:
   push:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  ventas:
-    name: Ejecutar pruebas de ventas
+  backend:
+    name: API y pruebas .NET
     runs-on: ubuntu-latest
     steps:
-      - name: Obtener código
-        uses: actions/checkout@v4
-      - name: Instalar .NET 10
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: Ejecutar pruebas de ventas
-        run: dotnet test tests/Ventas/Optica.Ventas.Tests.csproj --configuration Release --logger "console;verbosity=detailed"
+      - name: Compilar API
+        run: dotnet build Optica.Api/Optica.Api.csproj --configuration Release
+      - name: Ejecutar todos los proyectos de pruebas
+        shell: bash
+        run: |
+          mapfile -d '' proyectos < <(find tests -name '*Tests.csproj' -print0)
+          test "${#proyectos[@]}" -gt 0
+          for proyecto in "${proyectos[@]}"; do
+            nombre=$(basename "$proyecto" .csproj)
+            dotnet test "$proyecto" --configuration Release --logger "trx;LogFileName=$nombre.trx" --results-directory "$GITHUB_WORKSPACE/TestResults"
+          done
+      - name: Guardar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-backend
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+
+  frontend:
+    name: Pruebas y compilación Angular
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Optica_front
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Optica_front/package-lock.json
+      - run: npm ci
+      - name: Ejecutar todas las pruebas Angular
+        run: npm test -- --watch=false
+      - name: Compilar frontend
+        run: npm run build
