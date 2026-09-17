@@ -68,14 +68,60 @@
       <small>El total definitivo se calcula con los precios vigentes al confirmar.</small>
     </aside>
   </div>
-  <h2>Historial de ventas</h2>
-  @if (!ventas().length) { <p>Aún no hay ventas registradas.</p> }
-  @for (venta of ventas(); track venta.idVenta) {
-    <article>
-      <strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span>
-      @for (producto of venta.productos; track producto.productoId) { <span>{{ producto.nombre }} × {{ producto.cantidad }}</span> }
-      <strong>Total: ${{ venta.total | number:'1.0-2' }}</strong>
+  <section class="panel-administracion" aria-labelledby="titulo-informe">
+    <div class="encabezado-informe">
+      <div>
+        <p class="sobretitulo">Administración</p>
+        <h2 id="titulo-informe">Resumen de ventas</h2>
+      </div>
+      <div class="acciones-informe">
+        <button type="button" class="secundario" (click)="mostrarInforme()">Mostrar PDF</button>
+        <button type="button" (click)="descargarInforme()">Descargar PDF</button>
+      </div>
+    </div>
+
+    <div class="indicadores">
+      <article class="indicador">
+        <span>Ingreso del mes</span>
+        <strong>${{ mesActual().ingreso | number:'1.0-0' }}</strong>
+        <small>{{ mesActual().etiqueta }}</small>
+      </article>
+      <article class="indicador">
+        <span>Ventas realizadas este mes</span>
+        <strong>{{ mesActual().cantidad }}</strong>
+        <small>{{ ventas().length }} en el historial completo</small>
+      </article>
+    </div>
+
+    <article class="grafico">
+      <div class="titulo-grafico">
+        <div><h3>Ingresos mensuales</h3><p>Últimos 12 meses</p></div>
+        <span>Mayor ingreso: ${{ maximoMensual() | number:'1.0-0' }}</span>
+      </div>
+      <div class="barras" role="img" aria-label="Gráfico de barras de ingresos mensuales de los últimos doce meses">
+        @for (mes of meses(); track mes.clave) {
+          <div class="columna" [attr.title]="mes.etiqueta + ': $' + mes.ingreso">
+            <span class="valor">${{ mes.ingreso | number:'1.0-0' }}</span>
+            <div class="barra" [style.height.%]="alturaBarra(mes.ingreso)"></div>
+            <span class="mes">{{ mes.etiqueta }}</span>
+          </div>
+        }
+      </div>
     </article>
-  }
+
+    <h3>Historial de ventas</h3>
+    @if (!ventas().length) { <p class="vacio">Aún no hay ventas registradas.</p> }
+    <div class="historial">
+      @for (venta of ventas(); track venta.idVenta) {
+        <article class="venta-historial">
+          <div><strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span></div>
+          <div class="productos-historial">
+            @for (producto of venta.productos; track producto.productoId) { <span>{{ producto.nombre }} × {{ producto.cantidad }}</span> }
+          </div>
+          <strong>${{ venta.total | number:'1.0-0' }}</strong>
+        </article>
+      }
+    </div>
+  </section>
 </main>
 </div>
