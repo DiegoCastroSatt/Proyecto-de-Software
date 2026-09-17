@@ -1,0 +1,21 @@
+<div class="client-shell">
+  <header class="client-header">
+    <a class="brand" routerLink="/inicio" aria-label="Centro Óptico San Francisco, inicio">
+      <span class="brand-mark" aria-hidden="true">SF</span>
+      <span>
+        <strong>Centro Óptico</strong>
+        <small>San Francisco</small>
+      </span>
+    </a>
+
+    <nav aria-label="Navegación del cliente">
+      <a routerLink="/inicio" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+      <a routerLink="/reservas" routerLinkActive="is-active">Agendar reserva</a>
+      <a routerLink="/productos" routerLinkActive="is-active">Productos</a>
+    </nav>
+  </header>
+
+  <main class="client-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

@@ -1,0 +1,31 @@
+<div class="admin-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-mark">SF</span>
+      <span class="brand-name">Centro Óptico San Francisco</span>
+    </div>
+
+    <nav class="topbar-nav" aria-label="Secciones del panel">
+      <a routerLink="/admin" routerLinkActive="is-active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        Dashboard
+      </a>
+
+      <a routerLink="/admin/productos" routerLinkActive="is-active">
+        Productos
+      </a>
+
+      <a routerLink="/admin/ventas" routerLinkActive="is-active">
+        Ventas
+      </a>
+    </nav>
+
+    <div class="topbar-user">
+      <span class="user-avatar">V</span>
+    </div>
+  </header>
+
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
