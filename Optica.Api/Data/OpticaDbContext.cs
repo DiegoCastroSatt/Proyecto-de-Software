@@ -20,6 +20,8 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Horario> Horarios => Set<Horario>();
 
+    public DbSet<Administrador> Administradores => Set<Administrador>();
+
     public DbSet<Producto> Productos => Set<Producto>();
 
     public DbSet<CatalogoItem> Catalogos => Set<CatalogoItem>();
@@ -101,10 +103,23 @@ public class OpticaDbContext : DbContext
             entity.ToTable("horarios_atencion");
             entity.HasKey(h => h.Id);
             entity.Property(h => h.Id).HasColumnName("id_horario");
+            entity.Property(h => h.AdministradorId).HasColumnName("id_administrador");
             entity.Property(h => h.Fecha).HasColumnName("fecha").HasColumnType("date");
             entity.Property(h => h.HoraInicio).HasColumnName("hora_inicio").HasColumnType("time");
             entity.Property(h => h.HoraFin).HasColumnName("hora_fin").HasColumnType("time");
             entity.Property(h => h.Estado).HasColumnName("estado");
+        });
+
+        modelBuilder.Entity<Administrador>(entity =>
+        {
+            entity.ToTable("administradores");
+            entity.HasKey(a => a.IdAdministrador);
+            entity.Property(a => a.IdAdministrador).HasColumnName("id_administrador");
+            entity.Property(a => a.Nombre).HasColumnName("nombre");
+            entity.Property(a => a.Correo).HasColumnName("correo");
+            entity.Property(a => a.Contrasena).HasColumnName("contrasena");
+            entity.Property(a => a.Estado).HasColumnName("estado");
+            entity.HasIndex(a => a.Nombre).IsUnique();
         });
 
         modelBuilder.Entity<Producto>(entity =>

@@ -3,6 +3,7 @@ namespace Optica.Api.Modules.AgendaReservas.Models;
 public class Horario
 {
     public int Id { get; set; }
+    public int AdministradorId { get; set; }
     public DateTime Fecha { get; set; }
     public TimeSpan HoraInicio { get; set; }
     public TimeSpan HoraFin { get; set; }
