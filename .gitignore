@@ -27,6 +27,7 @@ modules/.vscode
 # Don't check in secret files
 *secret.js
 .env
+.env.*
 !.env.example
 
 # Ignore npm/yarn debug log
@@ -125,6 +126,10 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+
+# Imágenes cargadas localmente por registrar-producto
+/Optica.Api/wwwroot/uploads/productos/*
+!/Optica.Api/wwwroot/uploads/productos/.gitkeep
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
