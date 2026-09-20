@@ -8,6 +8,13 @@ import { ClientesComponent } from './components/clientes/clientes';
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, RouterOutlet, ReservaComponent, ClientesComponent],
+=======
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+
   templateUrl: './app.html',
   styleUrl: './app.css',
   host: {
