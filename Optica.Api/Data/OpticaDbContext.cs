@@ -4,6 +4,7 @@ using Optica.Api.Modules.Catalogos.Models;
 using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.Productos.Models;
 using Optica.Api.Modules.Ventas.Models;
+using Optica.Api.Modules.Pedidos.Models;
 
 namespace Optica.Api.Data;
 
@@ -25,6 +26,8 @@ public class OpticaDbContext : DbContext
     public DbSet<CatalogoItem> Catalogos => Set<CatalogoItem>();
 
     public DbSet<Venta> Ventas => Set<Venta>();
+
+    public DbSet<Pedido> Pedidos => Set<Pedido>();
 
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
@@ -155,6 +158,18 @@ public class OpticaDbContext : DbContext
             entity.Property(c => c.Tipo).HasColumnName("tipo").HasMaxLength(20).IsRequired();
             entity.Property(c => c.Nombre).HasColumnName("nombre").HasMaxLength(60).IsRequired();
             entity.HasIndex(c => new { c.Tipo, c.Nombre }).IsUnique();
+        });
+        modelBuilder.Entity<Pedido>(entity =>
+        {
+            entity.ToTable("pedidos");
+            entity.HasKey(p => p.IdPedido);
+            entity.Property(p => p.IdPedido).HasColumnName("id_pedido");
+            entity.Property(p => p.IdCliente).HasColumnName("id_cliente");
+            entity.Property(p => p.IdReceta).HasColumnName("id_receta");
+            entity.Property(p => p.Fecha).HasColumnName("fecha");
+            entity.Property(p => p.Estado).HasColumnName("estado");
+            entity.Property(p => p.Total).HasColumnName("total").HasPrecision(10, 2);
+            entity.Property(p => p.Anotaciones).HasColumnName("anotaciones");
         });
     }
 }

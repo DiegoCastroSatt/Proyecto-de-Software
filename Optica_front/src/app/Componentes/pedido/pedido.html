@@ -56,32 +56,34 @@
   </header>
 
   <main class="order-page">
-    <section class="booking-shell" aria-labelledby="booking-title">
+    <section class="order-shell">
 
-      <div class="booking-form-area">
-        <div class="form-heading"
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <div>
-            <p class="eyebrow">Gestión</p>
-            <h2 style="margin: 0;">Pedidos Guardados</h2>
-          </div>
-          <button type="button" style="width: auto; margin: 0; padding: 12px 24px;">Crear Pedido</button>
+      <div class="order-form-area">
+        <div class="form-heading">
+          <h2>Lista de Pedidos</h2>
+          <button type="button" class="btn-primary" routerLink="/crear-pedido">Crear Pedido</button>
         </div>
 
-        <div class="search-bar-container" style="margin-bottom: 24px;">
-          <input type="search" class="search-input" placeholder="Buscar pedido por cliente"
-            style="width: 100%; padding: 10px 14px; border: 1px solid #c9d3ce; border-radius: 4px; box-sizing: border-box;" />
+        <div class="search-bar-container">
+          <input type="search" class="search-input" placeholder="Buscar pedido por cliente" />
         </div>
 
         @if (pedidos().length === 0) {
-        <div class="empty-state"
-          style="padding: 60px 20px; text-align: center; background: #f9fbfb; border: 1px dashed #c9d3ce; border-radius: 4px;">
-          <p style="color: #6c7b78; margin: 0; font-size: 1.1rem;">Sin pedidos</p>
-          <p style="color: #9aa8a3; font-size: 0.9rem; margin-top: 8px;">No hay pedidos registrados en el sistema.</p>
+        <div class="empty-state">
+          <p class="empty-title">Sin pedidos</p>
+          <p class="empty-subtitle">No hay pedidos registrados en el sistema.</p>
         </div>
         } @else {
         <div class="pedidos-list">
-          <!-- Lista de pedidos irá aquí -->
+          @for (pedido of pedidos(); track pedido.idPedido) {
+          <div class="pedido-card">
+            <div class="pedido-info">
+              <span class="pedido-cliente">{{ pedido.nombreCliente }}</span>
+              <span class="pedido-fecha">{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
+          </div>
+          }
         </div>
         }
       </div>

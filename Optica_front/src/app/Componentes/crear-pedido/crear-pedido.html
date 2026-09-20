@@ -1,0 +1,79 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-mark" aria-hidden="true">SF</span>
+      <span class="brand-name">Centro Óptico San Francisco</span>
+    </div>
+
+    <nav class="topbar-nav" aria-label="Secciones del panel">
+      <!-- Mismos links que en pedido.html -->
+      <a class="nav-link" href="#">Dashboard</a>
+      <a class="nav-link" href="#">Clientes</a>
+      <a class="nav-link" href="#">Agenda</a>
+      <a class="nav-link" href="/registro-producto">Productos</a>
+      <a class="nav-link is-active" href="/pedido" aria-current="page">Pedidos</a>
+      <a class="nav-link" href="/ventas">Ventas</a>
+    </nav>
+
+    <div class="topbar-user" aria-hidden="true">
+      <span class="user-avatar">V</span>
+    </div>
+  </header>
+
+  <main class="order-page">
+    <section class="order-shell">
+      <div class="order-form-area">
+        <div class="form-heading">
+          <h2>Crear Pedido</h2>
+          <button type="button" class="btn-secondary" routerLink="/pedido">Volver a Pedidos</button>
+        </div>
+
+        <div class="form-container">
+          <form [formGroup]="pedidoForm" (ngSubmit)="submitPedido()">
+
+            <div class="form-group">
+              <label for="cliente">Nombre del Cliente</label>
+              <select id="cliente" formControlName="nombreCliente" class="form-control">
+                <option value="" disabled>Seleccione un cliente</option>
+                @for (cliente of clientes(); track cliente.idCliente) {
+                  <option [value]="cliente.nombreCompleto">{{ cliente.nombreCompleto }}</option>
+                }
+              </select>
+              @if (hasError('nombreCliente', 'required')) {
+              <span class="error-text">El cliente es obligatorio</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="fecha">Fecha</label>
+              <input type="date" id="fecha" formControlName="fecha" class="form-control">
+              @if (hasError('fecha', 'required')) {
+              <span class="error-text">La fecha es obligatoria</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="anotaciones">Anotaciones Adicionales</label>
+              <textarea id="anotaciones" formControlName="anotaciones" class="form-control" rows="4"
+                placeholder="Anotaciones para el pedido..."></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Guardando...' : 'Guardar Pedido' }}
+              </button>
+            </div>
+
+            @if (errorMessage()) {
+            <div class="error-banner">{{ errorMessage() }}</div>
+            }
+            @if (successMessage()) {
+            <div class="success-banner">{{ successMessage() }}</div>
+            }
+
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

@@ -66,16 +66,6 @@
   transition: background 140ms ease, color 140ms ease;
 }
 
-.nav-icon {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
 .nav-link:hover {
   color: #f5f5e9;
   background: rgba(245, 245, 233, 0.08);
@@ -142,21 +132,22 @@
   letter-spacing: -0.03em;
 }
 
-.btn-primary {
+.btn-primary, .btn-secondary {
   width: auto;
   min-height: 44px;
-  margin-top: 0;
   padding: 10px 20px;
   border: 0;
   border-radius: 3px;
-  background: #bf8542;
-  color: #fffdf9;
   font: inherit;
   font-size: 0.86rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
   cursor: pointer;
   transition: background 160ms ease, transform 160ms ease;
+}
+
+.btn-primary {
+  background: #bf8542;
+  color: #fffdf9;
 }
 
 .btn-primary:hover {
@@ -164,138 +155,79 @@
   transform: translateY(-1px);
 }
 
-.btn-primary:focus-visible {
-  outline: 3px solid rgba(29, 74, 71, 0.3);
-  outline-offset: 3px;
+.btn-secondary {
+  background: transparent;
+  color: #1d4a47;
+  border: 1px solid #1d4a47;
 }
 
-.search-bar-container {
-  margin-bottom: 24px;
+.btn-secondary:hover {
+  background: #eef2f0;
 }
 
-.search-input {
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #1d4a47;
+}
+
+.form-control {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 14px;
+  padding: 12px;
   border: 1px solid #c9d3ce;
   border-radius: 4px;
-  box-sizing: border-box;
   background: #ffffff;
   color: #1d3434;
-  font: inherit;
-  font-size: 0.9rem;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.search-input::placeholder {
-  color: #9aa8a3;
-}
-
-.search-input:focus {
-  border-color: #1d4a47;
-  box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.12);
-  outline: none;
-}
-
-.empty-state {
-  padding: 60px 20px;
-  text-align: center;
-  background: #f9fbfb;
-  border: 1px dashed #c9d3ce;
-  border-radius: 4px;
-}
-
-.empty-title {
-  margin: 0;
-  color: #6c7b78;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.empty-subtitle {
-  margin: 8px 0 0;
-  color: #9aa8a3;
-  font-size: 0.9rem;
-}
-
-.pedidos-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pedido-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: #f9fbfb;
-  border: 1px solid #e0e8e5;
-  border-radius: 6px;
-  transition: box-shadow 160ms ease, border-color 160ms ease;
-}
-
-.pedido-card:hover {
-  border-color: #1d4a47;
-  box-shadow: 0 4px 16px rgba(29, 74, 71, 0.08);
-}
-
-.pedido-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.pedido-cliente {
-  font-weight: 600;
-  color: #1d3434;
+  font-family: inherit;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
-.pedido-fecha {
-  color: #6c7b78;
+.form-control:focus {
+  border-color: #1d4a47;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.12);
+}
+
+.error-text {
+  color: #d32f2f;
   font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
 }
 
-.pedido-estado {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+.error-banner {
+  background: #fdecea;
+  color: #d32f2f;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 20px;
+  text-align: center;
 }
 
-.pedido-estado[data-estado="Pendiente"] {
-  background: #fff3e0;
-  color: #e65100;
-}
-
-.pedido-estado[data-estado="En proceso"] {
-  background: #e3f2fd;
-  color: #1565c0;
-}
-
-.pedido-estado[data-estado="Listo"] {
+.success-banner {
   background: #e8f5e9;
   color: #2e7d32;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 20px;
+  text-align: center;
 }
 
-.pedido-estado[data-estado="Entregado"] {
-  background: #ede7f6;
-  color: #4527a0;
-}
-
-.pedido-estado[data-estado="Cancelado"] {
-  background: #fce4ec;
-  color: #c62828;
+.form-actions {
+  margin-top: 30px;
+  text-align: right;
 }
 
 @media (max-width: 720px) {
   .order-page {
     padding: 0;
   }
-
   .order-shell {
     min-height: 100vh;
     border-radius: 0;

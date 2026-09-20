@@ -86,6 +86,7 @@ fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado')
 NOT NULL DEFAULT 'Pendiente',
 total DECIMAL(10,2) NOT NULL DEFAULT 0,
+anotaciones TEXT,
 CONSTRAINT fk_pedidos_cliente
 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
 ON DELETE CASCADE,

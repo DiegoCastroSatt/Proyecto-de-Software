@@ -3,24 +3,36 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface CrearPedido {
-  cliente: string;
-  receta: string;
+  nombreCliente: string;
   fecha: string;
-  estado: string; // 'Pendiente'
+  anotaciones?: string;
 }
 
 export interface PedidoResponse {
-  id: number;
-  cliente: string;
-  receta: string;
+  idPedido: number;
+  nombreCliente: string;
   fecha: string;
   estado: string;
+  anotaciones?: string;
+}
+
+export interface ClienteOption {
+  idCliente: number;
+  nombreCompleto: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class PedidoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/Pedidos'; // Asumiendo esta ruta
+  private readonly apiUrl = 'http://localhost:8080/api/Pedidos';
+
+  obtenerPedidos(): Observable<PedidoResponse[]> {
+    return this.http.get<PedidoResponse[]>(this.apiUrl);
+  }
+
+  obtenerClientes(): Observable<ClienteOption[]> {
+    return this.http.get<ClienteOption[]>(`${this.apiUrl}/clientes`);
+  }
 
   crearPedido(pedido: CrearPedido): Observable<PedidoResponse> {
     return this.http.post<PedidoResponse>(this.apiUrl, pedido);
