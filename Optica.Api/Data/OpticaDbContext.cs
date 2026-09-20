@@ -3,6 +3,7 @@ using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Catalogos.Models;
 using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.Productos.Models;
+using Optica.Api.Modules.RegistroRecetas.Models;
 using Optica.Api.Modules.Ventas.Models;
 
 namespace Optica.Api.Data;
@@ -19,6 +20,10 @@ public class OpticaDbContext : DbContext
     public DbSet<Reserva> Reservas => Set<Reserva>();
 
     public DbSet<Horario> Horarios => Set<Horario>();
+
+    public DbSet<Receta> Recetas => Set<Receta>();
+
+    public DbSet<Graduacion> Graduaciones => Set<Graduacion>();
 
     public DbSet<Administrador> Administradores => Set<Administrador>();
 
@@ -108,6 +113,70 @@ public class OpticaDbContext : DbContext
             entity.Property(h => h.HoraInicio).HasColumnName("hora_inicio").HasColumnType("time");
             entity.Property(h => h.HoraFin).HasColumnName("hora_fin").HasColumnType("time");
             entity.Property(h => h.Estado).HasColumnName("estado");
+        });
+
+        modelBuilder.Entity<Receta>(entity =>
+        {
+            entity.ToTable("recetas");
+
+            entity.HasKey(r => r.Id);
+
+            entity.Property(r => r.Id)
+                .HasColumnName("id_receta");
+
+            entity.Property(r => r.ClienteId)
+                .HasColumnName("id_cliente");
+
+            entity.Property(r => r.Fecha)
+                .HasColumnName("fecha")
+                .HasColumnType("date");
+
+            entity.Property(r => r.Observaciones)
+                .HasColumnName("observaciones");
+
+            entity.Property(r => r.ImagenPath)
+                .HasColumnName("imagen_path")
+                .HasMaxLength(255);
+
+            entity.Ignore(r => r.FechaCreacion);
+        });
+
+        modelBuilder.Entity<Graduacion>(entity =>
+        {
+            entity.ToTable("graduaciones");
+
+            entity.HasKey(g => g.Id);
+
+            entity.Property(g => g.Id)
+                .HasColumnName("id_graduacion");
+
+            entity.Property(g => g.RecetaId)
+                .HasColumnName("id_receta");
+
+            entity.Property(g => g.Ojo)
+                .HasColumnName("ojo")
+                .HasMaxLength(2)
+                .IsRequired();
+
+            entity.Property(g => g.Esfera)
+                .HasColumnName("esfera")
+                .HasColumnType("decimal(4,2)");
+
+            entity.Property(g => g.Cilindro)
+                .HasColumnName("cilindro")
+                .HasColumnType("decimal(4,2)");
+
+            entity.Property(g => g.Eje)
+                .HasColumnName("eje");
+
+            entity.Property(g => g.Adicion)
+                .HasColumnName("adicion")
+                .HasColumnType("decimal(4,2)");
+
+            entity.HasOne<Receta>()
+                .WithMany(r => r.Graduaciones)
+                .HasForeignKey(g => g.RecetaId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Administrador>(entity =>
