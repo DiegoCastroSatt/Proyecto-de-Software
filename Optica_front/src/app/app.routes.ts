@@ -6,6 +6,7 @@ import { AdminLayoutComponent } from './Componentes/home_admin/admin';
 import { ClienteComponent } from './Componentes/home_cliente/cliente';
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { GestionHorariosComponent } from './Componentes/gestion-horarios/gestion-horarios';
+import { RegistroRecetaComponent } from './Componentes/registro-receta/registro-receta';
 
 export const routes: Routes = [
   {
@@ -26,7 +27,8 @@ export const routes: Routes = [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
 	  {path: 'horarios', component: GestionHorariosComponent},
       { path: 'productos', component: ProductoComponent },
-      { path: 'ventas', component: RegistroVentaComponent }
+      { path: 'ventas', component: RegistroVentaComponent },
+      { path: 'recetas', component: RegistroRecetaComponent }
     ]
   },
 

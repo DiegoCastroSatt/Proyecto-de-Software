@@ -1,0 +1,147 @@
+<div class="app-shell">
+  <main class="page">
+    <div class="page-header">
+      <p class="eyebrow">Recetas</p>
+      <h1>Nueva receta</h1>
+      <p class="page-subtitle">Registra una receta y asóciala al cliente correspondiente, de forma escrita o mediante una imagen.</p>
+    </div>
+
+    @if (successMessage()) {
+      <div class="success-message" role="status">
+        <strong>Receta guardada.</strong>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="error-message" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <form class="receta-card" [formGroup]="recetaForm" (ngSubmit)="submitReceta()" novalidate>
+      <section class="form-section">
+        <h2>Cliente y fecha</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="rut">RUT del cliente</label>
+            <input id="rut" type="text" formControlName="rut" autocomplete="off" placeholder="12345678-9" />
+            @if (hasError('rut', 'required')) {
+              <small>Ingresa el RUT del cliente.</small>
+            } @else if (hasError('rut', 'maxlength')) {
+              <small>El RUT ingresado es demasiado largo.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" formControlName="fecha" />
+            @if (hasError('fecha', 'required')) {
+              <small>Selecciona la fecha de la receta.</small>
+            }
+          </div>
+
+          <div class="field field-wide">
+            <label for="observaciones">Observaciones</label>
+            <input id="observaciones" type="text" formControlName="observaciones" autocomplete="off" placeholder="Opcional" />
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>Tipo de receta</h2>
+        <div class="modo-toggle">
+          <button type="button" class="modo-button" [class.is-active]="modo() === 'escrita'" (click)="setModo('escrita')">
+            Receta escrita
+          </button>
+          <button type="button" class="modo-button" [class.is-active]="modo() === 'imagen'" (click)="setModo('imagen')">
+            Receta con imagen
+          </button>
+        </div>
+      </section>
+
+      @if (modo() === 'escrita') {
+        <section class="form-section">
+          <h2>Graduación · Ojo derecho (OD)</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="esferaOD">Esfera</label>
+              <input id="esferaOD" type="number" step="0.25" formControlName="esferaOD" />
+              @if (hasError('esferaOD', 'required')) {
+                <small>Ingresa la esfera.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="cilindroOD">Cilindro</label>
+              <input id="cilindroOD" type="number" step="0.25" formControlName="cilindroOD" />
+              @if (hasError('cilindroOD', 'required')) {
+                <small>Ingresa el cilindro.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="ejeOD">Eje</label>
+              <input id="ejeOD" type="number" min="0" max="180" formControlName="ejeOD" />
+              @if (hasError('ejeOD', 'required')) {
+                <small>Ingresa el eje.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="adicionOD">Adición</label>
+              <input id="adicionOD" type="number" step="0.25" formControlName="adicionOD" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Graduación · Ojo izquierdo (OI)</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="esferaOI">Esfera</label>
+              <input id="esferaOI" type="number" step="0.25" formControlName="esferaOI" />
+              @if (hasError('esferaOI', 'required')) {
+                <small>Ingresa la esfera.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="cilindroOI">Cilindro</label>
+              <input id="cilindroOI" type="number" step="0.25" formControlName="cilindroOI" />
+              @if (hasError('cilindroOI', 'required')) {
+                <small>Ingresa el cilindro.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="ejeOI">Eje</label>
+              <input id="ejeOI" type="number" min="0" max="180" formControlName="ejeOI" />
+              @if (hasError('ejeOI', 'required')) {
+                <small>Ingresa el eje.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="adicionOI">Adición</label>
+              <input id="adicionOI" type="number" step="0.25" formControlName="adicionOI" />
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (modo() === 'imagen') {
+        <section class="form-section">
+          <h2>Imagen de la receta</h2>
+          <div class="field">
+            <label for="imagen">Imagen</label>
+            <input id="imagen" type="file" accept="image/jpeg,image/png,image/webp" (change)="handleImageChange($event)" />
+            <small>Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 5 MB.</small>
+            @if (selectedImage()) {
+              <small>{{ selectedImage()?.name }}</small>
+            }
+          </div>
+        </section>
+      }
+
+      <div class="form-actions">
+        <p class="form-footnote">La receta quedará asociada al cliente según el RUT ingresado.</p>
+        <button type="submit" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Guardando...' : 'Guardar receta' }}
+        </button>
+      </div>
+    </form>
+  </main>
+</div>
