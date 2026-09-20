@@ -1,0 +1,125 @@
+<main class="schedule-page">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Agenda de atención</p>
+            <h1>Gestionar horarios</h1>
+            <p class="intro">Define los bloques en los que la óptica recibirá clientes y controla su disponibilidad.</p>
+        </div>
+        <span class="duration-badge">Bloques de 20 min</span>
+    </header>
+
+    @if (errorMessage()) {
+        <p class="message message-error" role="alert">{{ errorMessage() }}</p>
+    }
+    @if (successMessage()) {
+        <p class="message message-success" role="status">{{ successMessage() }}</p>
+    }
+
+    <section class="schedule-layout" aria-label="Configuración de horarios">
+        <article class="schedule-card create-card">
+            <div class="card-heading">
+                <div class="step-number">01</div>
+                <div>
+                    <p class="eyebrow">Nuevo bloque</p>
+                    <h2>Crear horario de atención</h2>
+                </div>
+            </div>
+
+            <form class="schedule-form" [formGroup]="scheduleForm" (ngSubmit)="crearBloques()" novalidate>
+                <div class="field field-wide">
+                    <label for="fecha">Día de atención</label>
+                    <input id="fecha" type="date" formControlName="fecha" />
+                    @if (formHasError('fecha')) {
+                        <small>Selecciona un día.</small>
+                    }
+                </div>
+
+                <div class="field">
+                    <label for="horaInicio">Hora de inicio</label>
+                    <input id="horaInicio" type="time" formControlName="horaInicio" />
+                </div>
+
+                <div class="field">
+                    <label for="horaFin">Hora de término</label>
+                    <input id="horaFin" type="time" formControlName="horaFin" />
+                </div>
+
+                <div class="field field-wide">
+                    <label for="duracion">Duración de cada bloque</label>
+                    <select id="duracion" formControlName="duracionMinutos">
+                        <option [ngValue]="20">20 minutos</option>
+                        <option [ngValue]="30">30 minutos</option>
+                        <option [ngValue]="40">40 minutos</option>
+                        <option [ngValue]="60">1 hora</option>
+                    </select>
+                    <small>Se crearán automáticamente los bloques dentro del rango indicado.</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="reset" class="button button-secondary">Limpiar</button>
+                    <button type="submit" class="button button-primary" [disabled]="isSaving()">
+                        {{ isSaving() ? 'Creando...' : 'Crear bloques' }}
+                    </button>
+                </div>
+            </form>
+        </article>
+
+        <aside class="help-panel">
+            <span class="help-icon" aria-hidden="true">i</span>
+            <div>
+                <h2>¿Cómo funciona?</h2>
+                <p>Elige un día, define el rango de atención y crea bloques para que tus clientes puedan reservar.</p>
+            </div>
+        </aside>
+    </section>
+
+    <section class="schedule-card availability-card" aria-labelledby="availability-title">
+        <div class="list-heading">
+            <div>
+                <p class="eyebrow">Control de agenda</p>
+                <h2 id="availability-title">Horarios configurados</h2>
+            </div>
+            <label class="date-filter" for="filtroFecha">
+                <span>Filtrar por día</span>
+                <input id="filtroFecha" type="date" [value]="filterDate()" (input)="filterDate.set($any($event.target).value)" />
+            </label>
+        </div>
+
+        @if (isLoading()) {
+            <p class="empty-message">Cargando horarios...</p>
+        } @else if (!horariosFiltrados().length) {
+            <p class="empty-message">No hay horarios configurados para este filtro.</p>
+        } @else {
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Bloque</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col"><span class="visually-hidden">Acción</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (horario of horariosFiltrados(); track horario.idHorario) {
+                            <tr>
+                                <td data-label="Fecha"><strong>{{ horario.fecha | date:'fullDate' }}</strong></td>
+                                <td data-label="Bloque">{{ horario.horaInicio }} - {{ horario.horaFin }}</td>
+                                <td data-label="Estado">
+                                    <span class="status" [class.status-active]="horario.estado === 'Habilitada'" [class.status-inactive]="horario.estado === 'Inhabilitada'">
+                                        {{ horario.estado }}
+                                    </span>
+                                </td>
+                                <td class="action-cell">
+                                    <button type="button" class="toggle-button" [class.toggle-button-enable]="horario.estado === 'Inhabilitada'" [disabled]="changingId() === horario.idHorario" (click)="cambiarEstado(horario)">
+                                        {{ changingId() === horario.idHorario ? 'Guardando...' : horario.estado === 'Habilitada' ? 'Inhabilitar' : 'Habilitar' }}
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</main>

@@ -119,10 +119,10 @@ ON DELETE RESTRICT
 CREATE TABLE administradores (
     id_administrador INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(60) NOT NULL,
-    apellido VARCHAR(60) NOT NULL,
     correo VARCHAR(100) NOT NULL UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
-    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo'
+    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo',
+    CONSTRAINT uq_administrador_nombre UNIQUE (nombre)
 );
 CREATE TABLE horarios_atencion (
     id_horario INT AUTO_INCREMENT PRIMARY KEY,

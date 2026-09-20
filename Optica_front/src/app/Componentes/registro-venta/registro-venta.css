@@ -112,4 +112,27 @@ button:disabled { opacity: .6; cursor: wait; }
 .cantidad button { padding: 8px 12px; }
 .quitar { background: #f3e4e4; color: #8c2525; }
 .vacio { padding: 28px; border: 1px dashed #a9b9b4; border-radius: 8px; }
-@media (max-width: 800px) { .caja { grid-template-columns: 1fr; } .resumen { position: static; } .linea { grid-template-columns: 1fr auto; } .topbar { overflow-x: auto; } }
+.panel-administracion { margin-top: 48px; padding-top: 32px; border-top: 1px solid #cbd6d2; }
+.encabezado-informe, .titulo-grafico, .venta-historial { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.sobretitulo { margin: 0 0 4px; color: #97642d; font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.encabezado-informe h2, .titulo-grafico h3, .titulo-grafico p { margin: 0; }
+.acciones-informe { display: flex; gap: 10px; }
+button.secundario { background: white; color: #1d4a47; border: 1px solid #1d4a47; }
+.indicadores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.indicador { margin: 20px 0 0; border-left: 4px solid #bf8542; }
+.indicador span, .indicador small { color: #526965; }
+.indicador strong { color: #1d4a47; font: 700 clamp(1.8rem, 4vw, 2.7rem) Georgia, serif; }
+.grafico { margin: 18px 0 30px; overflow-x: auto; }
+.titulo-grafico p, .titulo-grafico span { color: #657873; font-size: .85rem; }
+.barras { height: 260px; min-width: 720px; display: flex; align-items: end; gap: 12px; padding: 45px 10px 0; border-bottom: 1px solid #91a49e; }
+.columna { height: 100%; flex: 1; display: flex; flex-direction: column; justify-content: end; align-items: center; gap: 6px; }
+.barra { width: min(36px, 75%); min-height: 2px; background: linear-gradient(#337b73, #1d4a47); border-radius: 4px 4px 0 0; transition: height 250ms ease; }
+.valor { font-size: .68rem; color: #526965; white-space: nowrap; }
+.mes { min-height: 24px; font-size: .75rem; font-weight: 700; text-transform: capitalize; }
+.historial { display: grid; gap: 10px; }
+.venta-historial { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; margin: 0; padding: 16px 20px; }
+.venta-historial div:first-child { display: grid; gap: 4px; }
+.venta-historial div:first-child span { color: #657873; font-size: .8rem; }
+.productos-historial { display: flex; flex-wrap: wrap; gap: 6px 14px; color: #405a55; font-size: .88rem; }
+@media (max-width: 800px) { .caja, .indicadores { grid-template-columns: 1fr; } .resumen { position: static; } .linea { grid-template-columns: 1fr auto; } .topbar { overflow-x: auto; } .encabezado-informe { align-items: flex-start; flex-direction: column; } .venta-historial { grid-template-columns: 1fr auto; } .productos-historial { grid-column: 1 / -1; } }
+@media (max-width: 520px) { .acciones-informe { width: 100%; flex-direction: column; } .acciones-informe button { width: 100%; } }
