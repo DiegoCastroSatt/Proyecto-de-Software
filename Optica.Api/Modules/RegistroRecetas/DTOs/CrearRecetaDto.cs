@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http; //Linea para que C# pueda encontrar el IFormFil
 
 public class CrearRecetaDto
 {
-    public int ClienteId { get; set; }
+    public string Rut { get; set; } = string.Empty;
     public DateTime Fecha { get; set; }
     public string? Observaciones { get; set; }
     public string? GraduacionesJson { get; set; }

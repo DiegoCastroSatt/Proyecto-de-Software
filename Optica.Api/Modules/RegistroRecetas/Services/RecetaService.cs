@@ -17,10 +17,10 @@ public class RecetaService : IRecetaService
 
     public async Task<RecetaResponseDto> CrearReceta(CrearRecetaDto dto)
     {
-        var clienteExiste = await _recetaRepository.ExisteCliente(dto.ClienteId);
-        if (!clienteExiste)
+        var cliente = await _recetaRepository.BuscarClientePorRut(dto.Rut);
+        if (cliente == null)
         {
-            throw new ArgumentException("El cliente no existe.");
+            throw new ArgumentException("No existe un cliente con ese RUT.");
         }
 
         var tieneGraduaciones = !string.IsNullOrWhiteSpace(dto.GraduacionesJson);
@@ -33,7 +33,7 @@ public class RecetaService : IRecetaService
 
         var receta = new Receta
         {
-            ClienteId = dto.ClienteId,
+            ClienteId = cliente.IdCliente,
             Fecha = dto.Fecha,
             Observaciones = dto.Observaciones
         };
