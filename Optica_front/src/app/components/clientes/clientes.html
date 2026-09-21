@@ -1,6 +1,5 @@
 <div style="font-family: sans-serif; max-width: 950px; margin: 20px auto; padding: 0 15px; position: relative;">
 
-  <!-- NOTIFICACIÓN FLOTANTE (POP-UP / TOAST) -->
   @if (toast) {
     <div 
       style="
@@ -184,24 +183,60 @@
           </thead>
           <tbody>
             @for (c of clientes; track c.idCliente) {
-              <tr style="border-bottom: 1px solid #e2e8f0;">
+              <tr 
+                style="border-bottom: 1px solid #e2e8f0; transition: background-color 0.2s;"
+                [style.opacity]="c.estado === 'Inactivo' ? '0.72' : '1'"
+                [style.background-color]="c.estado === 'Inactivo' ? '#fbfbfb' : '#ffffff'"
+              >
                 <td style="padding: 10px; font-weight: bold;">{{ c.rut }}</td>
                 <td style="padding: 10px;">{{ c.nombre }}</td>
                 <td style="padding: 10px;">{{ c.apellido }}</td>
                 <td style="padding: 10px;">{{ c.telefono || '-' }}</td>
                 <td style="padding: 10px;">{{ c.correo || '-' }}</td>
+                
+                <!-- Estado -->
                 <td style="padding: 10px;">
-                  <span style="background-color: #d1e7dd; color: #0f5132; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                  <span 
+                    [style.background-color]="c.estado === 'Activo' ? '#d1e7dd' : '#f8d7da'"
+                    [style.color]="c.estado === 'Activo' ? '#0f5132' : '#842029'"
+                    style="padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-block;">
                     {{ c.estado }}
                   </span>
                 </td>
+
+                <!-- Columna de Acciones -->
                 <td style="padding: 10px; text-align: center;">
-                  <button 
-                    type="button"
-                    (click)="abrirModalEdicion(c)"
-                    style="background-color: #1b4d45; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                    ✏️ Editar
-                  </button>
+                  <div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center;">
+                    <!-- Botón Editar -->
+                    <button 
+                      type="button"
+                      (click)="abrirModalEdicion(c)"
+                      style="background-color: #1b4d45; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                      ✏️ Editar
+                    </button>
+
+                    <!-- Botón Desactivar -->
+                    @if (c.estado === 'Activo') {
+                      <button 
+                        type="button"
+                        (click)="abrirModalEstado(c, 'Inactivo')"
+                        title="Desactivar cliente"
+                        style="background-color: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        🚫 Desactivar
+                      </button>
+                    }
+
+                    <!-- Botón Reactivar -->
+                    @if (c.estado === 'Inactivo') {
+                      <button 
+                        type="button"
+                        (click)="abrirModalEstado(c, 'Activo')"
+                        title="Reactivar cliente"
+                        style="background-color: #198754; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        🔄 Activar
+                      </button>
+                    }
+                  </div>
                 </td>
               </tr>
             }
@@ -235,7 +270,6 @@
       "
       (click)="cerrarModalEdicion()"
     >
-      <!-- Contenedor de la ventana modal (detiene la propagación del clic para no cerrarse al hacer clic dentro) -->
       <div 
         style="
           background: #ffffff;
@@ -253,7 +287,7 @@
           <h3 style="margin: 0; font-size: 17px; font-weight: 600;">Editar Información de Cliente</h3>
           <button 
             type="button" 
-            (click)="cerrarModalEdicion()"
+            (click)="cerrarModalEdicion()" 
             style="background: transparent; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1;">
             &times;
           </button>
@@ -357,6 +391,101 @@
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE CONFIRMACIÓN: DESACTIVAR / REACTIVAR -->
+  @if (modalEstadoAbierto && clienteEstadoSeleccionado) {
+    <div 
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.55);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(2px);
+      "
+      (click)="cerrarModalEstado()"
+    >
+      <div 
+        style="
+          background: #ffffff;
+          border-radius: 8px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+          width: 90%;
+          max-width: 480px;
+          overflow: hidden;
+          animation: fadeIn 0.2s ease-out;
+        "
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Encabezado del diálogo -->
+        <div 
+          [style.background-color]="nuevoEstadoObjetivo === 'Inactivo' ? '#842029' : '#0f5132'"
+          style="color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <span>{{ nuevoEstadoObjetivo === 'Inactivo' ? '⚠️' : '🔄' }}</span>
+            {{ nuevoEstadoObjetivo === 'Inactivo' ? 'Confirmar Desactivación' : 'Confirmar Activación' }}
+          </h3>
+          <button 
+            type="button" 
+            (click)="cerrarModalEstado()" 
+            style="background: transparent; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1;">
+            &times;
+          </button>
+        </div>
+
+        <!-- Mensaje de confirmación -->
+        <div style="padding: 22px;">
+          <p style="margin: 0 0 14px 0; color: #334155; font-size: 14px; line-height: 1.5;">
+            ¿Estás seguro de que deseas marcar como 
+            <strong>{{ nuevoEstadoObjetivo.toLowerCase() }}</strong> al cliente:
+          </p>
+
+          <div style="background-color: #f8fafc; border-left: 4px solid #1b4d45; padding: 12px 14px; margin-bottom: 16px; border-radius: 0 4px 4px 0;">
+            <div style="font-weight: bold; color: #1e293b; font-size: 14.5px;">
+              {{ clienteEstadoSeleccionado.nombre }} {{ clienteEstadoSeleccionado.apellido }}
+            </div>
+            <div style="color: #64748b; font-size: 13px; margin-top: 2px;">
+              RUT: <code>{{ clienteEstadoSeleccionado.rut }}</code>
+            </div>
+          </div>
+
+          @if (nuevoEstadoObjetivo === 'Inactivo') {
+            <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.4;">
+              ℹ️ Al desactivar el cliente, se conservará su historial de atenciones pero figurará como inactivo en las operaciones del sistema.
+            </p>
+          } @else {
+            <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.4;">
+              ℹ️ El cliente volverá a estar plenamente disponible para nuevas recetas, órdenes y atenciones.
+            </p>
+          }
+
+          <!-- Botones del modal de confirmación -->
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+            <button 
+              type="button" 
+              (click)="cerrarModalEstado()"
+              [disabled]="procesandoEstado"
+              style="background-color: #e2e8f0; color: #334155; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px;">
+              Cancelar
+            </button>
+            <button 
+              type="button" 
+              (click)="confirmarCambioEstado()"
+              [disabled]="procesandoEstado"
+              [style.background-color]="nuevoEstadoObjetivo === 'Inactivo' ? '#dc3545' : '#198754'"
+              style="color: white; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">
+              {{ procesandoEstado ? 'Actualizando...' : (nuevoEstadoObjetivo === 'Inactivo' ? 'Sí, Desactivar' : 'Sí, Activar') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

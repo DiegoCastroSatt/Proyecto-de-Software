@@ -59,12 +59,16 @@ export class ClientesComponent implements OnInit {
   busquedaRealizada: boolean = false;
   cargando: boolean = false;
 
-  // Control del modal de edición
   modalEdicionAbierto: boolean = false;
   clienteSeleccionado: Cliente | null = null;
   guardandoEdicion: boolean = false;
 
-  // Notificación Pop-up / Toast
+  // Estado y control para Modal de Desactivación / Reactivación
+  modalEstadoAbierto: boolean = false;
+  clienteEstadoSeleccionado: Cliente | null = null;
+  nuevoEstadoObjetivo: 'Activo' | 'Inactivo' = 'Inactivo';
+  procesandoEstado: boolean = false;
+
   toast: { tipo: 'success' | 'error' | 'warning', titulo: string, mensaje: string } | null = null;
   private toastTimeout: any;
 
@@ -75,7 +79,6 @@ export class ClientesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Formulario de registro original
     this.clienteForm = this.fb.group({
       rut: ['', [Validators.required, validarRutChileno]],
       nombre: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/)]],
@@ -84,7 +87,6 @@ export class ClientesComponent implements OnInit {
       correo: ['', [Validators.email]]
     }, { validators: requireContactValidator });
 
-    // Formulario del modal de edición (RUT deshabilitado de solo lectura)
     this.editarForm = this.fb.group({
       rut: [{ value: '', disabled: true }],
       nombre: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/)]],
@@ -217,7 +219,7 @@ export class ClientesComponent implements OnInit {
       next: () => {
         this.guardandoEdicion = false;
         this.cerrarModalEdicion();
-        this.consultar(); // Refresca los datos reales desde la base de datos
+        this.consultar();
         this.mostrarAviso('success', 'Cliente Actualizado', 'La información del cliente se guardó permanentemente.');
       },
       error: (err) => {
@@ -229,6 +231,61 @@ export class ClientesComponent implements OnInit {
           detalle = 'El cliente no fue encontrado en la base de datos.';
         }
         this.mostrarAviso('error', 'Error al actualizar', detalle);
+      }
+    });
+  }
+
+  // MÉTODOS DEL MODAL DE CONFIRMACIÓN (DESACTIVAR / REACTIVAR)
+  abrirModalEstado(cliente: Cliente, nuevoEstado: 'Activo' | 'Inactivo'): void {
+    this.clienteEstadoSeleccionado = cliente;
+    this.nuevoEstadoObjetivo = nuevoEstado;
+    this.modalEstadoAbierto = true;
+    this.cd.detectChanges();
+  }
+
+  cerrarModalEstado(): void {
+    this.modalEstadoAbierto = false;
+    this.clienteEstadoSeleccionado = null;
+    this.procesandoEstado = false;
+    this.cd.markForCheck();
+    this.cd.detectChanges();
+  }
+
+  confirmarCambioEstado(): void {
+    if (!this.clienteEstadoSeleccionado) return;
+
+    const cliente = this.clienteEstadoSeleccionado as any;
+    const id = cliente.idCliente ?? cliente.id ?? cliente.IdCliente ?? cliente.id_cliente;
+
+    if (!id) {
+      this.mostrarAviso('error', 'Error interno', 'No se pudo identificar el ID del cliente.');
+      this.cerrarModalEstado();
+      return;
+    }
+
+    this.procesandoEstado = true;
+    const nuevoEstado = this.nuevoEstadoObjetivo;
+    const rutCliente = cliente.rut;
+
+    this.clienteService.cambiarEstado(id, nuevoEstado).subscribe({
+      next: () => {
+        // 1. Actualizar el estado en el arreglo local de clientes inmediatamente
+        const clienteEnLista = this.clientes.find(c => c.idCliente === id || c.rut === rutCliente);
+        if (clienteEnLista) {
+          clienteEnLista.estado = nuevoEstado;
+        }
+
+        // 2. Cerrar y desmontar el modal de inmediato
+        this.cerrarModalEstado();
+
+        // 3. Mostrar la notificación flotante
+        const accion = nuevoEstado === 'Inactivo' ? 'desactivado' : 'activado';
+        this.mostrarAviso('success', 'Estado Actualizado', `El cliente fue ${accion} exitosamente.`);
+      },
+      error: (err) => {
+        this.cerrarModalEstado();
+        const detalle = err.error?.mensaje || 'No se pudo cambiar el estado del cliente.';
+        this.mostrarAviso('error', 'Error al cambiar estado', detalle);
       }
     });
   }

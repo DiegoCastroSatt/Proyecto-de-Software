@@ -15,7 +15,7 @@ public class ClientesController : ControllerBase
     {
         _context = context;
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> Registrar([FromBody] Cliente nuevoCliente)
     {
@@ -97,4 +97,45 @@ public class ClientesController : ControllerBase
             return StatusCode(500, new { mensaje = "Error al actualizar los datos en la base de datos.", detalle = ex.Message });
         }
     }
+
+    [HttpPatch("{id}/estado")]
+    public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoDto dto)
+    {
+        // 1. Validar que el estado solicitado sea válido
+        if (string.IsNullOrWhiteSpace(dto.NuevoEstado) || 
+            (dto.NuevoEstado != "Activo" && dto.NuevoEstado != "Inactivo"))
+        {
+            return BadRequest(new { mensaje = "El estado debe ser 'Activo' o 'Inactivo'." });
+        }
+
+        // 2. Buscar el cliente en la base de datos
+        var cliente = await _context.Clientes.FindAsync(id);
+        if (cliente == null)
+        {
+            return NotFound(new { mensaje = "El cliente no fue encontrado en la base de datos." });
+        }
+
+        // 3. Aplicar el cambio de estado
+        cliente.Estado = dto.NuevoEstado;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok(new 
+            { 
+                mensaje = $"El cliente fue marcado como {dto.NuevoEstado.ToLower()} exitosamente.",
+                idCliente = cliente.IdCliente,
+                nuevoEstado = cliente.Estado
+            });
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new { mensaje = "Error al actualizar el estado en la base de datos.", detalle = ex.Message });
+        }
+    }
+}
+
+public class CambiarEstadoDto
+{
+    public string NuevoEstado { get; set; } = string.Empty;
 }

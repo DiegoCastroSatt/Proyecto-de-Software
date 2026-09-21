@@ -37,4 +37,7 @@ export class ClienteService {
   actualizar(id: number, cliente: Partial<Cliente>): Observable<Cliente> {
     return this.http.put<Cliente>(`${this.apiUrl}/${id}`, cliente);
   }
+  cambiarEstado(id: number, nuevoEstado: 'Activo' | 'Inactivo'): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/estado`, { nuevoEstado });
+  }
 }
