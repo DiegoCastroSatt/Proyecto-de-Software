@@ -32,4 +32,9 @@ export class ClienteService {
     }
     return this.http.get<Cliente[]>(`${this.apiUrl}/buscar`, { params });
   }
+
+  // Método para actualizar la información del cliente
+  actualizar(id: number, cliente: Partial<Cliente>): Observable<Cliente> {
+    return this.http.put<Cliente>(`${this.apiUrl}/${id}`, cliente);
+  }
 }

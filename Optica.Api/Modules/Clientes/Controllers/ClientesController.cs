@@ -15,8 +15,7 @@ public class ClientesController : ControllerBase
     {
         _context = context;
     }
-
-    // POST: api/clientes
+    
     [HttpPost]
     public async Task<IActionResult> Registrar([FromBody] Cliente nuevoCliente)
     {
@@ -64,5 +63,38 @@ public class ClientesController : ControllerBase
             .ToListAsync();
 
         return Ok(lista);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Actualizar(int id, [FromBody] Cliente clienteDto)
+    {
+        // 1. Validar medio de contacto
+        if (string.IsNullOrWhiteSpace(clienteDto.Telefono) && string.IsNullOrWhiteSpace(clienteDto.Correo))
+        {
+            return BadRequest(new { mensaje = "Debe registrar al menos un número de teléfono o correo electrónico." });
+        }
+
+        // 2. Buscar el cliente existente por ID
+        var clienteExistente = await _context.Clientes.FindAsync(id);
+        if (clienteExistente == null)
+        {
+            return NotFound(new { mensaje = "El cliente no fue encontrado en la base de datos." });
+        }
+
+        // 3. Actualizar únicamente los campos editables (el RUT permanece inmutable)
+        clienteExistente.Nombre = clienteDto.Nombre.Trim();
+        clienteExistente.Apellido = clienteDto.Apellido.Trim();
+        clienteExistente.Telefono = string.IsNullOrWhiteSpace(clienteDto.Telefono) ? null : clienteDto.Telefono.Trim();
+        clienteExistente.Correo = string.IsNullOrWhiteSpace(clienteDto.Correo) ? null : clienteDto.Correo.Trim();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok(clienteExistente);
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new { mensaje = "Error al actualizar los datos en la base de datos.", detalle = ex.Message });
+        }
     }
 }

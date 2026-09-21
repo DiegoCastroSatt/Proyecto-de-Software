@@ -1,13 +1,6 @@
 import { Routes } from '@angular/router';
 import { ReservaComponent } from './components/reserva/reserva';
 import { ClientesComponent } from './components/clientes/clientes';
-
-export const routes: Routes = [
-  { path: '', redirectTo: 'reservas', pathMatch: 'full' },
-  { path: 'reservas', component: ReservaComponent },
-  { path: 'clientes', component: ClientesComponent }
-];
-import { ReservaComponent } from './Componentes/reserva/reserva';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
@@ -24,7 +17,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: EnTrabajoComponent, data: { titulo: 'Inicio' } },
       { path: 'reservas', component: ReservaComponent },
-      { path: 'productos', component: EnTrabajoComponent, data: { titulo: 'Productos' } }
+      { path: 'productos', component: EnTrabajoComponent, data: { titulo: 'Productos' } },
+      { path: 'clientes', component: ClientesComponent } // <-- Agregado aquí
     ]
   },
 
@@ -33,7 +27,8 @@ export const routes: Routes = [
     component: AdminLayoutComponent,
     children: [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
-	  {path: 'horarios', component: GestionHorariosComponent},
+      { path: 'horarios', component: GestionHorariosComponent },
+      { path: 'clientes', component: ClientesComponent },
       { path: 'productos', component: ProductoComponent },
       { path: 'ventas', component: RegistroVentaComponent },
       { path: 'recetas', component: RegistroRecetaComponent }

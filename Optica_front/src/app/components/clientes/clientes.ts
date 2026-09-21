@@ -53,10 +53,16 @@ function requireContactValidator(group: AbstractControl): ValidationErrors | nul
 })
 export class ClientesComponent implements OnInit {
   clienteForm!: FormGroup;
+  editarForm!: FormGroup;
   terminoBusqueda: string = '';
   clientes: Cliente[] = [];
   busquedaRealizada: boolean = false;
   cargando: boolean = false;
+
+  // Control del modal de edición
+  modalEdicionAbierto: boolean = false;
+  clienteSeleccionado: Cliente | null = null;
+  guardandoEdicion: boolean = false;
 
   // Notificación Pop-up / Toast
   toast: { tipo: 'success' | 'error' | 'warning', titulo: string, mensaje: string } | null = null;
@@ -69,8 +75,18 @@ export class ClientesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Formulario de registro original
     this.clienteForm = this.fb.group({
       rut: ['', [Validators.required, validarRutChileno]],
+      nombre: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/)]],
+      apellido: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/)]],
+      telefono: ['', [Validators.pattern(/^(\+?56\s?)?9\s?\d{4}\s?\d{4}$/)]],
+      correo: ['', [Validators.email]]
+    }, { validators: requireContactValidator });
+
+    // Formulario del modal de edición (RUT deshabilitado de solo lectura)
+    this.editarForm = this.fb.group({
+      rut: [{ value: '', disabled: true }],
       nombre: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/)]],
       apellido: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/)]],
       telefono: ['', [Validators.pattern(/^(\+?56\s?)?9\s?\d{4}\s?\d{4}$/)]],
@@ -98,7 +114,6 @@ export class ClientesComponent implements OnInit {
   }
 
   registrar(): void {
-    // Si intenta guardar y el formulario tiene errores, notificamos con pop-up exactamente qué falló
     if (this.clienteForm.invalid) {
       this.clienteForm.markAllAsTouched();
 
@@ -125,7 +140,6 @@ export class ClientesComponent implements OnInit {
       },
       error: (err) => {
         this.cargando = false;
-        
         let detalle = 'Ocurrió un error inesperado al procesar la solicitud.';
 
         if (err.status === 409) {
@@ -157,6 +171,64 @@ export class ClientesComponent implements OnInit {
         this.busquedaRealizada = true;
         this.cargando = false;
         this.mostrarAviso('error', 'Error de conexión', 'No se pudo conectar con el servidor para consultar clientes.');
+      }
+    });
+  }
+
+  // MÉTODOS DEL MODAL DE EDICIÓN
+  abrirModalEdicion(cliente: Cliente): void {
+    this.clienteSeleccionado = { ...cliente };
+    this.editarForm.reset({
+      rut: cliente.rut,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      telefono: cliente.telefono || '',
+      correo: cliente.correo || ''
+    });
+    this.modalEdicionAbierto = true;
+  }
+
+  cerrarModalEdicion(): void {
+    this.modalEdicionAbierto = false;
+    this.clienteSeleccionado = null;
+    this.editarForm.reset();
+  }
+
+  guardarEdicion(): void {
+    if (this.editarForm.invalid) {
+      this.editarForm.markAllAsTouched();
+      if (this.editarForm.hasError('requireContact')) {
+        this.mostrarAviso('warning', 'Contacto requerido', 'Debe registrar al menos un número de teléfono o correo electrónico.');
+        return;
+      }
+      this.mostrarAviso('warning', 'Formulario incompleto', 'Por favor, revise los campos marcados en rojo.');
+      return;
+    }
+
+    if (!this.clienteSeleccionado?.idCliente) return;
+
+    this.guardandoEdicion = true;
+
+    const datosModificados: Partial<Cliente> = {
+      ...this.editarForm.getRawValue()
+    };
+
+    this.clienteService.actualizar(this.clienteSeleccionado.idCliente, datosModificados).subscribe({
+      next: () => {
+        this.guardandoEdicion = false;
+        this.cerrarModalEdicion();
+        this.consultar(); // Refresca los datos reales desde la base de datos
+        this.mostrarAviso('success', 'Cliente Actualizado', 'La información del cliente se guardó permanentemente.');
+      },
+      error: (err) => {
+        this.guardandoEdicion = false;
+        let detalle = 'No se pudo guardar la información del cliente en el servidor.';
+        if (err.status === 400 && err.error?.mensaje) {
+          detalle = err.error.mensaje;
+        } else if (err.status === 404) {
+          detalle = 'El cliente no fue encontrado en la base de datos.';
+        }
+        this.mostrarAviso('error', 'Error al actualizar', detalle);
       }
     });
   }

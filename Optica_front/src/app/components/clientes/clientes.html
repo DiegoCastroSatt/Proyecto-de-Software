@@ -9,7 +9,7 @@
         right: 24px;
         min-width: 320px;
         max-width: 420px;
-        z-index: 9999;
+        z-index: 10001;
         padding: 16px 20px;
         border-radius: 8px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -18,9 +18,9 @@
         justify-content: space-between;
         gap: 12px;
         transition: all 0.3s ease-in-out;
+        color: white;
       "
       [style.background]="toast.tipo === 'success' ? '#0f5132' : toast.tipo === 'error' ? '#842029' : '#856404'"
-      style="color: white;"
     >
       <div>
         <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
@@ -179,6 +179,7 @@
               <th style="padding: 10px;">Teléfono</th>
               <th style="padding: 10px;">Correo</th>
               <th style="padding: 10px;">Estado</th>
+              <th style="padding: 10px; text-align: center;">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -194,6 +195,14 @@
                     {{ c.estado }}
                   </span>
                 </td>
+                <td style="padding: 10px; text-align: center;">
+                  <button 
+                    type="button"
+                    (click)="abrirModalEdicion(c)"
+                    style="background-color: #1b4d45; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                    ✏️ Editar
+                  </button>
+                </td>
               </tr>
             }
           </tbody>
@@ -207,4 +216,150 @@
       }
     </div>
   </div>
+
+  <!-- MODAL FLOTANTE DE EDICIÓN -->
+  @if (modalEdicionAbierto) {
+    <div 
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.55);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(2px);
+      "
+      (click)="cerrarModalEdicion()"
+    >
+      <!-- Contenedor de la ventana modal (detiene la propagación del clic para no cerrarse al hacer clic dentro) -->
+      <div 
+        style="
+          background: #ffffff;
+          border-radius: 8px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+          width: 90%;
+          max-width: 580px;
+          overflow: hidden;
+          animation: fadeIn 0.2s ease-out;
+        "
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Encabezado del modal -->
+        <div style="background-color: #1b4d45; color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 17px; font-weight: 600;">Editar Información de Cliente</h3>
+          <button 
+            type="button" 
+            (click)="cerrarModalEdicion()"
+            style="background: transparent; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1;">
+            &times;
+          </button>
+        </div>
+
+        <!-- Cuerpo del formulario -->
+        <div style="padding: 24px;">
+          <form [formGroup]="editarForm" (ngSubmit)="guardarEdicion()">
+            
+            <!-- Campo RUT (Inmutable) -->
+            <div style="margin-bottom: 14px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 13.5px; color: #4a5568;">
+                RUT (No modificable)
+              </label>
+              <input 
+                type="text" 
+                formControlName="rut" 
+                style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; background-color: #f1f5f9; color: #64748b; cursor: not-allowed; font-weight: 600;"
+              />
+            </div>
+
+            <!-- Fila Nombre y Apellido -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+              <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 13.5px;">Nombre *</label>
+                <input 
+                  type="text" 
+                  formControlName="nombre" 
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"
+                  [style.border-color]="editarForm.get('nombre')?.touched && editarForm.get('nombre')?.invalid ? '#dc3545' : '#cbd5e1'"
+                />
+                @if (editarForm.get('nombre')?.touched && editarForm.get('nombre')?.invalid) {
+                  <small style="color: #dc3545; font-size: 12px; display: block; margin-top: 2px;">Solo letras (mín. 2 carac.).</small>
+                }
+              </div>
+
+              <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 13.5px;">Apellido *</label>
+                <input 
+                  type="text" 
+                  formControlName="apellido" 
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"
+                  [style.border-color]="editarForm.get('apellido')?.touched && editarForm.get('apellido')?.invalid ? '#dc3545' : '#cbd5e1'"
+                />
+                @if (editarForm.get('apellido')?.touched && editarForm.get('apellido')?.invalid) {
+                  <small style="color: #dc3545; font-size: 12px; display: block; margin-top: 2px;">Solo letras (mín. 2 carac.).</small>
+                }
+              </div>
+            </div>
+
+            <!-- Fila Teléfono y Correo -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+              <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 13.5px;">Teléfono</label>
+                <input 
+                  type="text" 
+                  formControlName="telefono" 
+                  placeholder="+56 9 1234 5678"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"
+                  [style.border-color]="editarForm.get('telefono')?.touched && editarForm.get('telefono')?.invalid ? '#dc3545' : '#cbd5e1'"
+                />
+                @if (editarForm.get('telefono')?.touched && editarForm.get('telefono')?.hasError('pattern')) {
+                  <small style="color: #dc3545; font-size: 12px; display: block; margin-top: 2px;">Formato incorrecto.</small>
+                }
+              </div>
+
+              <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 13.5px;">Correo electrónico</label>
+                <input 
+                  type="email" 
+                  formControlName="correo" 
+                  placeholder="ejemplo@correo.cl"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"
+                  [style.border-color]="editarForm.get('correo')?.touched && editarForm.get('correo')?.invalid ? '#dc3545' : '#cbd5e1'"
+                />
+                @if (editarForm.get('correo')?.touched && editarForm.get('correo')?.hasError('email')) {
+                  <small style="color: #dc3545; font-size: 12px; display: block; margin-top: 2px;">Correo inválido.</small>
+                }
+              </div>
+            </div>
+
+            @if (editarForm.errors?.['requireContact'] && (editarForm.touched || editarForm.dirty)) {
+              <div style="background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;">
+                ⚠️ Se requiere al menos un medio de contacto (teléfono o correo).
+              </div>
+            }
+
+            <!-- Botones de Acción -->
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+              <button 
+                type="button" 
+                (click)="cerrarModalEdicion()"
+                style="background-color: #e2e8f0; color: #334155; border: none; padding: 9px 18px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13.5px;">
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                [disabled]="guardandoEdicion"
+                style="background-color: #c97a3e; color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13.5px;">
+                {{ guardandoEdicion ? 'Actualizando...' : 'Guardar Cambios' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
 </div>
