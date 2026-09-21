@@ -13,4 +13,5 @@ public class Producto
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
     public string Estado { get; set; } = "Disponible";
+    public string? RutaImagen { get; set; }
 }

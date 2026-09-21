@@ -27,7 +27,7 @@ public class ReservaRepository : IReservaRepository
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
         var horariosBloqueados = await _context.Horarios
-            .FromSqlInterpolated($"SELECT id_horario, fecha, hora_inicio, hora_fin, estado FROM horarios_atencion WHERE id_horario = {dto.IdHorario} FOR UPDATE")
+            .FromSqlInterpolated($"SELECT id_horario, id_administrador, fecha, hora_inicio, hora_fin, estado FROM horarios_atencion WHERE id_horario = {dto.IdHorario} FOR UPDATE")
             .ToListAsync();
         var horario = horariosBloqueados.SingleOrDefault();
 

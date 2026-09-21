@@ -1,31 +1,11 @@
 <div class="app-shell">
-  <header class="topbar">
-    <div class="topbar-brand">
-      <span class="brand-mark" aria-hidden="true">SF</span>
-      <span class="brand-name">Centro Óptico San Francisco</span>
-    </div>
-
-    <nav class="topbar-nav" aria-label="Secciones del panel">
-      <!-- Mismos links que en pedido.html -->
-      <a class="nav-link" href="#">Dashboard</a>
-      <a class="nav-link" href="#">Clientes</a>
-      <a class="nav-link" href="#">Agenda</a>
-      <a class="nav-link" href="/registro-producto">Productos</a>
-      <a class="nav-link is-active" href="/pedido" aria-current="page">Pedidos</a>
-      <a class="nav-link" href="/ventas">Ventas</a>
-    </nav>
-
-    <div class="topbar-user" aria-hidden="true">
-      <span class="user-avatar">V</span>
-    </div>
-  </header>
 
   <main class="order-page">
     <section class="order-shell">
       <div class="order-form-area">
         <div class="form-heading">
           <h2>Crear Pedido</h2>
-          <button type="button" class="btn-secondary" routerLink="/pedido">Volver a Pedidos</button>
+          <button type="button" class="btn-secondary" routerLink="admin/pedido">Volver a Pedidos</button>
         </div>
 
         <div class="form-container">
@@ -36,7 +16,7 @@
               <select id="cliente" formControlName="nombreCliente" class="form-control">
                 <option value="" disabled>Seleccione un cliente</option>
                 @for (cliente of clientes(); track cliente.idCliente) {
-                  <option [value]="cliente.nombreCompleto">{{ cliente.nombreCompleto }}</option>
+                <option [value]="cliente.nombreCompleto">{{ cliente.nombreCompleto }}</option>
                 }
               </select>
               @if (hasError('nombreCliente', 'required')) {

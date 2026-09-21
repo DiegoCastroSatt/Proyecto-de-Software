@@ -22,6 +22,7 @@ id_receta INT AUTO_INCREMENT PRIMARY KEY,
 id_cliente INT NOT NULL,
 fecha DATE NOT NULL,
 observaciones TEXT,
+imagen_path VARCHAR(255) NULL,
 CONSTRAINT fk_recetas_cliente
 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
 ON DELETE CASCADE
@@ -75,7 +76,8 @@ categoria VARCHAR(50) NOT NULL,
 precio DECIMAL(10,2) NOT NULL DEFAULT 0,
 stock INT NOT NULL DEFAULT 0,
 stock_minimo INT NOT NULL DEFAULT 0,
-estado ENUM('Disponible', 'Agotado') NOT NULL DEFAULT 'Disponible'
+estado ENUM('Disponible', 'Agotado') NOT NULL DEFAULT 'Disponible',
+ruta_imagen VARCHAR(255)
 );
 
 CREATE TABLE pedidos (
@@ -118,10 +120,10 @@ ON DELETE RESTRICT
 CREATE TABLE administradores (
     id_administrador INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(60) NOT NULL,
-    apellido VARCHAR(60) NOT NULL,
     correo VARCHAR(100) NOT NULL UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
-    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo'
+    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo',
+    CONSTRAINT uq_administrador_nombre UNIQUE (nombre)
 );
 CREATE TABLE horarios_atencion (
     id_horario INT AUTO_INCREMENT PRIMARY KEY,

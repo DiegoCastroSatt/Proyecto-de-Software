@@ -4,4 +4,5 @@ public class ProductoResponseDto
     public string Codigo { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public string Estado { get; set; } = string.Empty;
+    public string? RutaImagen { get; set; }
 }

@@ -13,6 +13,7 @@ export interface CrearProducto {
   stock: number;
   stockMinimo: number;
   estado: string;
+  imagen?: File;
 }
 
 export interface ProductoResponse {
@@ -20,6 +21,7 @@ export interface ProductoResponse {
   codigo: string;
   nombre: string;
   estado: string;
+  rutaImagen?: string;
 }
 
 export interface CatalogoItem {
@@ -34,7 +36,22 @@ export class RegistrarProductoService {
   private readonly catalogosUrl = 'http://localhost:8080/api/Catalogos';
 
   crearProducto(producto: CrearProducto): Observable<ProductoResponse> {
-    return this.http.post<ProductoResponse>(this.apiUrl, producto);
+    const formData = new FormData();
+    formData.append('codigo', producto.codigo);
+    formData.append('nombre', producto.nombre);
+    formData.append('marca', producto.marca);
+    formData.append('modelo', producto.modelo);
+    formData.append('color', producto.color);
+    formData.append('categoria', producto.categoria);
+    formData.append('precio', producto.precio.toString());
+    formData.append('stock', producto.stock.toString());
+    formData.append('stockMinimo', producto.stockMinimo.toString());
+    formData.append('estado', producto.estado);
+    if (producto.imagen) {
+      formData.append('imagen', producto.imagen, producto.imagen.name);
+    }
+
+    return this.http.post<ProductoResponse>(this.apiUrl, formData);
   }
 
   obtenerCatalogo(tipo: string): Observable<CatalogoItem[]> {

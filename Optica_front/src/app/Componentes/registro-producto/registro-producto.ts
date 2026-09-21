@@ -20,6 +20,7 @@ export class ProductoComponent {
   protected readonly savedName = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');
+  protected readonly selectedImage = signal<File | null>(null);
 
   protected readonly productForm;
 
@@ -91,6 +92,12 @@ export class ProductoComponent {
     this.addOption('categoria', 'nuevaCategoria', this.categorias);
   }
 
+  protected handleImageChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const image = input.files?.[0] ?? null;
+    this.selectedImage.set(image);
+  }
+
   private addOption(
     optionControl: 'marca' | 'color' | 'categoria',
     newOptionControl: 'nuevaMarca' | 'nuevoColor' | 'nuevaCategoria',
@@ -145,11 +152,13 @@ export class ProductoComponent {
       precio: Number(formValue.precio ?? 0),
       stock: Number(formValue.stock ?? 0),
       stockMinimo: Number(formValue.stockMinimo ?? 0),
-      estado: formValue.estado ?? 'Disponible'
+      estado: formValue.estado ?? 'Disponible',
+      imagen: this.selectedImage() ?? undefined
     }).subscribe({
       next: () => {
         this.savedName.set(formValue.nombre ?? '');
         this.isSubmitting.set(false);
+        this.selectedImage.set(null);
         this.productForm.reset({ stock: 0, stockMinimo: 0, estado: 'Disponible', nuevaMarca: '', nuevoColor: '', nuevaCategoria: '' });
       },
       error: (error: { error?: { mensaje?: string } }) => {
