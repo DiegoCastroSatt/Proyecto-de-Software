@@ -66,15 +66,69 @@ public class ProductoService : IProductoService
             RutaImagen = rutaImagen
         });
 
-        return new ProductoResponseDto
-        {
-            Id = producto.IdProducto,
-            Codigo = producto.Codigo,
-            Nombre = producto.Nombre,
-            Estado = producto.Estado,
-            RutaImagen = producto.RutaImagen
-        };
+        return Mapear(producto);
     }
+
+    public async Task<List<ProductoResponseDto>> BuscarProductos(string termino) =>
+        (await _productoRepository.Buscar(termino)).Select(Mapear).ToList();
+
+    public async Task<ProductoResponseDto?> ObtenerProducto(int id)
+    {
+        var producto = await _productoRepository.ObtenerPorId(id);
+        return producto is null ? null : Mapear(producto);
+    }
+
+    public async Task<ProductoResponseDto> ActualizarProducto(int id, ActualizarProductoDto dto)
+    {
+        var producto = await _productoRepository.ObtenerPorId(id) ?? throw new KeyNotFoundException("No se encuentra el producto.");
+        var codigo = dto.Codigo.Trim();
+        var nombre = dto.Nombre.Trim();
+        var categoria = dto.Categoria.Trim();
+        if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(categoria))
+        {
+            throw new ArgumentException("El código, nombre y categoría son obligatorios.");
+        }
+
+        if (dto.Precio < 0 || dto.Stock < 0 || dto.StockMinimo < 0 || !EstadosValidos.Contains(dto.Estado.Trim(), StringComparer.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Los datos del producto no son válidos.");
+        }
+
+        producto.Codigo = codigo;
+        producto.Nombre = nombre;
+        producto.Marca = dto.Marca.Trim();
+        producto.Modelo = dto.Modelo.Trim();
+        producto.Color = dto.Color.Trim();
+        producto.Categoria = categoria;
+        producto.Precio = dto.Precio;
+        producto.Stock = dto.Stock;
+        producto.StockMinimo = dto.StockMinimo;
+        producto.Estado = EstadosValidos.First(estado => string.Equals(estado, dto.Estado.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (dto.Imagen is not null && dto.Imagen.Length > 0)
+        {
+            var rutaAnterior = producto.RutaImagen;
+            producto.RutaImagen = await GuardarImagen(dto.Imagen);
+            EliminarImagen(rutaAnterior);
+        }
+
+        return Mapear(await _productoRepository.Actualizar(producto));
+    }
+
+    private static ProductoResponseDto Mapear(Producto producto) => new()
+    {
+        Id = producto.IdProducto,
+        Codigo = producto.Codigo,
+        Nombre = producto.Nombre,
+        Marca = producto.Marca,
+        Modelo = producto.Modelo,
+        Color = producto.Color,
+        Categoria = producto.Categoria,
+        Precio = producto.Precio,
+        Stock = producto.Stock,
+        StockMinimo = producto.StockMinimo,
+        Estado = producto.Estado,
+        RutaImagen = producto.RutaImagen
+    };
 
     private async Task<string?> GuardarImagen(IFormFile? imagen)
     {
@@ -103,5 +157,21 @@ public class ProductoService : IProductoService
         await using var stream = File.Create(rutaFisica);
         await imagen.CopyToAsync(stream);
         return $"/uploads/productos/{nombreArchivo}";
+    }
+
+    private void EliminarImagen(string? rutaImagen)
+    {
+        if (string.IsNullOrWhiteSpace(rutaImagen))
+        {
+            return;
+        }
+
+        var nombreArchivo = Path.GetFileName(rutaImagen);
+        var directorio = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "uploads", "productos");
+        var rutaFisica = Path.Combine(directorio, nombreArchivo);
+        if (File.Exists(rutaFisica))
+        {
+            File.Delete(rutaFisica);
+        }
     }
 }
