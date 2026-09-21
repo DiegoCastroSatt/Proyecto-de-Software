@@ -68,14 +68,8 @@
         <div><h3>Ingresos mensuales</h3><p>Últimos 12 meses</p></div>
         <span>Mayor ingreso: ${{ maximoMensual() | number:'1.0-0' }}</span>
       </div>
-      <div class="barras" role="img" aria-label="Gráfico de barras de ingresos mensuales de los últimos doce meses">
-        @for (mes of meses(); track mes.clave) {
-          <div class="columna" [attr.title]="mes.etiqueta + ': $' + mes.ingreso">
-            <span class="valor">${{ mes.ingreso | number:'1.0-0' }}</span>
-            <div class="barra" [style.height.%]="alturaBarra(mes.ingreso)"></div>
-            <span class="mes">{{ mes.etiqueta }}</span>
-          </div>
-        }
+      <div class="contenedor-grafico">
+        <canvas #graficoIngresos aria-label="Gráfico de barras de ingresos mensuales de los últimos 12 meses" role="img"></canvas>
       </div>
     </article>
 
