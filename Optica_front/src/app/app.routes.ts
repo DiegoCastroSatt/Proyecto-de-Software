@@ -7,6 +7,8 @@ import { ClienteComponent } from './Componentes/home_cliente/cliente';
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { GestionHorariosComponent } from './Componentes/gestion-horarios/gestion-horarios';
 import { RegistroRecetaComponent } from './Componentes/registro-receta/registro-receta';
+import { BuscarProductoCliente } from './Componentes/buscar-producto-cliente/buscar-producto-cliente';
+import { BuscarProductoAdmin } from './Componentes/buscar-producto-admin/buscar-producto-admin';
 
 export const routes: Routes = [
   {
@@ -16,7 +18,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: EnTrabajoComponent, data: { titulo: 'Inicio' } },
       { path: 'reservas', component: ReservaComponent },
-      { path: 'productos', component: EnTrabajoComponent, data: { titulo: 'Productos' } }
+      { path: 'productos', component: BuscarProductoCliente }
     ]
   },
 
@@ -26,7 +28,8 @@ export const routes: Routes = [
     children: [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
 	  {path: 'horarios', component: GestionHorariosComponent},
-      { path: 'productos', component: ProductoComponent },
+      { path: 'productos/nuevo', component: ProductoComponent },
+      { path: 'productos', component: BuscarProductoAdmin },
       { path: 'ventas', component: RegistroVentaComponent },
       { path: 'recetas', component: RegistroRecetaComponent }
     ]
