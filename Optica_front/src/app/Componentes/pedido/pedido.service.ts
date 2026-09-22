@@ -3,8 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface CrearPedido {
-  nombreCliente: string;
+  rut: string;
   fecha: string;
+  estado: string;
+  total: number;
   anotaciones?: string;
 }
 
@@ -13,6 +15,7 @@ export interface PedidoResponse {
   nombreCliente: string;
   fecha: string;
   estado: string;
+  total: number;
   anotaciones?: string;
 }
 

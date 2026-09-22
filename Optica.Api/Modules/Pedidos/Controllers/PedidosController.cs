@@ -34,6 +34,7 @@ public class PedidosController : ControllerBase
                     NombreCliente = c.Nombre + " " + c.Apellido,
                     p.Fecha,
                     p.Estado,
+                    p.Total,
                     p.Anotaciones
                 })
             .OrderByDescending(p => p.Fecha)
@@ -64,27 +65,12 @@ public class PedidosController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreatePedido([FromBody] CreatePedidoDto dto)
     {
-        // Buscar el cliente por nombre completo (nombre + apellido)
-        var partes = dto.NombreCliente.Trim().Split(' ', 2);
-        var nombre = partes[0];
-        var apellido = partes.Length > 1 ? partes[1] : "";
-
         var cliente = await _context.Clientes
-            .FirstOrDefaultAsync(c =>
-                c.Nombre == nombre && c.Apellido == apellido && c.Estado == "Activo");
-
-        // Si no se encuentra por nombre+apellido, buscar solo por coincidencia parcial
-        if (cliente == null)
-        {
-            cliente = await _context.Clientes
-                .FirstOrDefaultAsync(c =>
-                    (c.Nombre + " " + c.Apellido) == dto.NombreCliente.Trim()
-                    && c.Estado == "Activo");
-        }
+            .FirstOrDefaultAsync(c => c.Rut == dto.Rut && c.Estado == "Activo");
 
         if (cliente == null)
         {
-            return BadRequest(new { mensaje = "No se encontró un cliente activo con ese nombre." });
+            return BadRequest(new { mensaje = "No se encontró un cliente activo con ese RUT." });
         }
 
         var pedido = new Pedido
@@ -92,7 +78,8 @@ public class PedidosController : ControllerBase
             IdCliente = cliente.IdCliente,
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
-            Estado = "Pendiente"
+            Estado = dto.Estado,
+            Total = dto.Total
         };
 
         _context.Pedidos.Add(pedido);
@@ -104,6 +91,7 @@ public class PedidosController : ControllerBase
             NombreCliente = cliente.Nombre + " " + cliente.Apellido,
             pedido.Fecha,
             pedido.Estado,
+            pedido.Total,
             pedido.Anotaciones
         });
     }

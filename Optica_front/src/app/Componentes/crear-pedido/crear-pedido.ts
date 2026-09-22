@@ -23,8 +23,10 @@ export class CrearPedidoComponent implements OnInit {
     private readonly router: Router
   ) {
     this.pedidoForm = this.formBuilder.group({
-      nombreCliente: ['', Validators.required],
+      rut: ['', Validators.required],
       fecha: ['', Validators.required],
+      estado: ['Pendiente', Validators.required],
+      total: [0, [Validators.required, Validators.min(0)]],
       anotaciones: ['']
     });
   }
@@ -48,15 +50,17 @@ export class CrearPedidoComponent implements OnInit {
     this.successMessage.set('');
 
     this.pedidoService.crearPedido({
-      nombreCliente: formValue.nombreCliente ?? '',
+      rut: formValue.rut ?? '',
       fecha: formValue.fecha ?? '',
+      estado: formValue.estado ?? 'Pendiente',
+      total: formValue.total ?? 0,
       anotaciones: formValue.anotaciones ?? ''
     }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         this.successMessage.set('Pedido guardado exitosamente.');
         this.pedidoForm.reset();
-        setTimeout(() => this.router.navigate(['/pedido']), 2000);
+        setTimeout(() => this.router.navigate(['/admin/pedido']), 2000);
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(

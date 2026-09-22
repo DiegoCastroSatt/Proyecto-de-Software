@@ -4,7 +4,9 @@ namespace Optica.Api.Modules.Pedidos.DTOs;
 
 public class CreatePedidoDto
 {
-    public string NombreCliente { get; set; } = string.Empty;
+    public string Rut { get; set; } = string.Empty;
     public DateTime Fecha { get; set; }
+    public string Estado { get; set; } = "Pendiente";
+    public decimal Total { get; set; }
     public string? Anotaciones { get; set; }
 }

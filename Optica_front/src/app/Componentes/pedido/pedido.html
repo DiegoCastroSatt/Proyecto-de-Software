@@ -6,7 +6,7 @@
       <div class="order-form-area">
         <div class="form-heading">
           <h2>Lista de Pedidos</h2>
-          <button type="button" class="btn-primary" routerLink="admin/crear-pedido">Crear Pedido</button>
+          <button type="button" class="btn-primary" routerLink="/admin/crear-pedido">Crear Pedido</button>
         </div>
 
         <div class="search-bar-container">
@@ -25,6 +25,7 @@
             <div class="pedido-info">
               <span class="pedido-cliente">{{ pedido.nombreCliente }}</span>
               <span class="pedido-fecha">{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
+              <span class="pedido-total">Total: ${{ pedido.total }}</span>
             </div>
             <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
           </div>
