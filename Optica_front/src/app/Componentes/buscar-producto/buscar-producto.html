@@ -1,0 +1,124 @@
+<section class="catalogo">
+  <div class="catalogo-heading">
+    <div>
+      <p class="eyebrow">Catálogo</p>
+      <h1>Buscar productos</h1>
+      <p>Encuentra por nombre, categoría o código.</p>
+    </div>
+    <form class="search-form" [formGroup]="busquedaForm" (ngSubmit)="buscar()">
+      <label for="termino">Buscar</label>
+      <div class="search-row">
+        <input id="termino" type="search" formControlName="termino" placeholder="Ej. armazón, lentes, OPT-001">
+        <button type="submit">Buscar</button>
+      </div>
+    </form>
+  </div>
+
+  <form class="filter-bar" [formGroup]="filtrosForm" (change)="aplicarFiltros()">
+    <label>Categoria
+      <select formControlName="categoria">
+        <option value="">Todas las categorias</option>
+        @for (categoria of categorias(); track categoria) {
+          <option [value]="categoria">{{ categoria }}</option>
+        }
+      </select>
+    </label>
+    <label>Color
+      <select formControlName="color">
+        <option value="">Todos los colores</option>
+        @for (color of colores(); track color) {
+          <option [value]="color">{{ color }}</option>
+        }
+      </select>
+    </label>
+    <label>Ordenar por precio
+      <select formControlName="ordenPrecio">
+        <option value="">Orden original</option>
+        <option value="menor">Menor a mayor</option>
+        <option value="mayor">Mayor a menor</option>
+      </select>
+    </label>
+    <button type="button" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </form>
+
+  @if (cargando()) {
+    <p class="status">Consultando productos...</p>
+  } @else if (error()) {
+    <p class="status error">{{ error() }}</p>
+  } @else if (mensaje()) {
+    <p class="status">{{ mensaje() }}</p>
+  } @else {
+    <div class="product-grid">
+      @for (producto of productosVisibles(); track producto.id) {
+        <button class="product-card" type="button" (click)="abrirDetalle(producto)">
+          @if (producto.rutaImagen) {
+            <img [src]="imageUrl(producto.rutaImagen)" [alt]="producto.nombre">
+          } @else {
+            <span class="product-placeholder" aria-hidden="true">SF</span>
+          }
+          <span class="product-copy">
+            <strong>{{ producto.nombre }}</strong>
+            <small>{{ producto.categoria }} · {{ producto.codigo }}</small>
+            <span class="price">{{ producto.precio | currency:'CLP':'symbol':'1.0-0' }}</span>
+          </span>
+        </button>
+      }
+    </div>
+  }
+</section>
+
+@if (productoSeleccionado(); as producto) {
+  <div class="modal-backdrop" role="presentation" (click)="cerrarDetalle()">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo" (click)="$event.stopPropagation()">
+      <button class="close" type="button" aria-label="Cerrar detalle" (click)="cerrarDetalle()">×</button>
+      @if (!editando()) {
+        <p class="eyebrow">Detalle del producto</p>
+        <h2 id="detalle-titulo">{{ producto.nombre }}</h2>
+        @if (producto.rutaImagen) {
+          <img class="detail-image" [src]="imageUrl(producto.rutaImagen)" [alt]="producto.nombre">
+        }
+        <dl class="details">
+          <div><dt>Código</dt><dd>{{ producto.codigo }}</dd></div>
+          <div><dt>Categoría</dt><dd>{{ producto.categoria }}</dd></div>
+          <div><dt>Marca / modelo</dt><dd>{{ producto.marca || 'Sin marca' }} {{ producto.modelo }}</dd></div>
+          <div><dt>Color</dt><dd>{{ producto.color || 'Sin especificar' }}</dd></div>
+          <div><dt>Precio</dt><dd>{{ producto.precio | currency:'CLP':'symbol':'1.0-0' }}</dd></div>
+          <div><dt>Stock</dt><dd>{{ producto.stock }}</dd></div>
+          <div><dt>Estado</dt><dd>{{ producto.estado }}</dd></div>
+        </dl>
+        @if (esAdministrador) {
+          <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>
+        }
+      } @else {
+        <p class="eyebrow">Editar producto</p>
+        <h2 id="detalle-titulo">{{ producto.nombre }}</h2>
+        <form class="edit-form" [formGroup]="productoForm" (ngSubmit)="guardarCambios()">
+          <label>Código <input formControlName="codigo"></label>
+          <label>Nombre <input formControlName="nombre"></label>
+          <label>Categoría <input formControlName="categoria"></label>
+          <label>Marca <input formControlName="marca"></label>
+          <label>Modelo <input formControlName="modelo"></label>
+          <label>Color <input formControlName="color"></label>
+          <label>Precio <input type="number" formControlName="precio"></label>
+          <label>Stock <input type="number" formControlName="stock"></label>
+          <label>Stock mínimo <input type="number" formControlName="stockMinimo"></label>
+          <label>Estado <select formControlName="estado"><option>Disponible</option><option>Agotado</option></select></label>
+          <div class="image-editor">
+            <span class="field-title">Imagen del producto</span>
+            @if (imagePreview() || producto.rutaImagen) {
+              <img class="edit-image-preview" [src]="imagePreview() || imageUrl(producto.rutaImagen)" [alt]="producto.nombre">
+            } @else {
+              <span class="edit-image-empty">Sin imagen</span>
+            }
+            <label class="image-picker">
+              Cambiar imagen
+              <input type="file" accept="image/jpeg,image/png,image/webp" (change)="handleImageChange($event)">
+            </label>
+            <small>JPG, PNG o WebP, máximo 5 MB. {{ selectedImage()?.name || 'Se conserva la imagen actual si no eliges otra.' }}</small>
+          </div>
+          <div class="actions"><button type="button" (click)="cancelarEdicion()">Cancelar</button><button class="primary" type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando...' : 'Guardar cambios' }}</button></div>
+        </form>
+      }
+    </section>
+  </div>
+}

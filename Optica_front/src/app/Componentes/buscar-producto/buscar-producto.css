@@ -1,0 +1,41 @@
+:host { display: block; }
+.catalogo { max-width: 1180px; margin: 0 auto; padding: 48px clamp(20px, 5vw, 64px); }
+.catalogo-heading { display: flex; justify-content: space-between; gap: 32px; align-items: end; border-bottom: 1px solid #cbd7d1; padding-bottom: 28px; }
+.eyebrow { margin: 0 0 8px; color: #bf8542; font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+h1, h2 { margin: 0; color: #1d4a47; font-family: Georgia, serif; }
+.catalogo-heading p:not(.eyebrow) { margin: 8px 0 0; color: #60716d; }
+.search-form { min-width: min(100%, 430px); }
+.search-form label { display: block; margin-bottom: 7px; color: #1d3434; font-size: .8rem; font-weight: 700; }
+.search-row { display: flex; gap: 8px; }
+input, select { box-sizing: border-box; width: 100%; border: 1px solid #b7c8c0; border-radius: 3px; padding: 11px 12px; background: #fffdf7; color: #1d3434; font: inherit; }
+button { border: 1px solid #b7c8c0; border-radius: 3px; padding: 10px 14px; background: #fffdf7; color: #1d4a47; cursor: pointer; font: inherit; font-weight: 700; }
+button:hover { border-color: #bf8542; }
+.search-row button, .primary { background: #1d4a47; border-color: #1d4a47; color: #f5f5e9; }
+.filter-bar { display: grid; grid-template-columns: repeat(3, minmax(160px, 1fr)) auto; align-items: end; gap: 14px; padding: 22px 0; border-bottom: 1px solid #cbd7d1; }
+.filter-bar label { display: grid; gap: 7px; color: #1d3434; font-size: .8rem; font-weight: 700; }
+.filter-bar button { height: 42px; white-space: nowrap; }
+.status { margin: 40px 0; color: #60716d; text-align: center; }
+.error { color: #a33e2f; }
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; padding-top: 28px; }
+.product-card { display: flex; flex-direction: column; align-items: stretch; padding: 0; overflow: hidden; text-align: left; background: #fffdf7; box-shadow: 0 5px 18px rgba(29, 52, 52, .08); }
+.product-card img, .product-placeholder { display: grid; place-items: center; width: 100%; height: 170px; object-fit: cover; background: #dce7e1; color: #1d4a47; font: 1.3rem Georgia, serif; }
+.detail-image { display: block; width: 100%; max-height: 220px; object-fit: contain; margin: 20px 0; background: #dce7e1; }
+.product-copy { display: grid; gap: 7px; padding: 16px; }
+.product-copy strong { color: #1d4a47; font-family: Georgia, serif; font-size: 1.05rem; }
+.product-copy small { color: #60716d; }
+.price { color: #bf8542; font-weight: 800; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: rgba(18, 39, 37, .56); }
+.modal { position: relative; width: min(100%, 560px); max-height: 90vh; overflow-y: auto; padding: 32px; background: #fffdf7; box-shadow: 0 18px 50px rgba(0, 0, 0, .2); }
+.close { position: absolute; top: 12px; right: 12px; border: 0; padding: 2px 8px; background: transparent; font-size: 1.6rem; font-weight: 400; }
+.details { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 28px 0; }
+.details div { border-bottom: 1px solid #d8e0dc; padding-bottom: 10px; }
+dt { color: #60716d; font-size: .75rem; } dd { margin: 4px 0 0; color: #1d3434; font-weight: 700; }
+.edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+.edit-form label { display: grid; gap: 6px; color: #60716d; font-size: .8rem; font-weight: 700; }
+.image-editor { display: grid; grid-column: 1 / -1; gap: 8px; border-top: 1px solid #d8e0dc; padding-top: 16px; }
+.field-title { color: #1d3434; font-size: .85rem; font-weight: 800; }
+.edit-image-preview, .edit-image-empty { display: grid; place-items: center; width: 100%; height: 150px; object-fit: contain; background: #dce7e1; color: #60716d; }
+.image-picker { justify-self: start; padding: 9px 13px; border: 1px solid #b7c8c0; border-radius: 3px; color: #1d4a47; cursor: pointer; font-weight: 700; }
+.image-picker input { display: none; }
+.actions { display: flex; justify-content: end; gap: 8px; grid-column: 1 / -1; margin-top: 8px; }
+@media (max-width: 720px) { .catalogo-heading { align-items: stretch; flex-direction: column; } .search-form { min-width: 0; } .filter-bar { grid-template-columns: 1fr; } .filter-bar button { width: 100%; } .edit-form, .details { grid-template-columns: 1fr; } }

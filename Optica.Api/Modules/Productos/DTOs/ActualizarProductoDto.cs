@@ -1,6 +1,5 @@
-public class ProductoResponseDto
+public class ActualizarProductoDto
 {
-    public int Id { get; set; }
     public string Codigo { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public string Marca { get; set; } = string.Empty;
@@ -10,6 +9,6 @@ public class ProductoResponseDto
     public decimal Precio { get; set; }
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
-    public string Estado { get; set; } = string.Empty;
-    public string? RutaImagen { get; set; }
+    public string Estado { get; set; } = "Disponible";
+    public IFormFile? Imagen { get; set; }
 }
