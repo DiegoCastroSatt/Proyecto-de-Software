@@ -235,7 +235,6 @@ export class ClientesComponent implements OnInit {
     });
   }
 
-  // MÉTODOS DEL MODAL DE CONFIRMACIÓN (DESACTIVAR / REACTIVAR)
   abrirModalEstado(cliente: Cliente, nuevoEstado: 'Activo' | 'Inactivo'): void {
     this.clienteEstadoSeleccionado = cliente;
     this.nuevoEstadoObjetivo = nuevoEstado;

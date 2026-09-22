@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { ReservaComponent } from './Componentes/reserva/reserva';
-import { ClientesComponent } from './Componentes/clientes/clientes';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
@@ -20,7 +19,6 @@ export const routes: Routes = [
       { path: 'inicio', component: EnTrabajoComponent, data: { titulo: 'Inicio' } },
       { path: 'reservas', component: ReservaComponent },
       { path: 'productos', component: BuscarProductoCliente }
-      // <-- Se eliminó 'clientes' de la vista pública
     ]
   },
 
@@ -30,7 +28,8 @@ export const routes: Routes = [
     children: [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
       { path: 'horarios', component: GestionHorariosComponent },
-      { path: 'clientes', component: ClientesComponent }, // <-- Solo accesible aquí: /admin/clientes
+      { path: 'clientes', component: ClientesComponent },
+	  {path: 'horarios', component: GestionHorariosComponent},
       { path: 'productos/nuevo', component: ProductoComponent },
       { path: 'productos', component: BuscarProductoAdmin },
       { path: 'ventas', component: RegistroVentaComponent },
