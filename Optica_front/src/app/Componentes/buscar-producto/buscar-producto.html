@@ -87,28 +87,36 @@
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo" (click)="$event.stopPropagation()">
       <button class="close" type="button" aria-label="Cerrar detalle" (click)="cerrarDetalle()">×</button>
       @if (!editando()) {
-        <p class="eyebrow">Detalle del producto</p>
-        <h2 id="detalle-titulo">{{ producto.nombre }}</h2>
-        @if (producto.rutaImagen) {
-          <img class="detail-image" [src]="imageUrl(producto.rutaImagen)" [alt]="producto.nombre">
-        }
-        <dl class="details">
-          <div><dt>Código</dt><dd>{{ producto.codigo }}</dd></div>
-          <div><dt>Categoría</dt><dd>{{ producto.categoria }}</dd></div>
-          <div><dt>Marca / modelo</dt><dd>{{ producto.marca || 'Sin marca' }} {{ producto.modelo }}</dd></div>
-          <div><dt>Color</dt><dd>{{ producto.color || 'Sin especificar' }}</dd></div>
-          <div><dt>Precio</dt><dd>{{ producto.precio | currency:'CLP':'symbol':'1.0-0' }}</dd></div>
-          <div><dt>Stock</dt><dd>{{ producto.stock }}</dd></div>
-          <div><dt>Estado</dt><dd>{{ producto.estado }}</dd></div>
-        </dl>
-        @if (esAdministrador) {
-          <div class="detail-actions">
-            <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>
-            @if (!producto.tieneVentas) {
-              <button class="danger" type="button" (click)="eliminarProducto()">Eliminar producto</button>
+        <div class="detail-layout">
+          <div class="detail-visual">
+            <p class="eyebrow">Detalle del producto</p>
+            <h2 id="detalle-titulo">{{ producto.nombre }}</h2>
+            @if (producto.rutaImagen) {
+              <img class="detail-image" [src]="imageUrl(producto.rutaImagen)" [alt]="producto.nombre">
+            } @else {
+              <div class="detail-image detail-placeholder" aria-hidden="true">SF</div>
             }
           </div>
-        }
+          <div class="detail-information">
+            <dl class="details">
+              <div><dt>Código</dt><dd>{{ producto.codigo }}</dd></div>
+              <div><dt>Categoría</dt><dd>{{ producto.categoria }}</dd></div>
+              <div><dt>Marca / modelo</dt><dd>{{ producto.marca || 'Sin marca' }} {{ producto.modelo }}</dd></div>
+              <div><dt>Color</dt><dd>{{ producto.color || 'Sin especificar' }}</dd></div>
+              <div><dt>Precio</dt><dd>{{ producto.precio | currency:'CLP':'symbol':'1.0-0' }}</dd></div>
+              <div><dt>Stock</dt><dd>{{ producto.stock }}</dd></div>
+              <div><dt>Estado</dt><dd>{{ producto.estado }}</dd></div>
+            </dl>
+            @if (esAdministrador) {
+              <div class="detail-actions">
+                <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>
+                @if (!producto.tieneVentas) {
+                  <button class="danger" type="button" (click)="eliminarProducto()">Eliminar producto</button>
+                }
+              </div>
+            }
+          </div>
+        </div>
       } @else {
         <p class="eyebrow">Editar producto</p>
         <h2 id="detalle-titulo">{{ producto.nombre }}</h2>
