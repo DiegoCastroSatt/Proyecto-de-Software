@@ -9,6 +9,7 @@ import { GestionHorariosComponent } from './Componentes/gestion-horarios/gestion
 import { RegistroRecetaComponent } from './Componentes/registro-receta/registro-receta';
 import { BuscarProductoCliente } from './Componentes/buscar-producto-cliente/buscar-producto-cliente';
 import { BuscarProductoAdmin } from './Componentes/buscar-producto-admin/buscar-producto-admin';
+import { ClientesComponent } from './Componentes/clientes/clientes';
 
 export const routes: Routes = [
   {
@@ -29,7 +30,6 @@ export const routes: Routes = [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
       { path: 'horarios', component: GestionHorariosComponent },
       { path: 'clientes', component: ClientesComponent },
-	  {path: 'horarios', component: GestionHorariosComponent},
       { path: 'productos/nuevo', component: ProductoComponent },
       { path: 'productos', component: BuscarProductoAdmin },
       { path: 'ventas', component: RegistroVentaComponent },
