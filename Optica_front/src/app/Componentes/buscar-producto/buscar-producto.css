@@ -11,7 +11,9 @@ input, select { box-sizing: border-box; width: 100%; border: 1px solid #b7c8c0; 
 button { border: 1px solid #b7c8c0; border-radius: 3px; padding: 10px 14px; background: #fffdf7; color: #1d4a47; cursor: pointer; font: inherit; font-weight: 700; }
 button:hover { border-color: #bf8542; }
 .search-row button, .primary { background: #1d4a47; border-color: #1d4a47; color: #f5f5e9; }
-.filter-bar { display: grid; grid-template-columns: repeat(3, minmax(160px, 1fr)) auto; align-items: end; gap: 14px; padding: 22px 0; border-bottom: 1px solid #cbd7d1; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.danger { border-color: #a33e2f; color: #a33e2f; }
+.filter-bar { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)) auto; align-items: end; gap: 14px; padding: 22px 0; border-bottom: 1px solid #cbd7d1; }
 .filter-bar label { display: grid; gap: 7px; color: #1d3434; font-size: .8rem; font-weight: 700; }
 .filter-bar button { height: 42px; white-space: nowrap; }
 .status { margin: 40px 0; color: #60716d; text-align: center; }
@@ -38,4 +40,6 @@ dt { color: #60716d; font-size: .75rem; } dd { margin: 4px 0 0; color: #1d3434; 
 .image-picker { justify-self: start; padding: 9px 13px; border: 1px solid #b7c8c0; border-radius: 3px; color: #1d4a47; cursor: pointer; font-weight: 700; }
 .image-picker input { display: none; }
 .actions { display: flex; justify-content: end; gap: 8px; grid-column: 1 / -1; margin-top: 8px; }
+.add-option { display: flex; gap: 6px; }
+.add-option button { flex: 0 0 auto; padding: 8px 10px; }
 @media (max-width: 720px) { .catalogo-heading { align-items: stretch; flex-direction: column; } .search-form { min-width: 0; } .filter-bar { grid-template-columns: 1fr; } .filter-bar button { width: 100%; } .edit-form, .details { grid-template-columns: 1fr; } }

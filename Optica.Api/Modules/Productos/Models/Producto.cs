@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Optica.Api.Modules.Productos.Models;
 
 public class Producto
@@ -14,4 +16,7 @@ public class Producto
     public int StockMinimo { get; set; }
     public string Estado { get; set; } = "Disponible";
     public string? RutaImagen { get; set; }
+
+    [NotMapped]
+    public bool TieneVentas { get; set; }
 }

@@ -15,6 +15,13 @@
   </div>
 
   <form class="filter-bar" [formGroup]="filtrosForm" (change)="aplicarFiltros()">
+    <label>Estado
+      <select formControlName="estado">
+        <option value="Disponible">Disponible</option>
+        <option value="Agotado">Agotado</option>
+        <option value="">Todos los estados</option>
+      </select>
+    </label>
     <label>Categoria
       <select formControlName="categoria">
         <option value="">Todas las categorias</option>
@@ -28,6 +35,14 @@
         <option value="">Todos los colores</option>
         @for (color of colores(); track color) {
           <option [value]="color">{{ color }}</option>
+        }
+      </select>
+    </label>
+    <label>Marca
+      <select formControlName="marca">
+        <option value="">Todas las marcas</option>
+        @for (marca of marcas(); track marca) {
+          <option [value]="marca">{{ marca }}</option>
         }
       </select>
     </label>
@@ -87,7 +102,12 @@
           <div><dt>Estado</dt><dd>{{ producto.estado }}</dd></div>
         </dl>
         @if (esAdministrador) {
-          <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>
+          <div class="detail-actions">
+            <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>
+            @if (!producto.tieneVentas) {
+              <button class="danger" type="button" (click)="eliminarProducto()">Eliminar producto</button>
+            }
+          </div>
         }
       } @else {
         <p class="eyebrow">Editar producto</p>
@@ -95,10 +115,37 @@
         <form class="edit-form" [formGroup]="productoForm" (ngSubmit)="guardarCambios()">
           <label>Código <input formControlName="codigo"></label>
           <label>Nombre <input formControlName="nombre"></label>
-          <label>Categoría <input formControlName="categoria"></label>
-          <label>Marca <input formControlName="marca"></label>
+          <label>Marca
+            <select formControlName="marca" (change)="handleCatalogoChange('marca', $any($event.target).value)">
+              <option value="">Selecciona una marca</option>
+              @for (marca of marcas(); track marca) { <option [value]="marca">{{ marca }}</option> }
+              <option [value]="nuevaMarcaValue">Agregar nueva marca...</option>
+            </select>
+            @if (productoForm.controls.marca.value === nuevaMarcaValue) {
+              <span class="add-option"><input formControlName="nuevaMarca" placeholder="Escribe una marca"><button type="button" (click)="agregarOpcion('marca')">Añadir</button></span>
+            }
+          </label>
           <label>Modelo <input formControlName="modelo"></label>
-          <label>Color <input formControlName="color"></label>
+          <label>Color
+            <select formControlName="color" (change)="handleCatalogoChange('color', $any($event.target).value)">
+              <option value="">Selecciona un color</option>
+              @for (color of colores(); track color) { <option [value]="color">{{ color }}</option> }
+              <option [value]="nuevoColorValue">Agregar nuevo color...</option>
+            </select>
+            @if (productoForm.controls.color.value === nuevoColorValue) {
+              <span class="add-option"><input formControlName="nuevoColor" placeholder="Escribe un color"><button type="button" (click)="agregarOpcion('color')">Añadir</button></span>
+            }
+          </label>
+          <label>Categoría
+            <select formControlName="categoria" (change)="handleCatalogoChange('categoria', $any($event.target).value)">
+              <option value="">Selecciona una categoría</option>
+              @for (categoria of categorias(); track categoria) { <option [value]="categoria">{{ categoria }}</option> }
+              <option [value]="nuevaCategoriaValue">Agregar nueva categoría...</option>
+            </select>
+            @if (productoForm.controls.categoria.value === nuevaCategoriaValue) {
+              <span class="add-option"><input formControlName="nuevaCategoria" placeholder="Escribe una categoría"><button type="button" (click)="agregarOpcion('categoria')">Añadir</button></span>
+            }
+          </label>
           <label>Precio <input type="number" formControlName="precio"></label>
           <label>Stock <input type="number" formControlName="stock"></label>
           <label>Stock mínimo <input type="number" formControlName="stockMinimo"></label>

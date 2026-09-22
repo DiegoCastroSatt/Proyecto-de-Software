@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Optica.Api.Modules.Productos.Models;
 using Xunit;
@@ -77,6 +78,21 @@ public class TestProductos
         Assert.Equal("Ray-Ban", repositorio.UltimoProducto.Marca);
     }
 
+    [Fact]
+    public async Task EliminarProducto_ExplicaLaRestriccionPorVentas()
+    {
+        var repositorio = new ProductoRepositorioPrueba
+        {
+            ErrorEnEliminar = true,
+            ProductoActual = new Producto { IdProducto = 7, Nombre = "Armazón", Codigo = "OPT-007", Categoria = "Armazones" }
+        };
+        var servicio = CrearServicio(repositorio);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => servicio.EliminarProducto(7));
+
+        Assert.Contains("ventas", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static ProductoService CrearServicio(ProductoRepositorioPrueba repositorio) =>
         new(repositorio, new EntornoPrueba());
 
@@ -95,6 +111,8 @@ public class TestProductos
 internal sealed class ProductoRepositorioPrueba : IProductoRepository
 {
     public bool CodigoExiste { get; set; }
+    public bool ErrorEnEliminar { get; set; }
+    public Producto? ProductoActual { get; set; }
     public Producto? UltimoProducto { get; private set; }
     public List<Producto> Productos { get; } = [];
 
@@ -109,12 +127,23 @@ internal sealed class ProductoRepositorioPrueba : IProductoRepository
 
     public Task<List<Producto>> Buscar(string termino) => Task.FromResult(Productos);
 
-    public Task<Producto?> ObtenerPorId(int id) => Task.FromResult(UltimoProducto);
+    public Task<Producto?> ObtenerPorId(int id) => Task.FromResult(ProductoActual ?? UltimoProducto);
 
     public Task<Producto> Actualizar(Producto producto)
     {
         UltimoProducto = producto;
         return Task.FromResult(producto);
+    }
+
+    public Task<bool> Eliminar(int id)
+    {
+        if (ErrorEnEliminar)
+        {
+            throw new DbUpdateException("No se puede eliminar el producto porque está asociado a ventas.");
+        }
+
+        UltimoProducto = null;
+        return Task.FromResult(true);
     }
 }
 

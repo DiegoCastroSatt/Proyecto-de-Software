@@ -52,4 +52,12 @@ describe('BuscarProductoService', () => {
     expect(imagenEnviada.type).toBe('image/png');
     request.flush({ ...producto, id: 7, imagen: undefined });
   });
+
+  it('elimina un producto por su identificador', () => {
+    service.eliminar(7).subscribe();
+
+    const request = http.expectOne('http://localhost:8080/api/Productos/7');
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null);
+  });
 });

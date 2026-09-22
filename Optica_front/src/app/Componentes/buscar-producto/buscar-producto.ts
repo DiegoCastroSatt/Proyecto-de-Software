@@ -1,6 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, Input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { BuscarProductoService, Producto, ProductoEditable } from './buscar-producto.service';
 
 @Component({
@@ -16,6 +17,10 @@ export class BuscarProductoComponent implements OnInit {
   protected readonly productosVisibles = signal<Producto[]>([]);
   protected readonly categorias = signal<string[]>([]);
   protected readonly colores = signal<string[]>([]);
+  protected readonly marcas = signal<string[]>([]);
+  protected readonly nuevaMarcaValue = '__nueva_marca__';
+  protected readonly nuevoColorValue = '__nuevo_color__';
+  protected readonly nuevaCategoriaValue = '__nueva_categoria__';
   protected readonly cargando = signal(false);
   protected readonly mensaje = signal('');
   protected readonly error = signal('');
@@ -35,8 +40,10 @@ export class BuscarProductoComponent implements OnInit {
   ) {
     this.busquedaForm = this.formBuilder.nonNullable.group({ termino: [''] });
     this.filtrosForm = this.formBuilder.nonNullable.group({
+      estado: ['Disponible'],
       categoria: [''],
       color: [''],
+      marca: [''],
       ordenPrecio: ['']
     });
     this.productoForm = this.formBuilder.nonNullable.group({
@@ -47,12 +54,33 @@ export class BuscarProductoComponent implements OnInit {
       precio: [0, [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
-      estado: ['Disponible', Validators.required]
+      estado: ['Disponible', Validators.required],
+      nuevaMarca: [''],
+      nuevoColor: [''],
+      nuevaCategoria: ['']
     });
   }
 
   ngOnInit(): void {
+    if (this.esAdministrador) {
+      this.cargarCatalogos();
+    }
     this.buscar();
+  }
+
+  private cargarCatalogos(): void {
+    forkJoin({
+      marcas: this.productoService.obtenerCatalogo('Marca'),
+      colores: this.productoService.obtenerCatalogo('Color'),
+      categorias: this.productoService.obtenerCatalogo('Categoria')
+    }).subscribe({
+      next: catalogos => {
+        this.marcas.set(catalogos.marcas.map(item => item.nombre));
+        this.colores.set(catalogos.colores.map(item => item.nombre));
+        this.categorias.set(catalogos.categorias.map(item => item.nombre));
+      },
+      error: () => this.error.set('No se pudieron cargar las opciones del formulario.')
+    });
   }
 
   protected buscar(): void {
@@ -61,8 +89,11 @@ export class BuscarProductoComponent implements OnInit {
     this.productoService.buscar(this.busquedaForm.controls.termino.value).subscribe({
       next: (productos) => {
         this.productos.set(productos);
-        this.categorias.set(this.opcionesUnicas(productos.map(producto => producto.categoria)));
-        this.colores.set(this.opcionesUnicas(productos.map(producto => producto.color)));
+        if (!this.esAdministrador) {
+          this.categorias.set(this.opcionesUnicas(productos.map(producto => producto.categoria)));
+          this.colores.set(this.opcionesUnicas(productos.map(producto => producto.color)));
+          this.marcas.set(this.opcionesUnicas(productos.map(producto => producto.marca)));
+        }
         this.aplicarFiltros();
         this.cargando.set(false);
       },
@@ -74,10 +105,12 @@ export class BuscarProductoComponent implements OnInit {
   }
 
   protected aplicarFiltros(): void {
-    const { categoria, color, ordenPrecio } = this.filtrosForm.getRawValue();
+    const { estado, categoria, color, marca, ordenPrecio } = this.filtrosForm.getRawValue();
     const filtrados = this.productos().filter(producto =>
+      (!estado || producto.estado === estado) &&
       (!categoria || producto.categoria === categoria) &&
-      (!color || producto.color === color)
+      (!color || producto.color === color) &&
+      (!marca || producto.marca === marca)
     );
 
     if (ordenPrecio === 'menor') {
@@ -91,7 +124,7 @@ export class BuscarProductoComponent implements OnInit {
   }
 
   protected limpiarFiltros(): void {
-    this.filtrosForm.reset({ categoria: '', color: '', ordenPrecio: '' });
+    this.filtrosForm.reset({ estado: 'Disponible', categoria: '', color: '', marca: '', ordenPrecio: '' });
     this.aplicarFiltros();
   }
 
@@ -114,6 +147,42 @@ export class BuscarProductoComponent implements OnInit {
     this.selectedImage.set(null);
     this.imagePreview.set('');
     this.editando.set(true);
+  }
+
+  protected handleCatalogoChange(control: 'marca' | 'color' | 'categoria', value: string): void {
+    const nuevoControl = control === 'marca' ? 'nuevaMarca' : control === 'color' ? 'nuevoColor' : 'nuevaCategoria';
+    if (value !== this.valorNuevaOpcion(control)) {
+      this.productoForm.controls[nuevoControl].reset('');
+    }
+  }
+
+  protected agregarOpcion(control: 'marca' | 'color' | 'categoria'): void {
+    const nuevoControl = control === 'marca' ? 'nuevaMarca' : control === 'color' ? 'nuevoColor' : 'nuevaCategoria';
+    const opciones = control === 'marca' ? this.marcas : control === 'color' ? this.colores : this.categorias;
+    const nombre = this.productoForm.controls[nuevoControl].value.trim();
+    if (!nombre) {
+      this.productoForm.controls[nuevoControl].markAsTouched();
+      return;
+    }
+
+    const tipo = control === 'marca' ? 'Marca' : control === 'color' ? 'Color' : 'Categoria';
+    this.productoService.crearCatalogoItem(tipo, nombre).subscribe({
+      next: item => {
+        const existente = opciones().find(opcion => opcion.toLowerCase() === item.nombre.toLowerCase());
+        if (!existente) {
+          opciones.update(items => [...items, item.nombre]);
+        }
+        this.productoForm.controls[control].setValue(existente ?? item.nombre);
+        this.productoForm.controls[nuevoControl].reset('');
+      },
+      error: (respuesta: { error?: { mensaje?: string } }) => {
+        this.error.set(respuesta.error?.mensaje ?? 'No se pudo guardar la nueva opción.');
+      }
+    });
+  }
+
+  protected valorNuevaOpcion(control: 'marca' | 'color' | 'categoria'): string {
+    return control === 'marca' ? this.nuevaMarcaValue : control === 'color' ? this.nuevoColorValue : this.nuevaCategoriaValue;
   }
 
   protected handleImageChange(event: Event): void {
@@ -149,6 +218,9 @@ export class BuscarProductoComponent implements OnInit {
     this.guardando.set(true);
     const productoEditado: ProductoEditable = {
       ...this.productoForm.getRawValue(),
+      marca: this.productoForm.controls.marca.value === this.nuevaMarcaValue ? '' : this.productoForm.controls.marca.value,
+      color: this.productoForm.controls.color.value === this.nuevoColorValue ? '' : this.productoForm.controls.color.value,
+      categoria: this.productoForm.controls.categoria.value === this.nuevaCategoriaValue ? '' : this.productoForm.controls.categoria.value,
       imagen: this.selectedImage() ?? undefined
     };
     this.productoService.actualizar(producto.id, productoEditado).subscribe({
@@ -160,6 +232,27 @@ export class BuscarProductoComponent implements OnInit {
       },
       error: (respuesta: { error?: { mensaje?: string } }) => {
         this.error.set(respuesta.error?.mensaje ?? 'No se pudo actualizar el producto.');
+        this.guardando.set(false);
+      }
+    });
+  }
+
+  protected eliminarProducto(): void {
+    const producto = this.productoSeleccionado();
+    if (!producto || !confirm(`¿Eliminar el producto "${producto.nombre}"?`)) {
+      return;
+    }
+
+    this.guardando.set(true);
+    this.productoService.eliminar(producto.id).subscribe({
+      next: () => {
+        this.productos.update(items => items.filter(item => item.id !== producto.id));
+        this.cerrarDetalle();
+        this.aplicarFiltros();
+        this.guardando.set(false);
+      },
+      error: (respuesta: { error?: { mensaje?: string } }) => {
+        this.error.set(respuesta.error?.mensaje ?? 'No se pudo eliminar el producto.');
         this.guardando.set(false);
       }
     });
