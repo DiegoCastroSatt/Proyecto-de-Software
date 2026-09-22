@@ -21,6 +21,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    volumes:
+      - ./Optica.Api/wwwroot/uploads:/app/wwwroot/uploads
     environment:
       ConnectionStrings__OpticaDb: "Server=database;Port=3306;Database=optica_db;User=root;Password=${MYSQL_ROOT_PASSWORD};"
     depends_on:

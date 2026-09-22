@@ -124,11 +124,7 @@ button.secundario { background: white; color: #1d4a47; border: 1px solid #1d4a47
 .indicador strong { color: #1d4a47; font: 700 clamp(1.8rem, 4vw, 2.7rem) Georgia, serif; }
 .grafico { margin: 18px 0 30px; overflow-x: auto; }
 .titulo-grafico p, .titulo-grafico span { color: #657873; font-size: .85rem; }
-.barras { height: 260px; min-width: 720px; display: flex; align-items: end; gap: 12px; padding: 45px 10px 0; border-bottom: 1px solid #91a49e; }
-.columna { height: 100%; flex: 1; display: flex; flex-direction: column; justify-content: end; align-items: center; gap: 6px; }
-.barra { width: min(36px, 75%); min-height: 2px; background: linear-gradient(#337b73, #1d4a47); border-radius: 4px 4px 0 0; transition: height 250ms ease; }
-.valor { font-size: .68rem; color: #526965; white-space: nowrap; }
-.mes { min-height: 24px; font-size: .75rem; font-weight: 700; text-transform: capitalize; }
+.contenedor-grafico { height: 300px; min-width: 720px; padding: 18px 8px 0; }
 .historial { display: grid; gap: 10px; }
 .venta-historial { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; margin: 0; padding: 16px 20px; }
 .venta-historial div:first-child { display: grid; gap: 4px; }

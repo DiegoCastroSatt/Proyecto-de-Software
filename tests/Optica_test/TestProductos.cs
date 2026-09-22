@@ -96,12 +96,23 @@ internal sealed class ProductoRepositorioPrueba : IProductoRepository
 {
     public bool CodigoExiste { get; set; }
     public Producto? UltimoProducto { get; private set; }
+    public List<Producto> Productos { get; } = [];
 
     public Task<bool> ExisteCodigo(string codigo) => Task.FromResult(CodigoExiste);
 
     public Task<Producto> Crear(Producto producto)
     {
         producto.IdProducto = 1;
+        UltimoProducto = producto;
+        return Task.FromResult(producto);
+    }
+
+    public Task<List<Producto>> Buscar(string termino) => Task.FromResult(Productos);
+
+    public Task<Producto?> ObtenerPorId(int id) => Task.FromResult(UltimoProducto);
+
+    public Task<Producto> Actualizar(Producto producto)
+    {
         UltimoProducto = producto;
         return Task.FromResult(producto);
     }
