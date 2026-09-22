@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { ReservaComponent } from './components/reserva/reserva';
-import { ClientesComponent } from './components/clientes/clientes';
+import { ReservaComponent } from './Componentes/reserva/reserva';
+import { ClientesComponent } from './Componentes/clientes/clientes';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
