@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { ClienteService, Cliente } from '../../services/cliente';
+import { ClienteService, Cliente } from './cliente.service';
 
 function validarRutChileno(control: AbstractControl): ValidationErrors | null {
   const valor = control.value;

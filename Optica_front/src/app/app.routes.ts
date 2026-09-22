@@ -19,8 +19,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: EnTrabajoComponent, data: { titulo: 'Inicio' } },
       { path: 'reservas', component: ReservaComponent },
-      { path: 'productos', component: BuscarProductoCliente },
-      { path: 'clientes', component: ClientesComponent }
+      { path: 'productos', component: BuscarProductoCliente }
+      // <-- Se eliminó 'clientes' de la vista pública
     ]
   },
 
@@ -30,7 +30,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
       { path: 'horarios', component: GestionHorariosComponent },
-      { path: 'clientes', component: ClientesComponent },
+      { path: 'clientes', component: ClientesComponent }, // <-- Solo accesible aquí: /admin/clientes
       { path: 'productos/nuevo', component: ProductoComponent },
       { path: 'productos', component: BuscarProductoAdmin },
       { path: 'ventas', component: RegistroVentaComponent },
