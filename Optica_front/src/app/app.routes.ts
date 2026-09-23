@@ -3,7 +3,7 @@ import { ReservaComponent } from './Componentes/reserva/reserva';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
-import { ClienteComponent } from './Componentes/home_cliente/cliente';
+import { ClienteLayoutComponent } from './Componentes/home_cliente/cliente';
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { GestionHorariosComponent } from './Componentes/gestion-horarios/gestion-horarios';
 import { RegistroRecetaComponent } from './Componentes/registro-receta/registro-receta';
@@ -11,11 +11,12 @@ import { BuscarProductoCliente } from './Componentes/buscar-producto-cliente/bus
 import { BuscarProductoAdmin } from './Componentes/buscar-producto-admin/buscar-producto-admin';
 import { PedidoComponent } from './Componentes/pedido/pedido';
 import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
+import { ClientesComponent } from './Componentes/clientes/clientes';
 
 export const routes: Routes = [
   {
     path: '',
-    component: ClienteComponent,
+    component: ClienteLayoutComponent,
     children: [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: EnTrabajoComponent, data: { titulo: 'Inicio' } },
@@ -31,6 +32,7 @@ export const routes: Routes = [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
       {path: 'horarios', component: GestionHorariosComponent},
       { path: 'productos/nuevo', component: ProductoComponent },
+      { path: 'clientes', component: ClientesComponent },
       { path: 'productos', component: BuscarProductoAdmin },
       { path: 'ventas', component: RegistroVentaComponent },
       { path: 'recetas', component: RegistroRecetaComponent },

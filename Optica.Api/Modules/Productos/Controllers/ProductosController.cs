@@ -54,7 +54,7 @@ public class ProductosController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("json")]
     [Consumes("application/json")]
     public async Task<IActionResult> CrearProductoJson([FromBody] CrearProductoDto dto)
     {

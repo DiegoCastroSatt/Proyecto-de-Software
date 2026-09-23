@@ -7,4 +7,4 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   templateUrl: './cliente.html',
   styleUrl: './cliente.css'
 })
-export class ClienteComponent {}
+export class ClienteLayoutComponent {}
