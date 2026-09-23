@@ -82,7 +82,7 @@ ruta_imagen VARCHAR(255)
 
 CREATE TABLE pedidos (
 id_pedido INT AUTO_INCREMENT PRIMARY KEY,
-rut INT NOT NULL,
+rut VARCHAR(12) NOT NULL,
 id_receta INT,
 fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado')
@@ -171,7 +171,7 @@ CREATE TABLE reservas (
 );
 
 CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
-CREATE INDEX idx_pedidos_cliente ON pedidos(id_cliente);
+CREATE INDEX idx_pedidos_cliente ON pedidos(rut);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX idx_reservas_horario ON reservas(id_horario);
 CREATE INDEX idx_productos_categoria ON productos(categoria);

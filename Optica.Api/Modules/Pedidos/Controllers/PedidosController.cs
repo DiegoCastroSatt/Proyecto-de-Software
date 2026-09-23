@@ -26,8 +26,8 @@ public class PedidosController : ControllerBase
         var pedidos = await _context.Pedidos
             .Join(
                 _context.Clientes,
-                p => p.IdCliente,
-                c => c.IdCliente,
+                p => p.Rut,
+                c => c.Rut,
                 (p, c) => new
                 {
                     p.IdPedido,
@@ -75,7 +75,7 @@ public class PedidosController : ControllerBase
 
         var pedido = new Pedido
         {
-            IdCliente = cliente.IdCliente,
+            Rut = dto.Rut,
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
             Estado = dto.Estado,
@@ -94,5 +94,27 @@ public class PedidosController : ControllerBase
             pedido.Total,
             pedido.Anotaciones
         });
+    }
+
+    [HttpPatch("{id}/estado")]
+    public async Task<IActionResult> UpdateEstado(int id, [FromBody] UpdateEstadoPedidoDto dto)
+    {
+        var pedido = await _context.Pedidos.FindAsync(id);
+        
+        if (pedido == null)
+        {
+            return NotFound(new { mensaje = "Pedido no encontrado." });
+        }
+
+        var estadosValidos = new[] { "Pendiente", "En proceso", "Listo", "Entregado", "Cancelado" };
+        if (!estadosValidos.Contains(dto.Estado))
+        {
+            return BadRequest(new { mensaje = "Estado no válido." });
+        }
+
+        pedido.Estado = dto.Estado;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { mensaje = "Estado actualizado exitosamente.", estado = pedido.Estado });
     }
 }
