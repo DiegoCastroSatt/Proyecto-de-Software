@@ -82,7 +82,7 @@ ruta_imagen VARCHAR(255)
 
 CREATE TABLE pedidos (
 id_pedido INT AUTO_INCREMENT PRIMARY KEY,
-rut INT NOT NULL,
+rut VARCHAR(12) NOT NULL,
 id_receta INT,
 fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado')

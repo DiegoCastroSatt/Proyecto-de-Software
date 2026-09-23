@@ -249,7 +249,7 @@ public class OpticaDbContext : DbContext
             entity.ToTable("pedidos");
             entity.HasKey(p => p.IdPedido);
             entity.Property(p => p.IdPedido).HasColumnName("id_pedido");
-            entity.Property(p => p.IdCliente).HasColumnName("id_cliente");
+            entity.Property(p => p.Rut).HasColumnName("rut");
             entity.Property(p => p.IdReceta).HasColumnName("id_receta");
             entity.Property(p => p.Fecha).HasColumnName("fecha");
             entity.Property(p => p.Estado).HasColumnName("estado");

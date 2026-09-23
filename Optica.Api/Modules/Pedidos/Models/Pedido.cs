@@ -5,7 +5,7 @@ namespace Optica.Api.Modules.Pedidos.Models;
 public class Pedido
 {
     public int IdPedido { get; set; }
-    public int IdCliente { get; set; }
+    public string Rut { get; set; } = string.Empty;
     public int? IdReceta { get; set; }
     public DateTime Fecha { get; set; }
     public string Estado { get; set; } = "Pendiente";
