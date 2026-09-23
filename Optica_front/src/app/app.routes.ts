@@ -29,7 +29,7 @@ export const routes: Routes = [
     component: AdminLayoutComponent,
     children: [
       { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
-      { path: 'horarios', component: GestionHorariosComponent },
+      {path: 'horarios', component: GestionHorariosComponent},
       { path: 'productos/nuevo', component: ProductoComponent },
       { path: 'productos', component: BuscarProductoAdmin },
       { path: 'ventas', component: RegistroVentaComponent },
