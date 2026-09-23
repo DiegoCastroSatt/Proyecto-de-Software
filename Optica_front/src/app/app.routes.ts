@@ -11,6 +11,7 @@ import { BuscarProductoCliente } from './Componentes/buscar-producto-cliente/bus
 import { BuscarProductoAdmin } from './Componentes/buscar-producto-admin/buscar-producto-admin';
 import { PedidoComponent } from './Componentes/pedido/pedido';
 import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
+import { ClientesComponent } from './Componentes/clientes/clientes';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,7 @@ export const routes: Routes = [
       {path: 'horarios', component: GestionHorariosComponent},
       { path: 'productos/nuevo', component: ProductoComponent },
       { path: 'productos', component: BuscarProductoAdmin },
+      { path: 'clientes', component: ClientesComponent },
       { path: 'ventas', component: RegistroVentaComponent },
       { path: 'recetas', component: RegistroRecetaComponent },
       { path: 'pedido', component: PedidoComponent },
