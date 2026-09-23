@@ -92,12 +92,12 @@ VALUES
 -- ==========================================
 
 INSERT INTO pedidos
-(id_cliente, id_receta, fecha, estado, total, anotaciones) VALUES
-(1, 1, '2026-09-02 10:30:00', 'Entregado', 99980, 'Armazón Ray-Ban con cristales antirreflejo.'),
-(2, 2, '2026-09-05 12:15:00', 'En proceso', 109990, 'Solicita aviso telefónico cuando el pedido esté listo.'),
-(3, 3, '2026-09-08 16:20:00', 'Listo', 79990, 'Pendiente de retiro en sucursal.'),
-(4, 4, '2026-09-12 11:00:00', 'Pendiente', 69990, 'Primera evaluación; confirmar modelo antes de preparar.'),
-(5, 5, '2026-09-16 17:30:00', 'En proceso', 89990, 'Cambio de graduación y ajuste de armazón incluido.');
+(rut, id_receta, fecha, estado, total, anotaciones) VALUES
+('12345678-7', 1, '2026-09-02 10:30:00', 'Entregado', 99980, 'Armazón Ray-Ban con cristales antirreflejo.'),
+('98765432-5', 2, '2026-09-05 12:15:00', 'En proceso', 109990, 'Solicita aviso telefónico cuando el pedido esté listo.'),
+('17654321-0', 3, '2026-09-08 16:20:00', 'Listo', 79990, 'Pendiente de retiro en sucursal.'),
+('15432109-8', 4, '2026-09-12 11:00:00', 'Pendiente', 69990, 'Primera evaluación; confirmar modelo antes de preparar.'),
+('20123456-5', 5, '2026-09-16 17:30:00', 'En proceso', 89990, 'Cambio de graduación y ajuste de armazón incluido.');
 
 
 -- ==========================================
