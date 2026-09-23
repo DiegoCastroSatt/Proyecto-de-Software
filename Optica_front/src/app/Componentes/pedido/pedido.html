@@ -1,0 +1,38 @@
+<div class="app-shell">
+
+  <main class="order-page">
+    <section class="order-shell">
+
+      <div class="order-form-area">
+        <div class="form-heading">
+          <h2>Lista de Pedidos</h2>
+          <button type="button" class="btn-primary" routerLink="/admin/crear-pedido">Crear Pedido</button>
+        </div>
+
+        <div class="search-bar-container">
+          <input type="search" class="search-input" placeholder="Buscar pedido por cliente" />
+        </div>
+
+        @if (pedidos().length === 0) {
+        <div class="empty-state">
+          <p class="empty-title">Sin pedidos</p>
+          <p class="empty-subtitle">No hay pedidos registrados en el sistema.</p>
+        </div>
+        } @else {
+        <div class="pedidos-list">
+          @for (pedido of pedidos(); track pedido.idPedido) {
+          <div class="pedido-card">
+            <div class="pedido-info">
+              <span class="pedido-cliente">{{ pedido.nombreCliente }}</span>
+              <span class="pedido-fecha">{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
+              <span class="pedido-total">Total: ${{ pedido.total }}</span>
+            </div>
+            <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </section>
+  </main>
+</div>

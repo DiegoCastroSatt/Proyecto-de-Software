@@ -1,0 +1,79 @@
+<div class="app-shell">
+
+  <main class="order-page">
+    <section class="order-shell">
+      <div class="order-form-area">
+        <div class="form-heading">
+          <h2>Crear Pedido</h2>
+          <button type="button" class="btn-secondary" routerLink="/admin/pedido">Volver a Pedidos</button>
+        </div>
+
+        <div class="form-container">
+          <form [formGroup]="pedidoForm" (ngSubmit)="submitPedido()">
+
+            <div class="form-group">
+              <label for="rut">RUT del Cliente</label>
+              <input id="rut" type="text" formControlName="rut" class="form-control" placeholder="12345678-9"
+                autocomplete="off" />
+
+              @if (hasError('rut', 'required')) {
+              <span class="error-text">El RUT es obligatorio</span>
+              } @else if(hasError('rut', 'maxlength')) {
+              <span class="error-text">El RUT ingresado es demasiado largo</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="fecha">Fecha</label>
+              <input type="date" id="fecha" formControlName="fecha" class="form-control">
+              @if (hasError('fecha', 'required')) {
+              <span class="error-text">La fecha es obligatoria</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="estado">Estado</label>
+              <select id="estado" formControlName="estado" class="form-control">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Listo">Listo</option>
+                <option value="Entregado">Entregado</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="total">Total</label>
+              <input type="number" id="total" formControlName="total" class="form-control" placeholder="0">
+              @if (hasError('total', 'required')) {
+              <span class="error-text">El total es obligatorio</span>
+              } @else if(hasError('total', 'min')) {
+              <span class="error-text">El total no puede ser negativo</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="anotaciones">Anotaciones Adicionales</label>
+              <textarea id="anotaciones" formControlName="anotaciones" class="form-control" rows="4"
+                placeholder="Anotaciones para el pedido..."></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Guardando...' : 'Guardar Pedido' }}
+              </button>
+            </div>
+
+            @if (errorMessage()) {
+            <div class="error-banner">{{ errorMessage() }}</div>
+            }
+            @if (successMessage()) {
+            <div class="success-banner">{{ successMessage() }}</div>
+            }
+
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

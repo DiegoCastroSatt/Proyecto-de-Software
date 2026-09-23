@@ -82,14 +82,15 @@ ruta_imagen VARCHAR(255)
 
 CREATE TABLE pedidos (
 id_pedido INT AUTO_INCREMENT PRIMARY KEY,
-id_cliente INT NOT NULL,
+rut INT NOT NULL,
 id_receta INT,
 fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado')
 NOT NULL DEFAULT 'Pendiente',
 total DECIMAL(10,2) NOT NULL DEFAULT 0,
+anotaciones TEXT,
 CONSTRAINT fk_pedidos_cliente
-FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+FOREIGN KEY (rut) REFERENCES clientes(rut)
 ON DELETE CASCADE,
 CONSTRAINT fk_pedidos_receta
 FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)

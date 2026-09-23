@@ -1,0 +1,236 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #eef2f0;
+  color: #1d3434;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 40px);
+  padding: 0 clamp(20px, 4vw, 48px);
+  height: 68px;
+  background: #1d4a47;
+  color: #f5f5e9;
+  border-bottom: 3px solid #bf8542;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(245, 245, 233, 0.5);
+  color: #e5c58d;
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.brand-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.5vw, 10px);
+  flex: 1 1 auto;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 3px;
+  color: #c6d8d1;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.nav-link:hover {
+  color: #f5f5e9;
+  background: rgba(245, 245, 233, 0.08);
+}
+
+.nav-link.is-active {
+  color: #1d4a47;
+  background: #e5c58d;
+}
+
+.topbar-user {
+  flex: 0 0 auto;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #bf8542;
+  color: #fffdf9;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.order-page {
+  min-height: 100vh;
+  padding: 32px 20px;
+  display: grid;
+  place-items: center;
+  background: #e8f0ed;
+  background-image: radial-gradient(circle at 9% 16%, rgba(179, 215, 204, 0.62), transparent 31%), radial-gradient(circle at 92% 84%, rgba(224, 193, 151, 0.32), transparent 27%);
+  color: #1d3434;
+}
+
+.order-shell {
+  width: min(800px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  background: #fffdf9;
+  box-shadow: 0 24px 70px rgba(35, 67, 65, 0.15);
+  border: 1px solid rgba(29, 52, 52, 0.1);
+  border-radius: 8px;
+}
+
+.order-form-area {
+  padding: clamp(32px, 5vw, 66px) clamp(24px, 5vw, 66px);
+}
+
+.form-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.form-heading h2 {
+  margin: 0;
+  color: #1d3434;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.btn-primary, .btn-secondary {
+  width: auto;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.btn-primary {
+  background: #bf8542;
+  color: #fffdf9;
+}
+
+.btn-primary:hover {
+  background: #a96f32;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #1d4a47;
+  border: 1px solid #1d4a47;
+}
+
+.btn-secondary:hover {
+  background: #eef2f0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #1d4a47;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c9d3ce;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1d3434;
+  font-family: inherit;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  border-color: #1d4a47;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.12);
+}
+
+.error-text {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.error-banner {
+  background: #fdecea;
+  color: #d32f2f;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.success-banner {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.form-actions {
+  margin-top: 30px;
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .order-page {
+    padding: 0;
+  }
+  .order-shell {
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+}

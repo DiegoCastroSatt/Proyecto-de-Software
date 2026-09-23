@@ -7,14 +7,14 @@
     </div>
 
     @if (savedName()) {
-      <div class="success-message" role="status">
-        <strong>Producto guardado.</strong>
-        <span>{{ savedName() }} ya quedó registrado en el inventario.</span>
-      </div>
+    <div class="success-message" role="status">
+      <strong>Producto guardado.</strong>
+      <span>{{ savedName() }} ya quedó registrado en el inventario.</span>
+    </div>
     }
 
     @if (errorMessage()) {
-      <div class="error-message" role="alert">{{ errorMessage() }}</div>
+    <div class="error-message" role="alert">{{ errorMessage() }}</div>
     }
 
     <form class="product-card" [formGroup]="productForm" (ngSubmit)="submitProduct()" novalidate>
@@ -25,19 +25,20 @@
             <label for="codigo">Código</label>
             <input id="codigo" type="text" formControlName="codigo" autocomplete="off" placeholder="OPT-00145" />
             @if (hasError('codigo', 'required')) {
-              <small>Ingresa el código del producto.</small>
+            <small>Ingresa el código del producto.</small>
             } @else if (hasError('codigo', 'maxlength')) {
-              <small>El código es demasiado largo.</small>
+            <small>El código es demasiado largo.</small>
             }
           </div>
 
           <div class="field field-wide">
             <label for="nombre">Nombre</label>
-            <input id="nombre" type="text" formControlName="nombre" autocomplete="off" placeholder="Ej. Armazón Vista Clásico" />
+            <input id="nombre" type="text" formControlName="nombre" autocomplete="off"
+              placeholder="Ej. Armazón Vista Clásico" />
             @if (hasError('nombre', 'required')) {
-              <small>Ingresa el nombre del producto.</small>
+            <small>Ingresa el nombre del producto.</small>
             } @else if (hasError('nombre', 'minlength')) {
-              <small>El nombre debe tener al menos 2 caracteres.</small>
+            <small>El nombre debe tener al menos 2 caracteres.</small>
             }
           </div>
 
@@ -46,15 +47,15 @@
             <select id="marca" formControlName="marca" (change)="handleMarcaChange($any($event.target).value)">
               <option value="">Selecciona una marca</option>
               @for (marca of marcas; track marca) {
-                <option [value]="marca">{{ marca }}</option>
+              <option [value]="marca">{{ marca }}</option>
               }
               <option [value]="nuevaMarcaValue">Agregar nueva marca...</option>
             </select>
             @if (productForm.controls.marca.value === nuevaMarcaValue) {
-              <div class="add-option">
-                <input id="nuevaMarca" type="text" formControlName="nuevaMarca" placeholder="Escribe una marca" />
-                <button type="button" class="add-option-button" (click)="addMarca()">Añadir</button>
-              </div>
+            <div class="add-option">
+              <input id="nuevaMarca" type="text" formControlName="nuevaMarca" placeholder="Escribe una marca" />
+              <button type="button" class="add-option-button" (click)="addMarca()">Añadir</button>
+            </div>
             }
           </div>
 
@@ -68,15 +69,15 @@
             <select id="color" formControlName="color" (change)="handleColorChange($any($event.target).value)">
               <option value="">Selecciona un color</option>
               @for (color of colores; track color) {
-                <option [value]="color">{{ color }}</option>
+              <option [value]="color">{{ color }}</option>
               }
               <option [value]="nuevoColorValue">Agregar nuevo color...</option>
             </select>
             @if (productForm.controls.color.value === nuevoColorValue) {
-              <div class="add-option">
-                <input id="nuevoColor" type="text" formControlName="nuevoColor" placeholder="Escribe un color" />
-                <button type="button" class="add-option-button" (click)="addColor()">Añadir</button>
-              </div>
+            <div class="add-option">
+              <input id="nuevoColor" type="text" formControlName="nuevoColor" placeholder="Escribe un color" />
+              <button type="button" class="add-option-button" (click)="addColor()">Añadir</button>
+            </div>
             }
           </div>
         </div>
@@ -87,21 +88,23 @@
         <div class="form-grid">
           <div class="field">
             <label for="categoria">Categoría</label>
-            <select id="categoria" formControlName="categoria" (change)="handleCategoriaChange($any($event.target).value)">
+            <select id="categoria" formControlName="categoria"
+              (change)="handleCategoriaChange($any($event.target).value)">
               <option value="" disabled>Selecciona una categoría</option>
               @for (categoria of categorias; track categoria) {
-                <option [value]="categoria">{{ categoria }}</option>
+              <option [value]="categoria">{{ categoria }}</option>
               }
               <option [value]="nuevaCategoriaValue">Agregar nueva categoría...</option>
             </select>
             @if (productForm.controls.categoria.value === nuevaCategoriaValue) {
-              <div class="add-option">
-                <input id="nuevaCategoria" type="text" formControlName="nuevaCategoria" placeholder="Escribe una categoría" />
-                <button type="button" class="add-option-button" (click)="addCategoria()">Añadir</button>
-              </div>
+            <div class="add-option">
+              <input id="nuevaCategoria" type="text" formControlName="nuevaCategoria"
+                placeholder="Escribe una categoría" />
+              <button type="button" class="add-option-button" (click)="addCategoria()">Añadir</button>
+            </div>
             }
             @if (hasError('categoria', 'required')) {
-              <small>Selecciona una categoría.</small>
+            <small>Selecciona una categoría.</small>
             }
           </div>
 
@@ -109,9 +112,9 @@
             <label for="precio">Precio</label>
             <input id="precio" type="number" formControlName="precio" min="0" step="1" placeholder="0" />
             @if (hasError('precio', 'required')) {
-              <small>Ingresa el precio.</small>
+            <small>Ingresa el precio.</small>
             } @else if (hasError('precio', 'min')) {
-              <small>El precio no puede ser negativo.</small>
+            <small>El precio no puede ser negativo.</small>
             }
           </div>
 
@@ -132,9 +135,9 @@
             <label for="stock">Stock inicial</label>
             <input id="stock" type="number" formControlName="stock" min="0" step="1" />
             @if (hasError('stock', 'required')) {
-              <small>Ingresa el stock inicial.</small>
+            <small>Ingresa el stock inicial.</small>
             } @else if (hasError('stock', 'min')) {
-              <small>El stock no puede ser negativo.</small>
+            <small>El stock no puede ser negativo.</small>
             }
           </div>
 
@@ -142,9 +145,9 @@
             <label for="stockMinimo">Stock mínimo</label>
             <input id="stockMinimo" type="number" formControlName="stockMinimo" min="0" step="1" />
             @if (hasError('stockMinimo', 'required')) {
-              <small>Ingresa el stock mínimo.</small>
+            <small>Ingresa el stock mínimo.</small>
             } @else if (hasError('stockMinimo', 'min')) {
-              <small>El stock mínimo no puede ser negativo.</small>
+            <small>El stock mínimo no puede ser negativo.</small>
             }
           </div>
         </div>
@@ -154,10 +157,11 @@
         <h2>Imagen del producto</h2>
         <div class="field">
           <label for="imagen">Imagen</label>
-          <input id="imagen" type="file" accept="image/jpeg,image/png,image/webp" (change)="handleImageChange($event)" />
+          <input id="imagen" type="file" accept="image/jpeg,image/png,image/webp"
+            (change)="handleImageChange($event)" />
           <small>Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 5 MB.</small>
           @if (selectedImage()) {
-            <small>{{ selectedImage()?.name }}</small>
+          <small>{{ selectedImage()?.name }}</small>
           }
         </div>
       </section>
