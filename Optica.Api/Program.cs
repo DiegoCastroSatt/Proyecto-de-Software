@@ -61,6 +61,20 @@ for (var intento = 1; intento <= 10; intento++)
             """);
 
         db.Database.ExecuteSqlRaw("""
+            CREATE TABLE IF NOT EXISTS pedidos (
+                id_pedido INT AUTO_INCREMENT PRIMARY KEY,
+                rut VARCHAR(12) NOT NULL,
+                id_receta INT NULL,
+                fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Pendiente',
+                total DECIMAL(10,2) NOT NULL DEFAULT 0,
+                anotaciones TEXT,
+                CONSTRAINT fk_pedidos_cliente FOREIGN KEY (rut) REFERENCES clientes(rut) ON DELETE CASCADE,
+                CONSTRAINT fk_pedidos_receta FOREIGN KEY (id_receta) REFERENCES recetas(id_receta) ON DELETE SET NULL
+            )
+            """);
+
+        db.Database.ExecuteSqlRaw("""
             INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
             ('Marca', 'Ray-Ban'), ('Marca', 'Oakley'), ('Marca', 'Vogue'), ('Marca', 'Polaroid'),
             ('Color', 'Negro'), ('Color', 'Café'), ('Color', 'Dorado'), ('Color', 'Plateado'), ('Color', 'Transparente'),

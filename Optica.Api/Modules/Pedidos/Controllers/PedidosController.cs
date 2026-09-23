@@ -26,8 +26,8 @@ public class PedidosController : ControllerBase
         var pedidos = await _context.Pedidos
             .Join(
                 _context.Clientes,
-                p => p.IdCliente,
-                c => c.IdCliente,
+                p => p.Rut,
+                c => c.Rut,
                 (p, c) => new
                 {
                     p.IdPedido,
@@ -54,7 +54,7 @@ public class PedidosController : ControllerBase
             .OrderBy(c => c.Nombre)
             .Select(c => new
             {
-                c.IdCliente,
+                c.Rut,
                 NombreCompleto = c.Nombre + " " + c.Apellido
             })
             .ToListAsync();
@@ -75,7 +75,7 @@ public class PedidosController : ControllerBase
 
         var pedido = new Pedido
         {
-            IdCliente = cliente.IdCliente,
+            Rut = dto.Rut,
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
             Estado = dto.Estado,
