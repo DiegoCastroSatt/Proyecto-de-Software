@@ -1,6 +1,9 @@
 using Optica.Api.Modules.Ventas.Interfaces;
 using Optica.Api.Modules.Ventas.Repositories;
 using Optica.Api.Modules.Ventas.Services;
+using Optica.Api.Modules.Pedidos.Interfaces;
+using Optica.Api.Modules.Pedidos.Repositories;
+using Optica.Api.Modules.Pedidos.Services;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 
@@ -56,6 +59,10 @@ builder.Services.AddScoped<IVentaRepository, VentaRepository>();
 builder.Services.AddScoped<IConsultaProductoVenta, ConsultaProductoVenta>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
+
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
 var app = builder.Build();
