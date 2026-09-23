@@ -91,7 +91,7 @@ VALUES
 -- PEDIDOS
 -- ==========================================
 
-NSERT INTO pedidos
+INSERT INTO pedidos
 (id_cliente, id_receta, fecha, estado, total, anotaciones) VALUES
 (1, 1, '2026-09-02 10:30:00', 'Entregado', 99980, 'Armazón Ray-Ban con cristales antirreflejo.'),
 (2, 2, '2026-09-05 12:15:00', 'En proceso', 109990, 'Solicita aviso telefónico cuando el pedido esté listo.'),
