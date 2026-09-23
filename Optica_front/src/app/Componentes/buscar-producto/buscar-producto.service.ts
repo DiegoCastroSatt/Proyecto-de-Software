@@ -15,9 +15,15 @@ export interface Producto {
   stockMinimo: number;
   estado: string;
   rutaImagen?: string;
+  tieneVentas: boolean;
 }
 
-export type ProductoEditable = Omit<Producto, 'id' | 'rutaImagen'> & { imagen?: File };
+export type ProductoEditable = Omit<Producto, 'id' | 'rutaImagen' | 'tieneVentas'> & { imagen?: File };
+
+export interface CatalogoItem {
+  tipo: string;
+  nombre: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class BuscarProductoService {
@@ -46,4 +52,18 @@ export class BuscarProductoService {
 
     return this.http.put<Producto>(`${this.apiUrl}/${id}`, formData);
   }
+
+  obtenerCatalogo(tipo: string): Observable<CatalogoItem[]> {
+    return this.http.get<CatalogoItem[]>(`${this.catalogosUrl}?tipo=${encodeURIComponent(tipo)}`);
+  }
+
+  crearCatalogoItem(tipo: string, nombre: string): Observable<CatalogoItem> {
+    return this.http.post<CatalogoItem>(this.catalogosUrl, { tipo, nombre });
+  }
+
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  private readonly catalogosUrl = 'http://localhost:8080/api/Catalogos';
 }

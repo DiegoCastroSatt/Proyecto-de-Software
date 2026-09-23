@@ -39,6 +39,24 @@ public class ProductosController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> EliminarProducto(int id)
+    {
+        try
+        {
+            await _productoService.EliminarProducto(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { mensaje = ex.Message });
+        }
+    }
+
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> CrearProducto([FromForm] CrearProductoDto dto)
@@ -54,7 +72,7 @@ public class ProductosController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("json")]
     [Consumes("application/json")]
     public async Task<IActionResult> CrearProductoJson([FromBody] CrearProductoDto dto)
     {

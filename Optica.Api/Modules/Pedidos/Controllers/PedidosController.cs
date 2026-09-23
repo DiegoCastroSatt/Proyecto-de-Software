@@ -54,7 +54,7 @@ public class PedidosController : ControllerBase
             .OrderBy(c => c.Nombre)
             .Select(c => new
             {
-                c.IdCliente,
+                c.Rut,
                 NombreCompleto = c.Nombre + " " + c.Apellido
             })
             .ToListAsync();

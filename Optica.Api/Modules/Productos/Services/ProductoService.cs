@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.Productos.Models;
 
 public class ProductoService : IProductoService
@@ -114,6 +115,31 @@ public class ProductoService : IProductoService
         return Mapear(await _productoRepository.Actualizar(producto));
     }
 
+    public async Task EliminarProducto(int id)
+    {
+        var producto = await _productoRepository.ObtenerPorId(id)
+            ?? throw new KeyNotFoundException("No se encuentra el producto.");
+
+        try
+        {
+            if (!await _productoRepository.Eliminar(id))
+            {
+                throw new KeyNotFoundException("No se encuentra el producto.");
+            }
+        }
+        catch (DbUpdateException ex) when (
+            ex.Message.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("foreign key", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("ventas", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("detalle_venta", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("asociado", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("No se puede eliminar el producto porque está asociado a ventas o detalles de venta.", ex);
+        }
+
+        EliminarImagen(producto.RutaImagen);
+    }
+
     private static ProductoResponseDto Mapear(Producto producto) => new()
     {
         Id = producto.IdProducto,
@@ -127,7 +153,8 @@ public class ProductoService : IProductoService
         Stock = producto.Stock,
         StockMinimo = producto.StockMinimo,
         Estado = producto.Estado,
-        RutaImagen = producto.RutaImagen
+        RutaImagen = producto.RutaImagen,
+        TieneVentas = producto.TieneVentas
     };
 
     private async Task<string?> GuardarImagen(IFormFile? imagen)

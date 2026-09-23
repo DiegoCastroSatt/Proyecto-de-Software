@@ -7,4 +7,5 @@ public interface IProductoRepository
     Task<List<Producto>> Buscar(string termino);
     Task<Producto?> ObtenerPorId(int id);
     Task<Producto> Actualizar(Producto producto);
+    Task<bool> Eliminar(int id);
 }
