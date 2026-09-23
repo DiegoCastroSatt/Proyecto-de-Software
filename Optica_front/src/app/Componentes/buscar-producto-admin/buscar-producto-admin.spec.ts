@@ -11,7 +11,13 @@ describe('BuscarProductoAdmin', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BuscarProductoAdmin],
-      providers: [{ provide: BuscarProductoService, useValue: { buscar: () => of([]) } }]
+      providers: [{
+        provide: BuscarProductoService,
+        useValue: {
+          buscar: () => of([]),
+          obtenerCatalogo: () => of([])
+        }
+      }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(BuscarProductoAdmin);
