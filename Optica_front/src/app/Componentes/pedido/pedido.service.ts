@@ -20,7 +20,7 @@ export interface PedidoResponse {
 }
 
 export interface ClienteOption {
-  idCliente: number;
+  Rut: string;
   nombreCompleto: string;
 }
 

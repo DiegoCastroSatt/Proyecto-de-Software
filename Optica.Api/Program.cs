@@ -44,60 +44,6 @@ builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
 var app = builder.Build();
 
-Exception? ultimoError = null;
-for (var intento = 1; intento <= 10; intento++)
-{
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<OpticaDbContext>();
-        db.Database.ExecuteSqlRaw("""
-            CREATE TABLE IF NOT EXISTS catalogos (
-                id_catalogo INT AUTO_INCREMENT PRIMARY KEY,
-                tipo VARCHAR(20) NOT NULL,
-                nombre VARCHAR(60) NOT NULL,
-                UNIQUE KEY uq_catalogo_tipo_nombre (tipo, nombre)
-            )
-            """);
-
-        db.Database.ExecuteSqlRaw("""
-            INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
-            ('Marca', 'Ray-Ban'), ('Marca', 'Oakley'), ('Marca', 'Vogue'), ('Marca', 'Polaroid'),
-            ('Color', 'Negro'), ('Color', 'Café'), ('Color', 'Dorado'), ('Color', 'Plateado'), ('Color', 'Transparente'),
-            ('Categoria', 'Lentes ópticos'), ('Categoria', 'Lentes de sol'), ('Categoria', 'Armazones'),
-            ('Categoria', 'Lentes de contacto'), ('Categoria', 'Accesorios')
-            """);
-
-        var rutaImagenExiste = await db.Database
-            .SqlQueryRaw<int>("""
-                SELECT COUNT(*) AS Value
-                FROM information_schema.columns
-                WHERE table_schema = DATABASE()
-                  AND table_name = 'productos'
-                  AND column_name = 'ruta_imagen'
-                """)
-            .SingleAsync();
-
-        if (rutaImagenExiste == 0)
-        {
-            db.Database.ExecuteSqlRaw("ALTER TABLE productos ADD COLUMN ruta_imagen VARCHAR(255) NULL");
-        }
-
-        ultimoError = null;
-        break;
-    }
-    catch (Exception ex) when (intento < 10)
-    {
-        ultimoError = ex;
-        await Task.Delay(TimeSpan.FromSeconds(2));
-    }
-}
-
-if (ultimoError is not null)
-{
-    throw new InvalidOperationException("No se pudo inicializar la base de datos.", ultimoError);
-}
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
