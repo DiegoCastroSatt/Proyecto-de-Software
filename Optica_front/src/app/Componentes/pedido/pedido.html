@@ -27,7 +27,13 @@
               <span class="pedido-fecha">{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
               <span class="pedido-total">Total: ${{ pedido.total }}</span>
             </div>
-            <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
+            <select class="pedido-estado" [attr.data-estado]="pedido.estado" [value]="pedido.estado" (change)="cambiarEstado(pedido, $event)">
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Listo">Listo</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
           </div>
           }
         </div>

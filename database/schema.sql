@@ -171,7 +171,7 @@ CREATE TABLE reservas (
 );
 
 CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
-CREATE INDEX idx_pedidos_cliente ON pedidos(id_cliente);
+CREATE INDEX idx_pedidos_cliente ON pedidos(rut);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX idx_reservas_horario ON reservas(id_horario);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
