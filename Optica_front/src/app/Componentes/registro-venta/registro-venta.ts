@@ -1,8 +1,56 @@
 import { Component, OnInit, signal, computed, ElementRef, ViewChild, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
-import { DecimalPipe, isPlatformBrowser } from '@angular/common';
+import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { Chart as ChartType } from 'chart.js';
 import { RegistroVentaService, Venta, ProductoCaja } from './registro-venta.service';
+
+export type PeriodoVentas = 'semana' | 'mes' | 'semestre' | 'anio';
+export interface ProductoMasVendido {
+  productoId: number;
+  nombre: string;
+  unidades: number;
+}
+
+export function inicioPeriodo(periodo: PeriodoVentas, hasta: Date): Date {
+  const desde = new Date(hasta);
+  if (periodo === 'semana') {
+    desde.setDate(desde.getDate() - 7);
+  } else {
+    const meses = { mes: 1, semestre: 6, anio: 12 }[periodo];
+    const dia = desde.getDate();
+    desde.setDate(1);
+    desde.setMonth(desde.getMonth() - meses);
+    const ultimoDia = new Date(desde.getFullYear(), desde.getMonth() + 1, 0).getDate();
+    desde.setDate(Math.min(dia, ultimoDia));
+  }
+  return desde;
+}
+
+export function productosMasVendidos(
+  ventas: Venta[],
+  periodo: PeriodoVentas,
+  limite: 5 | 10,
+  hasta: Date = new Date()
+): ProductoMasVendido[] {
+  const desde = inicioPeriodo(periodo, hasta);
+  const productos = new Map<number, ProductoMasVendido>();
+  for (const venta of ventas) {
+    const fecha = new Date(venta.fecha);
+    if (!(fecha >= desde && fecha <= hasta)) continue;
+    for (const producto of venta.productos) {
+      const acumulado = productos.get(producto.productoId) ?? {
+        productoId: producto.productoId,
+        nombre: producto.nombre || `Producto #${producto.productoId}`,
+        unidades: 0
+      };
+      acumulado.unidades += producto.cantidad;
+      productos.set(producto.productoId, acumulado);
+    }
+  }
+  return Array.from(productos.values())
+    .sort((a, b) => b.unidades - a.unidades || a.productoId - b.productoId)
+    .slice(0, limite);
+}
 
 interface ResumenMensual {
   clave: string;
@@ -13,7 +61,7 @@ interface ResumenMensual {
 
 @Component({
   selector: 'app-registro-venta',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe],
   templateUrl: './registro-venta.html',
   styleUrl: './registro-venta.css'
 })
@@ -22,6 +70,7 @@ export class RegistroVentaComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild('codigo') private codigoInput?: ElementRef<HTMLInputElement>;
   @ViewChild('graficoIngresos') private graficoIngresos?: ElementRef<HTMLCanvasElement>;
   private grafico?: ChartType;
+  private relojRank?: ReturnType<typeof setInterval>;
   protected readonly pendientes = signal(0);
   protected readonly total = computed(() => this.productos().reduce((s, p) => s + p.precio * p.cantidad, 0));
   protected readonly unidades = computed(() => this.productos().reduce((s, p) => s + p.cantidad, 0));
@@ -33,9 +82,31 @@ export class RegistroVentaComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngOnDestroy(): void {
+    if (this.relojRank !== undefined) clearInterval(this.relojRank);
     this.grafico?.destroy();
   }
   private enfocar(): void { this.codigoInput?.nativeElement.focus(); }
+  protected readonly periodoRank = signal<PeriodoVentas>('semana');
+  protected readonly limiteRank = signal<5 | 10>(5);
+  protected readonly fechaRank = signal(new Date());
+  protected readonly cargandoHistorial = signal(true);
+  protected readonly errorHistorial = signal(false);
+  protected readonly desdeRank = computed(() => inicioPeriodo(this.periodoRank(), this.fechaRank()));
+  protected readonly rank = computed(() => productosMasVendidos(
+    this.ventas(), this.periodoRank(), this.limiteRank(), this.fechaRank()
+  ));
+
+  protected cambiarPeriodoRank(valor: string): void {
+    if (valor === 'semana' || valor === 'mes' || valor === 'semestre' || valor === 'anio') {
+      this.periodoRank.set(valor);
+      this.fechaRank.set(new Date());
+    }
+  }
+
+  protected cambiarLimiteRank(valor: string): void {
+    if (valor === '5' || valor === '10') this.limiteRank.set(Number(valor) as 5 | 10);
+  }
+
   protected readonly ventas = signal<Venta[]>([]);
   protected readonly meses = computed<ResumenMensual[]>(() => this.resumirMeses(this.ventas()));
   protected readonly mesActual = computed(() => {
@@ -65,16 +136,27 @@ export class RegistroVentaComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.relojRank = setInterval(() => this.fechaRank.set(new Date()), 60_000);
+    }
     this.cargarVentas();
   }
 
   protected cargarVentas(): void {
+    this.cargandoHistorial.set(true);
+    this.errorHistorial.set(false);
     this.servicio.listar().subscribe({
       next: ventas => {
         this.ventas.set(ventas);
+        this.fechaRank.set(new Date());
+        this.cargandoHistorial.set(false);
         void this.actualizarGrafico();
       },
-      error: () => this.error.set('No se pudo cargar el historial de ventas.')
+      error: () => {
+        this.cargandoHistorial.set(false);
+        this.errorHistorial.set(true);
+        this.error.set('No se pudo cargar el historial de ventas.');
+      }
     });
   }
 
