@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Optica.Api.Data;
-using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Pedidos.DTOs;
+using Optica.Api.Modules.Pedidos.Interfaces;
 
 namespace Optica.Api.Modules.Pedidos.Controllers;
 
@@ -10,11 +8,11 @@ namespace Optica.Api.Modules.Pedidos.Controllers;
 [Route("api/[controller]")]
 public class PedidosController : ControllerBase
 {
-    private readonly OpticaDbContext _context;
+    private readonly IPedidoService _pedidoService;
 
-    public PedidosController(OpticaDbContext context)
+    public PedidosController(IPedidoService pedidoService)
     {
-        _context = context;
+        _pedidoService = pedidoService;
     }
 
     /// <summary>
@@ -23,23 +21,7 @@ public class PedidosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetPedidos()
     {
-        var pedidos = await _context.Pedidos
-            .Join(
-                _context.Clientes,
-                p => p.Rut,
-                c => c.Rut,
-                (p, c) => new
-                {
-                    p.IdPedido,
-                    NombreCliente = c.Nombre + " " + c.Apellido,
-                    p.Fecha,
-                    p.Estado,
-                    p.Total,
-                    p.Anotaciones
-                })
-            .OrderByDescending(p => p.Fecha)
-            .ToListAsync();
-
+        var pedidos = await _pedidoService.ObtenerPedidosAsync();
         return Ok(pedidos);
     }
 
@@ -49,50 +31,39 @@ public class PedidosController : ControllerBase
     [HttpGet("clientes")]
     public async Task<IActionResult> GetClientes()
     {
-        var clientes = await _context.Clientes
-            .Where(c => c.Estado == "Activo")
-            .OrderBy(c => c.Nombre)
-            .Select(c => new
-            {
-                c.Rut,
-                NombreCompleto = c.Nombre + " " + c.Apellido
-            })
-            .ToListAsync();
-
+        var clientes = await _pedidoService.ObtenerClientesActivosAsync();
         return Ok(clientes);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreatePedido([FromBody] CreatePedidoDto dto)
     {
-        var cliente = await _context.Clientes
-            .FirstOrDefaultAsync(c => c.Rut == dto.Rut && c.Estado == "Activo");
-
-        if (cliente == null)
+        try
         {
-            return BadRequest(new { mensaje = "No se encontró un cliente activo con ese RUT." });
+            var result = await _pedidoService.CrearPedidoAsync(dto);
+            return CreatedAtAction(nameof(GetPedidos), new { id = result.IdPedido }, result);
         }
-
-        var pedido = new Pedido
+        catch (ArgumentException ex)
         {
-            Rut = dto.Rut,
-            Fecha = dto.Fecha,
-            Anotaciones = dto.Anotaciones,
-            Estado = dto.Estado,
-            Total = dto.Total
-        };
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
 
-        _context.Pedidos.Add(pedido);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetPedidos), new { id = pedido.IdPedido }, new
+    [HttpPatch("{id}/estado")]
+    public async Task<IActionResult> UpdateEstado(int id, [FromBody] UpdateEstadoPedidoDto dto)
+    {
+        try
         {
-            pedido.IdPedido,
-            NombreCliente = cliente.Nombre + " " + cliente.Apellido,
-            pedido.Fecha,
-            pedido.Estado,
-            pedido.Total,
-            pedido.Anotaciones
-        });
+            var result = await _pedidoService.ActualizarEstadoAsync(id, dto);
+            return Ok(new { mensaje = "Estado actualizado exitosamente.", estado = result.Estado });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
     }
 }
