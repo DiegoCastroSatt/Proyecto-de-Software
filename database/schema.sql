@@ -106,7 +106,8 @@ total DECIMAL(10,2) NOT NULL DEFAULT 0
 CREATE TABLE detalle_venta (
 id_detalle INT AUTO_INCREMENT PRIMARY KEY,
 id_venta INT NOT NULL,
-id_producto INT NOT NULL,
+id_producto INT,
+nombre_producto VARCHAR(100) NOT NULL,
 cantidad INT NOT NULL DEFAULT 1,
 precio_unitario DECIMAL(10,2) NOT NULL,
 subtotal DECIMAL(10,2) NOT NULL,
@@ -115,7 +116,7 @@ FOREIGN KEY (id_venta) REFERENCES ventas(id_venta)
 ON DELETE CASCADE,
 CONSTRAINT fk_detalle_producto
 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
-ON DELETE RESTRICT
+ON DELETE SET NULL
 );
 CREATE TABLE administradores (
     id_administrador INT AUTO_INCREMENT PRIMARY KEY,
