@@ -1,10 +1,30 @@
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.Clientes.Services;
 using Xunit;
 
 namespace Optica.Ventas.Tests;
 
 public class TestReservas
 {
+    [Theory]
+    [InlineData("12.345.678-5")]
+    [InlineData("12.345.6785")]
+    [InlineData("123456785")]
+    public void NormalizarRut_QuitaSeparadoresYConservaDigitoVerificador(string rut)
+    {
+        Assert.Equal("123456785", RutChilenoValidator.Normalizar(rut));
+    }
+
+    [Theory]
+    [InlineData("9 1234 5678", true)]
+    [InlineData("+56 9 1234 5678", true)]
+    [InlineData("91234567", false)]
+    [InlineData("123456789", false)]
+    public void TelefonoChilenoValidator_ValidaCantidadYFormato(string telefono, bool esperado)
+    {
+        Assert.Equal(esperado, TelefonoChilenoValidator.EsValido(telefono));
+    }
+
     [Fact]
     public async Task CrearReserva_RechazaDatosObligatoriosAusentes()
     {
@@ -40,7 +60,8 @@ public class TestReservas
         var respuesta = await servicio.CrearReserva(new CrearReservaDto
         {
             NombreCompleto = "Ana Pérez",
-            Rut = "12.345.678-9",
+            Rut = "12.345.678-5",
+            Telefono = "9 1234 5678",
             IdHorario = 12
         });
 
@@ -78,6 +99,59 @@ public class TestReservas
             IdHorario = -1
         }));
     }
+
+    [Fact]
+    public async Task CrearReserva_RechazaRutConDigitoVerificadorInvalido()
+    {
+        var repositorio = new ReservaRepositorioPrueba();
+        var servicio = new ReservaService(repositorio);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => servicio.CrearReserva(new CrearReservaDto
+        {
+            NombreCompleto = "Ana Pérez",
+            Rut = "12.345.678-9",
+            IdHorario = 12
+        }));
+
+        Assert.Null(repositorio.UltimaSolicitud);
+    }
+
+    [Fact]
+    public async Task CrearReserva_RechazaCorreoUsadoPorOtroClienteConMensajeClaro()
+    {
+        var repositorio = new ReservaRepositorioPrueba { CorreoUsadoPorOtroCliente = true };
+        var servicio = new ReservaService(repositorio);
+
+        var error = await Assert.ThrowsAsync<ArgumentException>(() => servicio.CrearReserva(new CrearReservaDto
+        {
+            NombreCompleto = "Ana Pérez",
+            Rut = "12.345.678-5",
+            Telefono = "9 1234 5678",
+            Correo = "ana@example.com",
+            IdHorario = 12
+        }));
+
+        Assert.Contains("correo ya está registrado", error.Message);
+        Assert.Null(repositorio.UltimaSolicitud);
+    }
+
+    [Fact]
+    public async Task CrearReserva_RechazaTelefonoConDigitosInsuficientes()
+    {
+        var repositorio = new ReservaRepositorioPrueba();
+        var servicio = new ReservaService(repositorio);
+
+        var error = await Assert.ThrowsAsync<ArgumentException>(() => servicio.CrearReserva(new CrearReservaDto
+        {
+            NombreCompleto = "Ana Pérez",
+            Rut = "12.345.678-5",
+            Telefono = "91234567",
+            IdHorario = 12
+        }));
+
+        Assert.Contains("celular válido de 9 dígitos", error.Message);
+        Assert.Null(repositorio.UltimaSolicitud);
+    }
 }
 
 internal sealed class ReservaRepositorioPrueba : IReservaRepository
@@ -85,8 +159,12 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public CrearReservaDto? UltimaSolicitud { get; private set; }
     public Reserva? ReservaCreada { get; set; }
     public IReadOnlyList<Horario> Horarios { get; set; } = [];
+    public bool CorreoUsadoPorOtroCliente { get; set; }
 
     public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() => Task.FromResult(Horarios);
+
+    public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado) =>
+        Task.FromResult(CorreoUsadoPorOtroCliente);
 
     public Task<Reserva> CrearReserva(CrearReservaDto dto)
     {

@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
 import { ReservaService } from './reserva.service';
 
 @Component({
@@ -25,8 +26,8 @@ export class ReservaComponent implements OnInit {
   ) {
     this.reservationForm = this.formBuilder.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      rut: ['', [Validators.required, Validators.pattern(/^[0-9.]+-[0-9kK]$/)]],
-      phone: ['', [Validators.required, Validators.pattern(/^[+0-9 ()-]{8,20}$/)]],
+      rut: ['', [Validators.required, validarRutChileno]],
+      phone: ['', [Validators.required, Validators.pattern(/^(\+?56\s?)?9\s?\d{4}\s?\d{4}$/)]],
       email: ['', [Validators.required, Validators.email]],
       date: ['', Validators.required],
       time: ['', Validators.required]

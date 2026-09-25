@@ -54,11 +54,45 @@ describe('Reservas', () => {
     expect(component['reservationForm'].touched).toBe(true);
   });
 
+  it('impide enviar una reserva con dígito verificador inválido', () => {
+    const { component } = preparar();
+    component['reservationForm'].setValue({
+      name: 'Ana Pérez',
+      rut: '12.345.678-9',
+      phone: '+56 9 1234 5678',
+      email: 'ana@example.com',
+      date: '2026-09-22',
+      time: '10'
+    });
+
+    component['submitReservation']();
+
+    expect(servicio.crearReserva).not.toHaveBeenCalled();
+    expect(component['reservationForm'].controls.rut.hasError('rutInvalido')).toBe(true);
+  });
+
+  it('impide enviar una reserva con un teléfono de menos de nueve dígitos', () => {
+    const { component } = preparar();
+    component['reservationForm'].setValue({
+      name: 'Ana Pérez',
+      rut: '12.345.678-5',
+      phone: '91234567',
+      email: 'ana@example.com',
+      date: '2026-09-22',
+      time: '10'
+    });
+
+    component['submitReservation']();
+
+    expect(servicio.crearReserva).not.toHaveBeenCalled();
+    expect(component['reservationForm'].controls.phone.hasError('pattern')).toBe(true);
+  });
+
   it('envía una reserva válida y muestra confirmación', () => {
     const { fixture, component, dom } = preparar();
     component['reservationForm'].setValue({
       name: 'Ana Pérez',
-      rut: '12.345.678-9',
+      rut: '12.345.678-5',
       phone: '+56 9 1234 5678',
       email: 'ana@example.com',
       date: '2026-09-22',
@@ -70,7 +104,7 @@ describe('Reservas', () => {
 
     expect(servicio.crearReserva).toHaveBeenCalledWith({
       nombreCompleto: 'Ana Pérez',
-      rut: '12.345.678-9',
+      rut: '12.345.678-5',
       telefono: '+56 9 1234 5678',
       correo: 'ana@example.com',
       idHorario: 10

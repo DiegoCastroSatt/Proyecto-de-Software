@@ -7,6 +7,9 @@ public class MemoriaReservaRepository : IReservaRepository
     public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
         Task.FromResult<IReadOnlyList<Horario>>([]);
 
+    public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado) =>
+        Task.FromResult(false);
+
     public Task<Reserva> CrearReserva(CrearReservaDto dto) =>
         throw new NotSupportedException();
 

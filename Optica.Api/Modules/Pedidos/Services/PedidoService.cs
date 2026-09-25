@@ -1,6 +1,7 @@
 using Optica.Api.Modules.Pedidos.DTOs;
 using Optica.Api.Modules.Pedidos.Interfaces;
 using Optica.Api.Modules.Pedidos.Models;
+using Optica.Api.Modules.Clientes.Services;
 
 namespace Optica.Api.Modules.Pedidos.Services;
 
@@ -30,7 +31,13 @@ public class PedidoService : IPedidoService
 
     public async Task<PedidoResponseDto> CrearPedidoAsync(CreatePedidoDto dto)
     {
-        var cliente = await _pedidoRepository.ObtenerClienteActivoPorRutAsync(dto.Rut);
+        if (!RutChilenoValidator.EsValido(dto.Rut))
+        {
+            throw new ArgumentException("El RUT o su dígito verificador no es válido.");
+        }
+
+        var rut = RutChilenoValidator.Normalizar(dto.Rut);
+        var cliente = await _pedidoRepository.ObtenerClienteActivoPorRutAsync(rut);
         if (cliente == null)
         {
             throw new ArgumentException("No se encontró un cliente activo con ese RUT.");
@@ -38,7 +45,7 @@ public class PedidoService : IPedidoService
 
         var pedido = new Pedido
         {
-            Rut = dto.Rut,
+            Rut = rut,
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
             Estado = dto.Estado,
