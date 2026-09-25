@@ -11,7 +11,7 @@ public class VentaRepository(OpticaDbContext db) : IVentaRepository
         .OrderByDescending(v => v.Fecha)
         .Select(v => new VentaResponseDto(v.IdVenta, v.Fecha, v.Total,
             v.Detalles.Select(d => new ProductoHistorialDto(d.ProductoId,
-                db.Productos.Where(p => p.IdProducto == d.ProductoId).Select(p => p.Nombre).FirstOrDefault(),
+                d.NombreProducto,
                 d.Cantidad, d.PrecioUnitario, d.Subtotal)).ToList()))
         .ToListAsync();
 
