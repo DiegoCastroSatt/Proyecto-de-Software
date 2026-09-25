@@ -5,7 +5,12 @@ using Optica.Api.Modules.Pedidos.Interfaces;
 using Optica.Api.Modules.Pedidos.Repositories;
 using Optica.Api.Modules.Pedidos.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Optica.Api.Data;
+using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.Autenticacion.Interfaces;
+using Optica.Api.Modules.Autenticacion.Repositories;
+using Optica.Api.Modules.Autenticacion.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +28,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -46,6 +51,9 @@ builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
 
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
+builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
+builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 

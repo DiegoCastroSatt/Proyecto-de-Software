@@ -2,41 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ClienteService, Cliente } from './cliente.service';
-
-function validarRutChileno(control: AbstractControl): ValidationErrors | null {
-  const valor = control.value;
-  if (!valor) return null;
-
-  const limpio = valor.replace(/\./g, '').replace(/-/g, '').trim().toUpperCase();
-
-  if (limpio.length < 8 || limpio.length > 9) {
-    return { rutInvalido: true };
-  }
-
-  const cuerpo = limpio.slice(0, -1);
-  const dvIngresado = limpio.slice(-1);
-
-  if (!/^\d+$/.test(cuerpo)) {
-    return { rutInvalido: true };
-  }
-
-  let suma = 0;
-  let multiplo = 2;
-  for (let i = cuerpo.length - 1; i >= 0; i--) {
-    suma += parseInt(cuerpo[i], 10) * multiplo;
-    multiplo = multiplo === 7 ? 2 : multiplo + 1;
-  }
-
-  const resto = suma % 11;
-  const dvEsperado = 11 - resto;
-
-  let dvCalculado = '';
-  if (dvEsperado === 11) dvCalculado = '0';
-  else if (dvEsperado === 10) dvCalculado = 'K';
-  else dvCalculado = dvEsperado.toString();
-
-  return dvCalculado === dvIngresado ? null : { rutInvalido: true };
-}
+import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
 
 function requireContactValidator(group: AbstractControl): ValidationErrors | null {
   const telefono = group.get('telefono')?.value;
@@ -145,8 +111,8 @@ export class ClientesComponent implements OnInit {
         let detalle = 'Ocurrió un error inesperado al procesar la solicitud.';
 
         if (err.status === 409) {
-          detalle = err.error?.mensaje || 'Ya existe un cliente registrado con este RUT en la base de datos.';
-          this.mostrarAviso('error', 'RUT Duplicado', detalle);
+          detalle = err.error?.mensaje || 'El RUT o correo ya está registrado en la base de datos.';
+          this.mostrarAviso('error', 'Dato duplicado', detalle);
           return;
         }
 

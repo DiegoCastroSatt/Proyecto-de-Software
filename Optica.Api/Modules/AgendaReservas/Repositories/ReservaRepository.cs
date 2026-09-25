@@ -1,6 +1,7 @@
 using Optica.Api.Data;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Clientes.Services;
 using Microsoft.EntityFrameworkCore;
 public class ReservaRepository : IReservaRepository
 {
@@ -22,6 +23,16 @@ public class ReservaRepository : IReservaRepository
             .ToListAsync();
     }
 
+    public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado)
+    {
+        var correoNormalizado = correo.Trim().ToUpperInvariant();
+
+        return _context.Clientes.AnyAsync(cliente =>
+            cliente.Correo != null
+            && cliente.Correo.Trim().ToUpper() == correoNormalizado
+            && cliente.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() != rutNormalizado);
+    }
+
     public async Task<Reserva> CrearReserva(CrearReservaDto dto)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -41,8 +52,11 @@ public class ReservaRepository : IReservaRepository
             throw new InvalidOperationException("La hora seleccionada ya está reservada.");
         }
 
-        var rut = dto.Rut.Trim().ToUpperInvariant();
-        var cliente = await _context.Clientes.SingleOrDefaultAsync(c => c.Rut == rut);
+        var rut = RutChilenoValidator.Normalizar(dto.Rut);
+        var cliente = await _context.Clientes
+            .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut)
+            .OrderBy(c => c.IdCliente)
+            .FirstOrDefaultAsync();
         if (cliente is null)
         {
             var nombrePartes = dto.NombreCompleto.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
