@@ -6,6 +6,8 @@ namespace Optica.Api.Modules.Ventas.Services;
 public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta productos,
     ICalculoVenta calculo, TimeProvider reloj) : IVentaService
 {
+    private static readonly TimeZoneInfo ZonaHoraria = TimeZoneInfo.FindSystemTimeZoneById("America/Santiago");
+
     public Task<IReadOnlyList<VentaResponseDto>> Listar() => repositorio.Listar();
 
     public async Task<VentaCreadaResponseDto> Crear(CrearVentaDto dto)
@@ -14,7 +16,7 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
             dto.Productos.Any(p => p is null || string.IsNullOrWhiteSpace(p.CodigoProducto) || p.Cantidad <= 0))
             throw new ArgumentException("Agrega al menos un código válido con cantidad mayor que cero.");
 
-        var venta = new Venta { Fecha = reloj.GetLocalNow().DateTime };
+        var venta = new Venta { Fecha = TimeZoneInfo.ConvertTime(reloj.GetUtcNow(), ZonaHoraria).DateTime };
         foreach (var item in dto.Productos)
         {
             var codigo = item.CodigoProducto.Trim();
@@ -23,7 +25,12 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
             var detalle = venta.Detalles.SingleOrDefault(d => d.ProductoId == producto.IdProducto);
             if (detalle is null)
             {
-                detalle = new DetalleVenta { ProductoId = producto.IdProducto, PrecioUnitario = producto.Precio };
+                detalle = new DetalleVenta
+                {
+                    ProductoId = producto.IdProducto,
+                    NombreProducto = producto.Nombre,
+                    PrecioUnitario = producto.Precio
+                };
                 venta.Detalles.Add(detalle);
             }
             if ((long)detalle.Cantidad + item.Cantidad > int.MaxValue)
