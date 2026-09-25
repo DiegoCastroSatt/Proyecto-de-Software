@@ -19,7 +19,7 @@ public class TestVentas
     public async Task Crear_AgrupaProductosRepetidosYCalculaElTotal()
     {
         salida.WriteLine("INICIO: comprobar agrupación de productos y cálculo del total.");
-        var servicio = CrearServicio(out _);
+        var servicio = CrearServicio(out var repositorio);
         salida.WriteLine("PREPARACIÓN: productos A x2, B x1 y A x3.");
 
         var venta = await servicio.Crear(Solicitud(("A", 2), ("B", 1), ("A", 3)));
@@ -28,7 +28,20 @@ public class TestVentas
         Assert.Equal(750, venta.Total);
         Assert.Equal(2, venta.Productos.Count);
         Assert.Equal(5, venta.Productos.Single(p => p.ProductoId == 1).Cantidad);
-        salida.WriteLine("OK: A quedó con 5 unidades y el total esperado es $750.");
+        Assert.Equal("Producto A", repositorio.UltimaVenta!.Detalles.Single(p => p.ProductoId == 1).NombreProducto);
+        salida.WriteLine("OK: A quedó con 5 unidades, su nombre quedó en el historial y el total es $750.");
+    }
+
+    [Fact]
+    public async Task Crear_UsaLaHoraDeSantiagoAunqueElServidorEsteEnUtc()
+    {
+        var repositorio = new RepositorioPrueba();
+        var utc = new DateTimeOffset(2026, 9, 25, 17, 30, 0, TimeSpan.Zero);
+        var servicio = new VentaService(repositorio, new ConsultaPrueba(), new CalculoVenta(), new RelojPrueba(utc));
+
+        var venta = await servicio.Crear(Solicitud(("A", 1)));
+
+        Assert.Equal(new DateTime(2026, 9, 25, 14, 30, 0), venta.Fecha);
     }
 
     [Fact]
@@ -208,8 +221,9 @@ public class TestVentas
 public sealed class RepositorioPrueba : IVentaRepository
 {
     public int Guardadas { get; private set; }
+    public Venta? UltimaVenta { get; private set; }
     public IReadOnlyList<VentaResponseDto> Historial { get; set; } = [];
-    public Task Guardar(Venta venta) { venta.IdVenta = ++Guardadas; return Task.CompletedTask; }
+    public Task Guardar(Venta venta) { UltimaVenta = venta; venta.IdVenta = ++Guardadas; return Task.CompletedTask; }
     public Task<IReadOnlyList<VentaResponseDto>> Listar() => Task.FromResult(Historial);
 }
 
@@ -231,4 +245,9 @@ public sealed class CalculoAlternativo : ICalculoVenta
             detalle.Subtotal = detalle.PrecioUnitario * detalle.Cantidad / 2;
         venta.Total = venta.Detalles.Sum(d => d.Subtotal);
     }
+}
+
+public sealed class RelojPrueba(DateTimeOffset fechaUtc) : TimeProvider
+{
+    public override DateTimeOffset GetUtcNow() => fechaUtc;
 }
