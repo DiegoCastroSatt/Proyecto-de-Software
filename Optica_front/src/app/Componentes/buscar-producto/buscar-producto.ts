@@ -239,7 +239,7 @@ export class BuscarProductoComponent implements OnInit {
 
   protected eliminarProducto(): void {
     const producto = this.productoSeleccionado();
-    if (!producto || !confirm(`¿Eliminar el producto "${producto.nombre}"?`)) {
+    if (!producto || !confirm(`¿Está seguro de que desea eliminar el artículo "${producto.nombre}"?`)) {
       return;
     }
 
