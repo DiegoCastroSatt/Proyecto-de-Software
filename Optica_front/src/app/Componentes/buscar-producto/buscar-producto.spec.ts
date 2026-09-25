@@ -8,12 +8,12 @@ const productos: Producto[] = [
   {
     id: 1, codigo: 'SOL-001', nombre: 'Lentes de sol', marca: 'Vogue', modelo: 'V1',
     color: 'Negro', categoria: 'Lentes de sol', precio: 30000, stock: 4, stockMinimo: 1,
-    estado: 'Disponible', rutaImagen: '/uploads/productos/sol.jpg'
+    estado: 'Disponible', tieneVentas: false, rutaImagen: '/uploads/productos/sol.jpg'
   },
   {
     id: 2, codigo: 'OPT-002', nombre: 'Armazon clasico', marca: 'Ray-Ban', modelo: 'R2',
     color: 'Dorado', categoria: 'Armazones', precio: 15000, stock: 8, stockMinimo: 2,
-    estado: 'Disponible'
+    estado: 'Disponible', tieneVentas: false
   }
 ];
 
@@ -46,13 +46,14 @@ describe('BuscarProductoComponent', () => {
 
   it('carga productos y crea opciones unicas para categoria y color', () => {
     expect(component['productosVisibles']()).toEqual(productos);
+    expect(component['filtrosForm'].controls.estado.value).toBe('Disponible');
     expect(component['categorias']()).toEqual(['Armazones', 'Lentes de sol']);
     expect(component['colores']()).toEqual(['Dorado', 'Negro']);
     expect(service.buscar).toHaveBeenCalledWith('');
   });
 
   it('filtra por categoria y color y ordena por precio ascendente', () => {
-    component['filtrosForm'].setValue({ categoria: 'Armazones', color: 'Dorado', ordenPrecio: 'menor' });
+    component['filtrosForm'].setValue({ estado: 'Disponible', categoria: 'Armazones', color: 'Dorado', marca: 'Ray-Ban', ordenPrecio: 'menor' });
     component['aplicarFiltros']();
 
     expect(component['productosVisibles']().map((producto: Producto) => producto.id)).toEqual([2]);

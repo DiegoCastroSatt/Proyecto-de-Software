@@ -19,4 +19,21 @@ export class PedidoComponent implements OnInit {
       next: (pedidos) => this.pedidos.set(pedidos)
     });
   }
+
+  protected cambiarEstado(pedido: PedidoResponse, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const nuevoEstado = select.value;
+    
+    this.pedidoService.actualizarEstado(pedido.idPedido, nuevoEstado).subscribe({
+      next: (res) => {
+        this.pedidos.update(pedidos => 
+          pedidos.map(p => p.idPedido === pedido.idPedido ? { ...p, estado: res.estado } : p)
+        );
+      },
+      error: () => {
+        select.value = pedido.estado;
+        alert('No se pudo actualizar el estado del pedido.');
+      }
+    });
+  }
 }
