@@ -229,7 +229,9 @@ public class OpticaDbContext : DbContext
             entity.HasKey(d => d.IdDetalle);
             entity.Property(d => d.IdDetalle).HasColumnName("id_detalle");
             entity.Property(d => d.VentaId).HasColumnName("id_venta");
-            entity.Property(d => d.ProductoId).HasColumnName("id_producto");
+            entity.Property(d => d.ProductoId).HasColumnName("id_producto").IsRequired(false);
+            entity.Property(d => d.NombreProducto).HasColumnName("nombre_producto").HasMaxLength(100).IsRequired();
+            entity.HasOne<Producto>().WithMany().HasForeignKey(d => d.ProductoId).OnDelete(DeleteBehavior.SetNull);
             entity.Property(d => d.Cantidad).HasColumnName("cantidad");
             entity.Property(d => d.PrecioUnitario).HasColumnName("precio_unitario").HasPrecision(10, 2);
             entity.Property(d => d.Subtotal).HasColumnName("subtotal").HasPrecision(10, 2);
