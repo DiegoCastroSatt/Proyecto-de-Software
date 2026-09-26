@@ -50,8 +50,8 @@ public class ProductoRepository : IProductoRepository
     {
         var ids = productos.Select(producto => producto.IdProducto).ToList();
         var idsConVentas = await _context.DetallesVenta
-            .Where(detalle => ids.Contains(detalle.ProductoId))
-            .Select(detalle => detalle.ProductoId)
+            .Where(detalle => detalle.ProductoId.HasValue && ids.Contains(detalle.ProductoId.Value))
+            .Select(detalle => detalle.ProductoId!.Value)
             .Distinct()
             .ToListAsync();
 

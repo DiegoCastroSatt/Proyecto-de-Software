@@ -33,18 +33,19 @@ export function productosMasVendidos(
   hasta: Date = new Date()
 ): ProductoMasVendido[] {
   const desde = inicioPeriodo(periodo, hasta);
-  const productos = new Map<number, ProductoMasVendido>();
+  const productos = new Map<string, ProductoMasVendido>();
   for (const venta of ventas) {
     const fecha = new Date(venta.fecha);
     if (!(fecha >= desde && fecha <= hasta)) continue;
     for (const producto of venta.productos) {
-      const acumulado = productos.get(producto.productoId) ?? {
-        productoId: producto.productoId,
-        nombre: producto.nombre || `Producto #${producto.productoId}`,
+      const clave = producto.productoId === null ? `eliminado:${producto.nombre}` : `id:${producto.productoId}`;
+      const acumulado = productos.get(clave) ?? {
+        productoId: producto.productoId ?? 0,
+        nombre: producto.nombre || (producto.productoId === null ? 'Producto eliminado' : `Producto #${producto.productoId}`),
         unidades: 0
       };
       acumulado.unidades += producto.cantidad;
-      productos.set(producto.productoId, acumulado);
+      productos.set(clave, acumulado);
     }
   }
   return Array.from(productos.values())

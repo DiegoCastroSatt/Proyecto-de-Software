@@ -6,14 +6,14 @@ export interface Venta {
   idVenta: number;
   fecha: string;
   total: number;
-  productos: { productoId: number; nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[];
+  productos: { productoId: number | null; nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[];
 }
 
 export interface VentaCreada {
   idVenta: number;
   fecha: string;
   total: number;
-  productos: { productoId: number; cantidad: number; precioUnitario: number; subtotal: number }[];
+  productos: { productoId: number | null; cantidad: number; precioUnitario: number; subtotal: number }[];
 }
 
 export interface ProductoCaja {

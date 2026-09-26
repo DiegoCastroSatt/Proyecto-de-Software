@@ -79,18 +79,24 @@ public class TestProductos
     }
 
     [Fact]
-    public async Task EliminarProducto_ExplicaLaRestriccionPorVentas()
+    public async Task EliminarProducto_PermiteBorrarAunqueTengaVentas()
     {
         var repositorio = new ProductoRepositorioPrueba
         {
-            ErrorEnEliminar = true,
-            ProductoActual = new Producto { IdProducto = 7, Nombre = "Armazón", Codigo = "OPT-007", Categoria = "Armazones" }
+            ProductoActual = new Producto
+            {
+                IdProducto = 7,
+                Nombre = "Armazón",
+                Codigo = "OPT-007",
+                Categoria = "Armazones",
+                TieneVentas = true
+            }
         };
         var servicio = CrearServicio(repositorio);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => servicio.EliminarProducto(7));
+        await servicio.EliminarProducto(7);
 
-        Assert.Contains("ventas", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(repositorio.ProductoEliminado);
     }
 
     private static ProductoService CrearServicio(ProductoRepositorioPrueba repositorio) =>
@@ -111,7 +117,7 @@ public class TestProductos
 internal sealed class ProductoRepositorioPrueba : IProductoRepository
 {
     public bool CodigoExiste { get; set; }
-    public bool ErrorEnEliminar { get; set; }
+    public bool ProductoEliminado { get; private set; }
     public Producto? ProductoActual { get; set; }
     public Producto? UltimoProducto { get; private set; }
     public List<Producto> Productos { get; } = [];
@@ -137,11 +143,8 @@ internal sealed class ProductoRepositorioPrueba : IProductoRepository
 
     public Task<bool> Eliminar(int id)
     {
-        if (ErrorEnEliminar)
-        {
-            throw new DbUpdateException("No se puede eliminar el producto porque está asociado a ventas.");
-        }
-
+        ProductoEliminado = true;
+        ProductoActual = null;
         UltimoProducto = null;
         return Task.FromResult(true);
     }

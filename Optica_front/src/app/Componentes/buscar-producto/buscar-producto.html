@@ -110,9 +110,7 @@
             @if (esAdministrador) {
               <div class="detail-actions">
                 <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>
-                @if (!producto.tieneVentas) {
-                  <button class="danger" type="button" (click)="eliminarProducto()">Eliminar producto</button>
-                }
+                <button class="danger" type="button" (click)="eliminarProducto()">Eliminar producto</button>
               </div>
             }
           </div>
