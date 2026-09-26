@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Clientes.Services;
 
 namespace Optica.Api.Modules.Clientes.Controllers;
 
@@ -24,14 +25,33 @@ public class ClientesController : ControllerBase
             return BadRequest(new { mensaje = "Debe ingresar al menos un medio de contacto (teléfono o correo)." });
         }
 
-        string rutLimpio = nuevoCliente.Rut.Replace(".", "").Trim().ToUpper();
+        if (!RutChilenoValidator.EsValido(nuevoCliente.Rut))
+        {
+            return BadRequest(new { mensaje = "El RUT o su dígito verificador no es válido." });
+        }
 
-        if (await _context.Clientes.AnyAsync(c => c.Rut == rutLimpio))
+        var rutLimpio = RutChilenoValidator.Normalizar(nuevoCliente.Rut);
+
+        if (await _context.Clientes.AnyAsync(c =>
+            c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rutLimpio))
         {
             return Conflict(new { mensaje = "Ya existe un cliente registrado con este RUT." });
         }
 
+        var correoLimpio = string.IsNullOrWhiteSpace(nuevoCliente.Correo)
+            ? null
+            : nuevoCliente.Correo.Trim();
+
+        if (correoLimpio is not null && await _context.Clientes.AnyAsync(c => c.Correo == correoLimpio))
+        {
+            return Conflict(new { mensaje = "Ya existe un cliente registrado con este correo electrónico." });
+        }
+
         nuevoCliente.Rut = rutLimpio;
+        nuevoCliente.Telefono = string.IsNullOrWhiteSpace(nuevoCliente.Telefono)
+            ? null
+            : nuevoCliente.Telefono.Trim();
+        nuevoCliente.Correo = correoLimpio;
         nuevoCliente.Estado = "Activo";
         nuevoCliente.FechaRegistro = DateTime.Now;
 

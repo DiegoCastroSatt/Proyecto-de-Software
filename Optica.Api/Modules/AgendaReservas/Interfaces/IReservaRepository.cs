@@ -3,6 +3,8 @@ public interface IReservaRepository
 {
     Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles();
 
+    Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado);
+
     Task<Reserva> CrearReserva(CrearReservaDto dto);
 
     Task<bool> ExisteReserva(

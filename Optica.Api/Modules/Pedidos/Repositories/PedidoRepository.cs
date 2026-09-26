@@ -54,7 +54,9 @@ public class PedidoRepository : IPedidoRepository
     public async Task<Cliente?> ObtenerClienteActivoPorRutAsync(string rut)
     {
         return await _context.Clientes
-            .FirstOrDefaultAsync(c => c.Rut == rut && c.Estado == "Activo");
+            .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut && c.Estado == "Activo")
+            .OrderBy(c => c.IdCliente)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Pedido> CrearPedidoAsync(Pedido pedido)

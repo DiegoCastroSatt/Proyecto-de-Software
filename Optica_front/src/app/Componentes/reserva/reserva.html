@@ -49,8 +49,8 @@
             <input id="rut" type="text" formControlName="rut" autocomplete="off" placeholder="12.345.678-9" />
             @if (hasError('rut', 'required')) {
               <small>Ingresa tu RUT.</small>
-            } @else if (hasError('rut', 'pattern')) {
-              <small>Usa el formato 12.345.678-9.</small>
+            } @else if (hasError('rut', 'rutInvalido')) {
+              <small>El RUT o su dígito verificador no es válido.</small>
             }
           </div>
 
@@ -60,7 +60,7 @@
             @if (hasError('phone', 'required')) {
               <small>Ingresa tu teléfono.</small>
             } @else if (hasError('phone', 'pattern')) {
-              <small>Ingresa un número válido.</small>
+              <small>Ingresa un celular válido de 9 dígitos; puedes incluir +56.</small>
             }
           </div>
 
