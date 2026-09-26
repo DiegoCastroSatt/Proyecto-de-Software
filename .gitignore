@@ -127,7 +127,7 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
-# Imágenes cargadas localmente por registrar-producto
+# Imágenes cargadas 
 /Optica.Api/wwwroot/
 
 # ASP.NET Scaffolding
