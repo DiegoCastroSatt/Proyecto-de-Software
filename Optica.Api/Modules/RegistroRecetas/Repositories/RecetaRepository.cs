@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Clientes.Services;
 using Optica.Api.Modules.RegistroRecetas.Models;
 
 public class RecetaRepository : IRecetaRepository
@@ -14,10 +15,12 @@ public class RecetaRepository : IRecetaRepository
 
     public async Task<Cliente?> BuscarClientePorRut(string rut)
     {
-        var rutNormalizado = rut.Replace(".", "").Trim().ToUpper();
+        var rutNormalizado = RutChilenoValidator.Normalizar(rut);
 
         return await _context.Clientes
-            .FirstOrDefaultAsync(c => c.Rut.Replace(".", "").ToUpper() == rutNormalizado);
+            .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rutNormalizado)
+            .OrderBy(c => c.IdCliente)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Receta> Crear(Receta receta)

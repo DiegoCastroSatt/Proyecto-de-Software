@@ -12,6 +12,8 @@ import { BuscarProductoAdmin } from './Componentes/buscar-producto-admin/buscar-
 import { PedidoComponent } from './Componentes/pedido/pedido';
 import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
 import { ClientesComponent } from './Componentes/clientes/clientes';
+import { LoginAdmin } from './Componentes/login-admin/login-admin';
+import { authAdminGuard } from './guards/auth-admin-guard';
 
 export const routes: Routes = [
   {
@@ -27,18 +29,25 @@ export const routes: Routes = [
 
   {
     path: 'admin',
-    component: AdminLayoutComponent,
     children: [
-      { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
-      {path: 'horarios', component: GestionHorariosComponent},
-      { path: 'productos/nuevo', component: ProductoComponent },
-      { path: 'clientes', component: ClientesComponent },
-      { path: 'productos', component: BuscarProductoAdmin },
-      { path: 'clientes', component: ClientesComponent },
-      { path: 'ventas', component: RegistroVentaComponent },
-      { path: 'recetas', component: RegistroRecetaComponent },
-      { path: 'pedido', component: PedidoComponent },
-      { path: 'crear-pedido', component: CrearPedidoComponent }
+      {path: '', component: LoginAdmin},
+      {
+        path: 'panel',
+        component: AdminLayoutComponent,
+        canActivate: [authAdminGuard],
+        canActivateChild: [authAdminGuard],
+        children: [
+          { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
+          { path: 'horarios', component: GestionHorariosComponent },
+          { path: 'productos/nuevo', component: ProductoComponent },
+          { path: 'clientes', component: ClientesComponent },
+          { path: 'productos', component: BuscarProductoAdmin },
+          { path: 'ventas', component: RegistroVentaComponent },
+          { path: 'recetas', component: RegistroRecetaComponent },
+          { path: 'pedido', component: PedidoComponent },
+          { path: 'crear-pedido', component: CrearPedidoComponent }
+        ]
+      }
     ]
   },
 

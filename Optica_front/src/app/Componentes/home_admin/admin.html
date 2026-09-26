@@ -9,21 +9,23 @@
     </a>
 
     <nav aria-label="Navegación del administrador">
-      <a routerLink="/admin" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"> Dashboard </a>
+      <a routerLink="/admin/panel" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"> Dashboard </a>
 
-      <a routerLink="/admin/horarios" routerLinkActive="is-active"> Horarios </a>
+      <a routerLink="/admin/panel/horarios" routerLinkActive="is-active"> Horarios </a>
 
-      <a routerLink="/admin/productos" routerLinkActive="is-active">Catálogo</a>
+      <a routerLink="/admin/panel/clientes" routerLinkActive="is-active">Clientes</a>
 
-      <a routerLink="/admin/clientes" routerLinkActive="is-active">Clientes</a>
+      <a routerLink="/admin/panel/productos" routerLinkActive="is-active">Catálogo</a>
 
-      <a routerLink="/admin/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
+      <a routerLink="/admin/panel/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
 
-      <a routerLink="/admin/ventas" routerLinkActive="is-active"> Ventas </a>
+      <a routerLink="/admin/panel/ventas" routerLinkActive="is-active"> Ventas </a>
 
-      <a routerLink="/admin/recetas" routerLinkActive="is-active"> Recetas </a>
+      <a routerLink="/admin/panel/recetas" routerLinkActive="is-active"> Recetas </a>
 
-      <a routerLink="/admin/pedido" routerLinkActive="is-active"> Pedidos </a>
+      <a routerLink="/admin/panel/pedido" routerLinkActive="is-active"> Pedidos </a>
+
+      <a routerLink="/admin/panel/crear-pedido" routerLinkActive="is-active">Crear Pedido</a>
     </nav>
   </header>
 

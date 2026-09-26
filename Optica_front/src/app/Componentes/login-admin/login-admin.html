@@ -1,0 +1,57 @@
+<div class="login-page">
+    <aside class="login-brand" aria-label="Centro Óptico San Francisco">
+        <div class="brand-lockup">
+            <span class="brand-mark" aria-hidden="true">SF</span>
+            <span class="brand-name">
+                <strong>Centro Óptico</strong>
+                <small>San Francisco</small>
+            </span>
+        </div>
+
+        <div class="brand-intro">
+            <p class="brand-eyebrow">PORTAL DE ADMINISTRACIÓN</p>
+            <h1>Centro Óptico<br>San Francisco</h1>
+            <span class="brand-rule" aria-hidden="true"></span>
+        </div>
+
+        <p class="brand-footer">GESTIÓN INTERNA <span>·</span> ÓPTICA</p>
+    </aside>
+
+    <main class="login-main">
+        <section class="login-content" aria-labelledby="login-title">
+            <p class="login-eyebrow">ACCESO ADMINISTRATIVO</p>
+            <h2 id="login-title">Iniciar sesión</h2>
+
+            <form (ngSubmit)="onLogin()">
+                <div class="form-field">
+                    <label for="usuario">Nombre de usuario</label>
+                    <input
+                        type="text"
+                        id="usuario"
+                        name="usuario"
+                        [(ngModel)]="usuario"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="contrasena">Contraseña</label>
+                    <input
+                        type="password"
+                        id="contrasena"
+                        name="contrasena"
+                        [(ngModel)]="contrasena"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <p class="login-error" [hidden]="!error()" role="alert">{{ error() }}</p>
+                <button type="submit">Ingresar <span aria-hidden="true">→</span></button>
+            </form>
+        </section>
+
+        <span class="login-index" aria-hidden="true">SF / 01</span>
+    </main>
+</div>
