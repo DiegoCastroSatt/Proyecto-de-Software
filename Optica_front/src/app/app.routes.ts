@@ -14,6 +14,7 @@ import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
 import { ClientesComponent } from './Componentes/clientes/clientes';
 import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
+import { DashboardComponent } from './Componentes/dashboard/dashboard';
 
 export const routes: Routes = [
   {
@@ -37,7 +38,7 @@ export const routes: Routes = [
         canActivate: [authAdminGuard],
         canActivateChild: [authAdminGuard],
         children: [
-          { path: '', component: EnTrabajoComponent, data: { titulo: 'Dashboard' } },
+          { path: '', component: DashboardComponent },
           { path: 'horarios', component: GestionHorariosComponent },
           { path: 'productos/nuevo', component: ProductoComponent },
           { path: 'clientes', component: ClientesComponent },
