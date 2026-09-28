@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -56,15 +57,7 @@ public class HorariosController(OpticaDbContext context) : ControllerBase
             return BadRequest(new { mensaje = "La duración debe estar entre 1 y 480 minutos." });
         }
 
-        var administradorId = dto.IdAdministrador ?? await context.Administradores
-            .Where(a => a.Estado == "Activo")
-            .Select(a => (int?)a.IdAdministrador)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (administradorId is null)
-        {
-            return BadRequest(new { mensaje = "No existe un administrador activo para asignar el horario." });
-        }
+        var administradorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var duracion = TimeSpan.FromMinutes(dto.DuracionMinutos);
         var existentes = await context.Horarios
@@ -83,7 +76,7 @@ public class HorariosController(OpticaDbContext context) : ControllerBase
 
             nuevos.Add(new Horario
             {
-                AdministradorId = administradorId.Value,
+                AdministradorId = administradorId,
                 Fecha = fecha.Date,
                 HoraInicio = inicio,
                 HoraFin = inicio + duracion,

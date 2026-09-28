@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -11,9 +12,11 @@ public class ProductosController : ControllerBase
         _productoService = productoService;
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> BuscarProductos([FromQuery] string termino = "") => Ok(await _productoService.BuscarProductos(termino));
 
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> ObtenerProducto(int id)
     {
