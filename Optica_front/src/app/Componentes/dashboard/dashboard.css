@@ -25,3 +25,7 @@ h2 { font-size: 1.45rem; }
 .is-loading { opacity: .55; }
 @media (max-width: 940px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 620px) { .dashboard-header, .section-heading { flex-direction: column; }.refresh-button { width: 100%; }.metrics, .action-grid { grid-template-columns: 1fr; }.dashboard { padding: 24px 16px; }.quick-actions { padding: 20px; } }
+
+.dashboard-icon { display: block; width: 24px; height: 24px; }
+.action-card > span { flex: 0 0 28px; }
+.action-card .dashboard-icon { width: 28px; height: 28px; }
