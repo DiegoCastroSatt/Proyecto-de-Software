@@ -5,23 +5,23 @@
       <h1 id="dashboard-title">Resumen del centro óptico</h1>
       <p>Consulta el estado operativo del día y accede rápidamente a tus tareas.</p>
     </div>
-    <button type="button" class="refresh-button" (click)="actualizarResumen()" [disabled]="cargando">
-      {{ cargando ? 'Actualizando…' : 'Actualizar datos' }}
+    <button type="button" class="refresh-button" (click)="actualizarResumen()" [disabled]="cargando()">
+      {{ cargando() ? 'Actualizando…' : 'Actualizar datos' }}
     </button>
   </header>
 
-  @if (error) {
+  @if (error()) {
     <div class="notice" role="alert">
       No fue posible obtener todos los datos. Revisa que la API esté en ejecución e inténtalo nuevamente.
     </div>
   }
 
-  <div class="metrics" [class.is-loading]="cargando">
+  <div class="metrics" [class.is-loading]="cargando()">
     <article class="metric-card">
       <span class="metric-icon people" aria-hidden="true">◉</span>
       <div>
         <span class="metric-label">Clientes registrados</span>
-        <strong>{{ clientes }}</strong>
+        <strong>{{ clientes() }}</strong>
         <a routerLink="/admin/panel/clientes">Gestionar clientes</a>
       </div>
     </article>
@@ -30,7 +30,7 @@
       <span class="metric-icon inventory" aria-hidden="true">□</span>
       <div>
         <span class="metric-label">Stock por revisar</span>
-        <strong>{{ productosBajoStock }}</strong>
+        <strong>{{ productosBajoStock() }}</strong>
         <a routerLink="/admin/panel/productos">Ver inventario</a>
       </div>
     </article>
@@ -39,7 +39,7 @@
       <span class="metric-icon orders" aria-hidden="true">↗</span>
       <div>
         <span class="metric-label">Pedidos pendientes</span>
-        <strong>{{ pedidosPendientes }}</strong>
+        <strong>{{ pedidosPendientes() }}</strong>
         <a routerLink="/admin/panel/pedido">Revisar pedidos</a>
       </div>
     </article>
@@ -48,7 +48,7 @@
       <span class="metric-icon sales" aria-hidden="true">$</span>
       <div>
         <span class="metric-label">Ventas de hoy</span>
-        <strong>{{ ventasHoy | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+        <strong>{{ ventasHoy() | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
         <a routerLink="/admin/panel/ventas">Registrar venta</a>
       </div>
     </article>
@@ -60,7 +60,7 @@
         <p class="eyebrow">Accesos directos</p>
         <h2 id="quick-actions-title">¿Qué necesitas hacer?</h2>
       </div>
-      <small>Actualizado {{ ultimaActualizacion | date:'shortTime' }}</small>
+      <small>Actualizado {{ ultimaActualizacion() | date:'shortTime' }}</small>
     </div>
 
     <div class="action-grid">

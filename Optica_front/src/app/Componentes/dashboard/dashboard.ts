@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
@@ -20,13 +20,13 @@ interface DashboardSummary {
   styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit {
-  protected cargando = true;
-  protected error = false;
-  protected clientes = 0;
-  protected productosBajoStock = 0;
-  protected pedidosPendientes = 0;
-  protected ventasHoy = 0;
-  protected ultimaActualizacion = new Date();
+  protected readonly cargando = signal(true);
+  protected readonly error = signal(false);
+  protected readonly clientes = signal(0);
+  protected readonly productosBajoStock = signal(0);
+  protected readonly pedidosPendientes = signal(0);
+  protected readonly ventasHoy = signal(0);
+  protected readonly ultimaActualizacion = signal(new Date());
 
   constructor(private readonly http: HttpClient) {}
 
@@ -35,29 +35,29 @@ export class DashboardComponent implements OnInit {
   }
 
   protected actualizarResumen(): void {
-    this.cargando = true;
-    this.error = false;
+    this.cargando.set(true);
+    this.error.set(false);
 
     this.http.get<DashboardSummary>('http://localhost:8080/api/Dashboard/summary')
       .pipe(catchError(() => of(null)))
       .subscribe({
       next: summary => {
         if (summary === null) {
-          this.error = true;
-          this.cargando = false;
+          this.error.set(true);
+          this.cargando.set(false);
           return;
         }
 
-        this.clientes = summary.customerCount;
-        this.productosBajoStock = summary.lowStockProductCount;
-        this.pedidosPendientes = summary.pendingOrderCount;
-        this.ventasHoy = summary.todaySales;
-        this.ultimaActualizacion = new Date(summary.updatedAt);
-        this.cargando = false;
+        this.clientes.set(summary.customerCount);
+        this.productosBajoStock.set(summary.lowStockProductCount);
+        this.pedidosPendientes.set(summary.pendingOrderCount);
+        this.ventasHoy.set(summary.todaySales);
+        this.ultimaActualizacion.set(new Date(summary.updatedAt));
+        this.cargando.set(false);
       },
       error: () => {
-        this.error = true;
-        this.cargando = false;
+        this.error.set(true);
+        this.cargando.set(false);
       }
     });
   }
