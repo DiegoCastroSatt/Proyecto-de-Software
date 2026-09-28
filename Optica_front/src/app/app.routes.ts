@@ -1,3 +1,4 @@
+import { VerVentasComponent } from './Componentes/ver-ventas/ver-ventas';
 import { Routes } from '@angular/router';
 import { ReservaComponent } from './Componentes/reserva/reserva';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
@@ -44,6 +45,7 @@ export const routes: Routes = [
           { path: 'clientes', component: ClientesComponent },
           { path: 'productos', component: BuscarProductoAdmin },
           { path: 'ventas', component: RegistroVentaComponent },
+          { path: 'ventas/historial', component: VerVentasComponent },
           { path: 'recetas', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
           { path: 'crear-pedido', component: CrearPedidoComponent }
