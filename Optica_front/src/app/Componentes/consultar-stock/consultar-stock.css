@@ -20,6 +20,11 @@ tbody td { color: #455b56; }
 .product-name, tbody th small { display: block; }
 tbody th small { margin-top: 4px; color: #73817d; font-size: .78rem; font-weight: 400; }
 .stock-column { width: 190px; text-align: right; white-space: nowrap; }
+.action-column { min-width: 190px; }
+.action-column button + button { margin-left: 6px; }
+.stock-input { display: grid; gap: 5px; text-align: left; white-space: normal; }
+.stock-input span { color: #60716d; font-size: .72rem; }
+.stock-input input { width: 100%; min-width: 88px; padding: 7px 8px; }
 .stock-status { display: inline-block; font-weight: 800; }
 .in-stock { color: #28734b; }
 .out-of-stock { color: #a33e2f; }
@@ -30,5 +35,5 @@ tbody th small { margin-top: 4px; color: #73817d; font-size: .78rem; font-weight
 	.stock-page { padding-top: 30px; }
 	.stock-heading { align-items: stretch; flex-direction: column; }
 	.refresh-button { align-self: flex-start; }
-	table { min-width: 600px; }
+	table { min-width: 980px; }
 }

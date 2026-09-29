@@ -7,6 +7,7 @@ import { BuscarProductoService, Producto } from '../buscar-producto/buscar-produ
 describe('ConsultarStock', () => {
   let component: ConsultarStock;
   let fixture: ComponentFixture<ConsultarStock>;
+  let actualizarStock: ReturnType<typeof vi.fn>;
   const productos: Producto[] = [
     {
       id: 1, codigo: 'AR-001', nombre: 'Armazón clásico', marca: 'Óptica', modelo: 'C1',
@@ -21,11 +22,14 @@ describe('ConsultarStock', () => {
   ];
 
   beforeEach(async () => {
+    actualizarStock = vi.fn((id: number, stock: number, stockMinimo: number) =>
+      of({ ...productos.find(producto => producto.id === id)!, stock, stockMinimo })
+    );
     await TestBed.configureTestingModule({
       imports: [ConsultarStock],
       providers: [{
         provide: BuscarProductoService,
-        useValue: { buscar: () => of(productos) }
+        useValue: { buscar: () => of(productos), actualizarStock }
       }]
     }).compileComponents();
 
@@ -56,5 +60,16 @@ describe('ConsultarStock', () => {
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('Sin stock');
     expect(texto).not.toContain('AR-001');
+  });
+
+  it('actualiza existencias y stock mínimo desde el listado', () => {
+    component['editarStock'](productos[0]);
+    component['borradorStock'].set({ stock: 7, stockMinimo: 2 });
+    component['guardarStock'](productos[0]);
+    fixture.detectChanges();
+
+    expect(actualizarStock).toHaveBeenCalledWith(1, 7, 2);
+    expect(component['productos']()[0]).toMatchObject({ stock: 7, stockMinimo: 2 });
+    expect(component['productoEditando']()).toBeNull();
   });
 });

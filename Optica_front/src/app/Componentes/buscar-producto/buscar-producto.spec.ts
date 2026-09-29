@@ -98,6 +98,20 @@ describe('BuscarProductoComponent', () => {
     expect(component['guardando']()).toBe(false);
   });
 
+  it('no permite editar stock en el formulario administrativo y conserva sus valores', () => {
+    fixture.componentRef.setInput('esAdministrador', true);
+    component['abrirDetalle'](productos[0]);
+    component['activarEdicion']();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[formControlName="stock"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[formControlName="stockMinimo"]')).toBeNull();
+
+    component['guardarCambios']();
+
+    expect(service.actualizar).toHaveBeenCalledWith(1, expect.objectContaining({ stock: 4, stockMinimo: 1 }));
+  });
+
   it('muestra un error cuando falla la consulta', () => {
     service.buscar.mockReturnValueOnce(throwError(() => new Error('offline')));
     component['buscar']();

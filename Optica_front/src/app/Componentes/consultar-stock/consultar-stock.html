@@ -33,6 +33,8 @@
 						<th scope="col">Código</th>
 						<th scope="col">Categoría</th>
 						<th scope="col" class="stock-column">Existencias</th>
+						<th scope="col" class="stock-column">Stock mínimo</th>
+						<th scope="col" class="stock-column">Acciones</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -45,10 +47,29 @@
 							<td>{{ producto.codigo }}</td>
 							<td>{{ producto.categoria }}</td>
 							<td class="stock-column">
-								@if (producto.stock <= 0) {
-									<span class="stock-status out-of-stock">Sin stock</span>
+								@if (productoEditando() === producto.id) {
+									<label class="stock-input"><span>Existencias</span><input type="number" min="0" step="1" [value]="borradorStock().stock" (input)="actualizarBorradorStock('stock', $event)"></label>
 								} @else {
-									<span class="stock-status in-stock">{{ producto.stock }} unidades</span>
+									@if (producto.stock <= 0) {
+										<span class="stock-status out-of-stock">Sin stock</span>
+									} @else {
+										<span class="stock-status in-stock">{{ producto.stock }} unidades</span>
+									}
+								}
+							</td>
+							<td class="stock-column">
+								@if (productoEditando() === producto.id) {
+									<label class="stock-input"><span>Stock mínimo</span><input type="number" min="0" step="1" [value]="borradorStock().stockMinimo" (input)="actualizarBorradorStock('stockMinimo', $event)"></label>
+								} @else {
+									{{ producto.stockMinimo }} unidades
+								}
+							</td>
+							<td class="stock-column action-column">
+								@if (productoEditando() === producto.id) {
+									<button type="button" (click)="guardarStock(producto)" [disabled]="guardandoStock()">{{ guardandoStock() ? 'Guardando...' : 'Guardar' }}</button>
+									<button type="button" (click)="cancelarEdicionStock()" [disabled]="guardandoStock()">Cancelar</button>
+								} @else {
+									<button type="button" (click)="editarStock(producto)">Editar</button>
 								}
 							</td>
 						</tr>
@@ -56,5 +77,8 @@
 				</tbody>
 			</table>
 		</div>
+	}
+	@if (errorStock()) {
+		<p class="status error" role="alert">{{ errorStock() }}</p>
 	}
 </section>

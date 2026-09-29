@@ -115,6 +115,21 @@ public class ProductoService : IProductoService
         return Mapear(await _productoRepository.Actualizar(producto));
     }
 
+    public async Task<ProductoResponseDto> ActualizarStock(int id, ActualizarStockDto dto)
+    {
+        if (dto.Stock < 0 || dto.StockMinimo < 0)
+        {
+            throw new ArgumentException("Las cantidades de stock no pueden ser negativas.");
+        }
+
+        var producto = await _productoRepository.ObtenerPorId(id)
+            ?? throw new KeyNotFoundException("No se encuentra el producto.");
+
+        producto.Stock = dto.Stock;
+        producto.StockMinimo = dto.StockMinimo;
+        return Mapear(await _productoRepository.Actualizar(producto));
+    }
+
     public async Task EliminarProducto(int id)
     {
         var producto = await _productoRepository.ObtenerPorId(id)

@@ -99,6 +99,42 @@ public class TestProductos
         Assert.True(repositorio.ProductoEliminado);
     }
 
+    [Fact]
+    public async Task ActualizarStock_CambiaSoloLasCantidadesDeInventario()
+    {
+        var producto = new Producto
+        {
+            IdProducto = 7,
+            Codigo = "OPT-007",
+            Nombre = "Armazón",
+            Categoria = "Armazones",
+            Precio = 12000,
+            Stock = 3,
+            StockMinimo = 1
+        };
+        var repositorio = new ProductoRepositorioPrueba { ProductoActual = producto };
+        var servicio = CrearServicio(repositorio);
+
+        var resultado = await servicio.ActualizarStock(7, new ActualizarStockDto { Stock = 8, StockMinimo = 2 });
+
+        Assert.Equal(8, resultado.Stock);
+        Assert.Equal(2, resultado.StockMinimo);
+        Assert.Equal("OPT-007", resultado.Codigo);
+        Assert.Equal(12000, resultado.Precio);
+    }
+
+    [Fact]
+    public async Task ActualizarStock_RechazaCantidadesNegativas()
+    {
+        var servicio = CrearServicio(new ProductoRepositorioPrueba());
+
+        await Assert.ThrowsAsync<ArgumentException>(() => servicio.ActualizarStock(7, new ActualizarStockDto
+        {
+            Stock = -1,
+            StockMinimo = 0
+        }));
+    }
+
     private static ProductoService CrearServicio(ProductoRepositorioPrueba repositorio) =>
         new(repositorio, new EntornoPrueba());
 

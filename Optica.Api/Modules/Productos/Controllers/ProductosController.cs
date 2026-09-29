@@ -42,6 +42,23 @@ public class ProductosController : ControllerBase
         }
     }
 
+    [HttpPatch("{id:int}/stock")]
+    public async Task<IActionResult> ActualizarStock(int id, [FromBody] ActualizarStockDto dto)
+    {
+        try
+        {
+            return Ok(await _productoService.ActualizarStock(id, dto));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> EliminarProducto(int id)
     {
