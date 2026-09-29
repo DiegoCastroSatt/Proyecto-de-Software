@@ -14,6 +14,7 @@ import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
 import { ClientesComponent } from './Componentes/clientes/clientes';
 import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
+import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
 
 export const routes: Routes = [
   {
@@ -42,6 +43,7 @@ export const routes: Routes = [
           { path: 'productos/nuevo', component: ProductoComponent },
           { path: 'clientes', component: ClientesComponent },
           { path: 'productos', component: BuscarProductoAdmin },
+          { path: 'stock', component: ConsultarStock },
           { path: 'ventas', component: RegistroVentaComponent },
           { path: 'recetas', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
