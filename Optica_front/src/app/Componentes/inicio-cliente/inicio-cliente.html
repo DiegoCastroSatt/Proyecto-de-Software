@@ -1,0 +1,43 @@
+<section class="inicio" aria-labelledby="inicio-titulo">
+  <header class="bienvenida">
+    <p class="eyebrow">Centro Óptico San Francisco</p>
+    <h1 id="inicio-titulo">Una nueva forma de ver tu mundo.</h1>
+    <p>Encuentra tus próximos lentes y el estilo que va contigo.</p>
+    <a class="reserva" routerLink="/reservas">Agenda tu atención <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <section class="carrusel" aria-label="Productos del catálogo" aria-roledescription="carrusel" [attr.aria-busy]="cargando()">
+    @if (cargando()) {
+      <div class="estado" role="status">Cargando productos…</div>
+    } @else if (error()) {
+      <div class="estado" role="alert"><h2>No pudimos cargar los productos</h2><p>Inténtalo nuevamente en unos momentos.</p><button type="button" (click)="cargar()">Reintentar</button></div>
+    } @else if (actual(); as producto) {
+      <div class="diapositiva" aria-live="off" aria-atomic="true">
+        <div class="foto">
+          @if (!imagenFallida()) {
+            <img [src]="imagenUrl(producto.rutaImagen!)" [alt]="producto.nombre" (error)="imagenFallida.set(true)">
+          } @else {
+            <p class="sin-imagen">Imagen no disponible</p>
+          }
+        </div>
+        <div class="detalle">
+          <p class="eyebrow">{{ producto.categoria || 'Nuestra colección' }}</p>
+          <h2>{{ producto.nombre }}</h2>
+          <p class="marca">{{ producto.marca }} {{ producto.modelo }}</p>
+          <p class="precio">{{ producto.precio | currency:'CLP':'symbol-narrow':'1.0-0' }} <small>CLP</small></p>
+          <a class="boton" routerLink="/productos">Explorar catálogo <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      @if (productos().length > 1) {
+        <div class="controles">
+          <button type="button" aria-label="Producto anterior" (click)="seleccionar(indice() - 1)">←</button>
+          <span class="contador">{{ indice() + 1 }} / {{ productos().length }}</span>
+          <button type="button" aria-label="Producto siguiente" (click)="seleccionar(indice() + 1)">→</button>
+        </div>
+      }
+    } @else {
+      <div class="estado"><h2>Pronto, más productos para ti</h2><p>Aún no hay productos disponibles con fotografías.</p><a class="boton" routerLink="/productos">Ver catálogo</a></div>
+    }
+  </section>
+  <p class="pie">Tu próxima mirada empieza aquí. <a routerLink="/productos">Conoce todos nuestros productos →</a></p>
+</section>
