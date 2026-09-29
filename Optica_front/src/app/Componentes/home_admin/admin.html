@@ -1,11 +1,7 @@
 <div class="admin-shell">
   <header class="admin-header">
     <a class="brand" routerLink="/inicio" aria-label="Centro Óptico San Francisco, inicio">
-      <span class="brand-mark" aria-hidden="true">SF</span>
-      <span>
-        <strong>Centro Óptico</strong>
-        <small>San Francisco</small>
-      </span>
+      <img class="brand-logo" src="/images/favicon-san-francisco-transparente.png" alt="Óptica San Francisco" width="72" height="72">
     </a>
 
     <nav aria-label="Navegación del administrador">
@@ -27,6 +23,11 @@
 
       <a routerLink="/admin/panel/crear-pedido" routerLinkActive="is-active">Crear Pedido</a>
     </nav>
+    <div class="sesion-admin">
+      @if (sesion.administrador(); as admin) { <span>{{ admin.nombre }}</span> }
+      <button type="button" (click)="salir()">Cerrar sesión</button>
+      @if (errorSesion()) { <small role="alert">{{ errorSesion() }}</small> }
+    </div>
   </header>
 
   <main class="admin-content">

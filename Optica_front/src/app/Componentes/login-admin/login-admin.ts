@@ -27,10 +27,10 @@ export class LoginAdmin {
 
     this.autenticacionAdmin.iniciarSesion(this.usuario, this.contrasena).subscribe({
       next: () => {
-        sessionStorage.setItem('isAdmin', 'true');
+        sessionStorage.removeItem('isAdmin');
 
         const destino = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/admin/panel';
-        void this.router.navigateByUrl(destino);
+        void this.router.navigateByUrl(destino === '/admin/panel' || destino.startsWith('/admin/panel/') ? destino : '/admin/panel');
       },
       error: (error: HttpErrorResponse) => {
         this.error.set(error.status === 401

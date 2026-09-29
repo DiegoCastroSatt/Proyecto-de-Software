@@ -1,0 +1,31 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  background-color: #f5f1e8;
+}
+
+.contenido {
+  flex: 1;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #1d5350;
+  color: white;
+
+  padding: 20px;
+}
+
+.footer-contenido {
+  width: 100%;
+  max-width: 1200px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

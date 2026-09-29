@@ -1,0 +1,103 @@
+<div class="app-shell"><main class="ventas">
+<div class="encabezado-ventas"><h1>Ver ventas</h1><a class="boton-ventas" routerLink="/admin/panel/ventas">Registrar venta</a></div>
+@if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    <section class="panel-administracion" aria-labelledby="titulo-informe">
+      <div class="encabezado-informe">
+        <div>
+          <p class="sobretitulo">Administración</p>
+          <h2 id="titulo-informe">Resumen de ventas</h2>
+        </div>
+        <div class="acciones-informe">
+          <button type="button" class="secundario" (click)="mostrarInforme()">Mostrar PDF</button>
+          <button type="button" (click)="descargarInforme()">Descargar PDF</button>
+        </div>
+      </div>
+
+      <div class="indicadores">
+        <article class="indicador">
+          <span>Ingreso del mes</span>
+          <strong>${{ mesActual().ingreso | number:'1.0-0' }}</strong>
+          <small>{{ mesActual().etiqueta }}</small>
+        </article>
+        <article class="indicador">
+          <span>Ventas realizadas este mes</span>
+          <strong>{{ mesActual().cantidad }}</strong>
+          <small>{{ ventas().length }} en el historial completo</small>
+        </article>
+      </div>
+
+      <article class="grafico">
+        <div class="titulo-grafico">
+          <div>
+            <h3>Ingresos mensuales</h3>
+            <p>Últimos 12 meses</p>
+          </div>
+          <span>Mayor ingreso: ${{ maximoMensual() | number:'1.0-0' }}</span>
+        </div>
+        <div class="contenedor-grafico">
+          <canvas #graficoIngresos aria-label="Gráfico de barras de ingresos mensuales de los últimos 12 meses"
+            role="img"></canvas>
+        </div>
+      </article>
+
+      <section class="rank-productos" aria-labelledby="titulo-rank">
+        <h3 id="titulo-rank">Productos más vendidos</h3>
+        <p>Ordenados de mayor a menor por unidades vendidas.</p>
+        <div class="filtros-rank">
+          <label for="periodo-rank">Período
+            <select id="periodo-rank" #periodo [value]="periodoRank()"
+              (change)="cambiarPeriodoRank(periodo.value)">
+              <option value="semana">Última semana</option>
+              <option value="mes">Último mes</option>
+              <option value="semestre">Último semestre</option>
+              <option value="anio">Último año</option>
+            </select>
+          </label>
+          <label for="limite-rank">Cantidad de productos
+            <select id="limite-rank" #limite [value]="limiteRank()"
+              (change)="cambiarLimiteRank(limite.value)">
+              <option value="5">Top 5</option>
+              <option value="10">Top 10</option>
+            </select>
+          </label>
+        </div>
+        <p>Desde {{ desdeRank() | date:'dd/MM/yyyy HH:mm' }} hasta {{ fechaRank() | date:'dd/MM/yyyy HH:mm' }}.</p>
+        <div aria-live="polite" [attr.aria-busy]="cargandoHistorial()">
+          @if (cargandoHistorial()) {
+            <p role="status">Cargando productos más vendidos…</p>
+          } @else if (errorHistorial()) {
+            <p role="alert">No se pudo cargar el rank.</p>
+            <button type="button" (click)="cargarVentas()">Reintentar</button>
+          } @else if (!rank().length) {
+            <p class="vacio">No hay ventas en el período seleccionado.</p>
+          } @else {
+            <table class="tabla-rank">
+              <caption>Top {{ limiteRank() }} · {{ rank().length }} productos con ventas</caption>
+              <thead><tr><th scope="col">Posición</th><th scope="col">Producto</th><th scope="col">Unidades vendidas</th></tr></thead>
+              <tbody>
+                @for (producto of rank(); track producto.productoId; let posicion = $index) {
+                  <tr><td>{{ posicion + 1 }}</td><td>{{ producto.nombre }}</td><td>{{ producto.unidades | number:'1.0-0' }}</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </section>
+
+      <h3>Historial de ventas</h3>
+      @if (!ventas().length) { <p class="vacio">Aún no hay ventas registradas.</p> }
+      <div class="historial">
+        @for (venta of ventas(); track venta.idVenta) {
+        <article class="venta-historial">
+          <div><strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span></div>
+          <div class="productos-historial">
+            @for (producto of venta.productos; track producto.productoId) { <span>{{ producto.nombre }} × {{
+              producto.cantidad }}</span> }
+          </div>
+          <strong>${{ venta.total | number:'1.0-0' }}</strong>
+        </article>
+        }
+      </div>
+    </section>
+  </main>
+</div>

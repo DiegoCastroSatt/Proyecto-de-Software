@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
-import { RegistroVentaComponent, inicioPeriodo, productosMasVendidos, PeriodoVentas } from './registro-venta';
+import { RegistroVentaComponent } from './registro-venta';
+import { VerVentasComponent, inicioPeriodo, productosMasVendidos, PeriodoVentas } from '../ver-ventas/ver-ventas';
+import { provideRouter } from '@angular/router';
 import { RegistroVentaService, ProductoCaja, Venta } from './registro-venta.service';
 
 describe('Registro de ventas', () => {
@@ -14,8 +16,8 @@ describe('Registro de ventas', () => {
     servicio.buscar.mockReturnValue(of(producto));
     servicio.crear.mockReturnValue(of({ idVenta: 1, fecha: '', total: 200, productos: [] }));
     await TestBed.configureTestingModule({
-      imports: [RegistroVentaComponent],
-      providers: [{ provide: RegistroVentaService, useValue: servicio }]
+      imports: [RegistroVentaComponent, VerVentasComponent],
+      providers: [provideRouter([]), { provide: RegistroVentaService, useValue: servicio }]
     }).compileComponents();
   });
 
@@ -37,6 +39,9 @@ describe('Registro de ventas', () => {
   it('acumula códigos repetidos y registra todos los productos juntos', () => {
     const { dom, agregar, registrar } = preparar();
     agregar('A'); agregar('A');
+    expect(servicio.listar).not.toHaveBeenCalled();
+    expect(dom.querySelector('a')?.getAttribute('href')).toBe('/admin/panel/ventas/historial');
+    expect(dom.querySelector('.panel-administracion')).toBeNull();
     expect(servicio.crear).not.toHaveBeenCalled();
     expect(dom.querySelectorAll('.linea').length).toBe(1);
     expect(dom.querySelector('.total')?.textContent).toContain('200');
@@ -72,7 +77,9 @@ describe('Registro de ventas', () => {
       { idVenta: 2, fecha: anterior.toISOString(), total: 100, productos:
         [{ productoId: 99, nombre: 'Producto anterior', cantidad: 100, precioUnitario: 1, subtotal: 100 }] }
     ]));
-    const { fixture, dom } = preparar();
+    const fixture = TestBed.createComponent(VerVentasComponent);
+    fixture.detectChanges();
+    const dom = fixture.nativeElement as HTMLElement;
     expect(dom.querySelectorAll('.tabla-rank tbody tr')).toHaveLength(5);
     const limite = dom.querySelector<HTMLSelectElement>('#limite-rank')!;
     limite.value = '10'; limite.dispatchEvent(new Event('change')); fixture.detectChanges();
@@ -85,7 +92,9 @@ describe('Registro de ventas', () => {
 
   it('distingue una carga fallida de un período sin ventas y permite reintentar', () => {
     servicio.listar.mockReturnValue(throwError(() => new Error('Sin conexión')));
-    const { fixture, dom } = preparar();
+    const fixture = TestBed.createComponent(VerVentasComponent);
+    fixture.detectChanges();
+    const dom = fixture.nativeElement as HTMLElement;
     expect(dom.querySelector('.rank-productos')?.textContent).toContain('No se pudo cargar el rank');
     servicio.listar.mockReturnValue(of([]));
     dom.querySelector<HTMLButtonElement>('.rank-productos button')!.click();
