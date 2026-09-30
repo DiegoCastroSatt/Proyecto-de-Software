@@ -8,6 +8,6 @@ public class ConsultaProductoVenta(OpticaDbContext db) : IConsultaProductoVenta
 {
     public Task<ProductoCajaDto?> Buscar(string codigo) => db.Productos.AsNoTracking()
         .Where(p => p.Codigo == codigo.Trim())
-        .Select(p => new ProductoCajaDto(p.IdProducto, p.Codigo, p.Nombre, p.Precio))
+        .Select(p => new ProductoCajaDto(p.IdProducto, p.Codigo, p.Nombre, p.Precio, p.Stock))
         .SingleOrDefaultAsync();
 }
