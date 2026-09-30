@@ -17,6 +17,7 @@
   <form class="filter-bar" [formGroup]="filtrosForm" (change)="aplicarFiltros()">
     <label>Estado
       <select formControlName="estado">
+        <option value="">Todos los estados</option>
         <option value="Disponible">Disponible</option>
         <option value="Agotado">Agotado</option>
         <option value="">Todos los estados</option>
