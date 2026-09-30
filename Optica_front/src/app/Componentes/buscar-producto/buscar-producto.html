@@ -20,7 +20,6 @@
         <option value="">Todos los estados</option>
         <option value="Disponible">Disponible</option>
         <option value="Agotado">Agotado</option>
-        <option value="">Todos los estados</option>
       </select>
     </label>
     <label>Categoria
@@ -74,6 +73,9 @@
           }
           <span class="product-copy">
             <strong>{{ producto.nombre }}</strong>
+            @if (producto.stock <= 0 || producto.estado === 'Agotado') {
+              <span class="agotado">Agotado · Sin productos en stock</span>
+            }
             <small>{{ producto.categoria }} · {{ producto.codigo }}</small>
             <span class="price">{{ producto.precio | currency:'CLP':'symbol':'1.0-0' }}</span>
           </span>
