@@ -47,3 +47,4 @@ dt { color: #60716d; font-size: .75rem; } dd { margin: 4px 0 0; color: #1d3434; 
 .add-option { display: flex; gap: 6px; }
 .add-option button { flex: 0 0 auto; padding: 8px 10px; }
 @media (max-width: 720px) { .catalogo-heading { align-items: stretch; flex-direction: column; } .search-form { min-width: 0; } .filter-bar { grid-template-columns: 1fr; } .filter-bar button { width: 100%; } .edit-form, .details { grid-template-columns: 1fr; } .modal { max-height: calc(100vh - 24px); padding: 28px 20px 24px; } .detail-layout { grid-template-columns: 1fr; gap: 20px; } .detail-information { padding-top: 0; } .detail-image { height: 220px; } }
+.agotado { display: inline-block; color: #8c2525; background: #f8e9e9; padding: 4px 8px; border-radius: 4px; font-size: .8rem; font-weight: 700; }

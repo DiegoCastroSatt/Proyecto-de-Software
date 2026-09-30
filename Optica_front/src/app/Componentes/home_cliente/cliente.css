@@ -4,6 +4,8 @@
 }
 
 .client-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: #eef2f0;
   color: #1d3434;
@@ -59,7 +61,7 @@
 }
 
 .client-content {
-  min-height: calc(100vh - 75px);
+  flex: 1;
 }
 
 @media (max-width: 680px) {
@@ -79,4 +81,25 @@
   .client-header nav a {
     flex: 0 0 auto;
   }
+}
+
+.client-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px clamp(20px, 5vw, 64px);
+  border-top: 1px solid #c6d8d1;
+}
+
+.client-footer a {
+  padding: 8px 12px;
+  border-radius: 3px;
+  color: #1d4a47;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.client-footer a:hover,
+.client-footer a:focus-visible {
+  background: #e5c58d;
+  text-decoration: underline;
 }
