@@ -19,6 +19,11 @@ public class PedidoService : IPedidoService
         return await _pedidoRepository.ObtenerPedidosDetalleAsync();
     }
 
+    public async Task<PedidoResponseDto?> ObtenerPedidoPorIdAsync(int id)
+    {
+        return await _pedidoRepository.ObtenerPedidoDetalleAsync(id);
+    }
+
     public async Task<IEnumerable<ClienteActivoDto>> ObtenerClientesActivosAsync()
     {
         var clientes = await _pedidoRepository.ObtenerClientesActivosAsync();

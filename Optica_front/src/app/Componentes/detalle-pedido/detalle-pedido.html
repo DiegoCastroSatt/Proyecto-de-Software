@@ -1,0 +1,96 @@
+<div class="app-shell">
+
+  <main class="detail-page">
+    <section class="detail-shell">
+
+      <div class="detail-content">
+        <div class="detail-header">
+          <button type="button" class="btn-back" routerLink="/admin/panel/pedido">
+            <svg class="back-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Volver a pedidos
+          </button>
+          <h2>Detalle del Pedido</h2>
+        </div>
+
+        @if (cargando()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando detalle del pedido…</p>
+        </div>
+        } @else if (error()) {
+        <div class="error-state">
+          <svg class="error-icon" viewBox="0 0 24 24" width="48" height="48">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 8v4M12 16h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <p class="error-title">{{ error() }}</p>
+          <button type="button" class="btn-primary" routerLink="/admin/panel/pedido">Volver a pedidos</button>
+        </div>
+        } @else if (pedido(); as p) {
+        <div class="pedido-detail-card">
+
+          <div class="detail-badge" [attr.data-estado]="p.estado">{{ p.estado }}</div>
+
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="field-label">
+                <svg class="field-icon" viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Cliente
+              </span>
+              <span class="field-value">{{ p.nombreCliente }}</span>
+            </div>
+
+            <div class="detail-field">
+              <span class="field-label">
+                <svg class="field-icon" viewBox="0 0 24 24" width="16" height="16">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M16 2v4M8 2v4M3 10h18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                Fecha del Pedido
+              </span>
+              <span class="field-value">{{ p.fecha | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="detail-field detail-field--total">
+              <span class="field-label">
+                <svg class="field-icon" viewBox="0 0 24 24" width="16" height="16">
+                  <line x1="12" y1="1" x2="12" y2="23" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Monto Total
+              </span>
+              <span class="field-value field-value--total">${{ p.total }}</span>
+            </div>
+          </div>
+
+          <div class="detail-divider"></div>
+
+          <div class="detail-field detail-field--notes">
+            <span class="field-label">
+              <svg class="field-icon" viewBox="0 0 24 24" width="16" height="16">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              Anotaciones
+            </span>
+            @if (p.anotaciones) {
+            <p class="notes-content">{{ p.anotaciones }}</p>
+            } @else {
+            <p class="notes-empty">Sin anotaciones para este pedido.</p>
+            }
+          </div>
+
+        </div>
+        }
+      </div>
+
+    </section>
+  </main>
+</div>

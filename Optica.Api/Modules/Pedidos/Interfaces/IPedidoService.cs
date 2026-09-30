@@ -7,5 +7,6 @@ public interface IPedidoService
     Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosAsync();
     Task<IEnumerable<ClienteActivoDto>> ObtenerClientesActivosAsync();
     Task<PedidoResponseDto> CrearPedidoAsync(CreatePedidoDto dto);
+    Task<PedidoResponseDto?> ObtenerPedidoPorIdAsync(int id);
     Task<PedidoResponseDto> ActualizarEstadoAsync(int id, UpdateEstadoPedidoDto dto);
 }

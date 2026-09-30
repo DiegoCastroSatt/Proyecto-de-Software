@@ -291,6 +291,36 @@
   color: #c62828;
 }
 
+.pedido-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-detalle {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border: 1px solid #1d4a47;
+  border-radius: 3px;
+  background: transparent;
+  color: #1d4a47;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.btn-detalle:hover {
+  background: #1d4a47;
+  color: #fffdf9;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 720px) {
   .order-page {
     padding: 0;

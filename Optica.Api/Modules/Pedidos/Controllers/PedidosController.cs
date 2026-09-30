@@ -35,6 +35,18 @@ public class PedidosController : ControllerBase
         return Ok(clientes);
     }
 
+    /// <summary>
+    /// Devuelve el detalle de un pedido por su ID.
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPedidoById(int id)
+    {
+        var pedido = await _pedidoService.ObtenerPedidoPorIdAsync(id);
+        if (pedido == null)
+            return NotFound(new { mensaje = "Pedido no encontrado." });
+        return Ok(pedido);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreatePedido([FromBody] CreatePedidoDto dto)
     {

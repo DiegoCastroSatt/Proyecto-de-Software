@@ -44,4 +44,8 @@ export class PedidoService {
   actualizarEstado(idPedido: number, estado: string): Observable<{ mensaje: string, estado: string }> {
     return this.http.patch<{ mensaje: string, estado: string }>(`${this.apiUrl}/${idPedido}/estado`, { estado });
   }
+
+  obtenerPedidoPorId(id: number): Observable<PedidoResponse> {
+    return this.http.get<PedidoResponse>(`${this.apiUrl}/${id}`);
+  }
 }
