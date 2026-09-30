@@ -11,11 +11,14 @@
 
       <a routerLink="/admin/panel/clientes" routerLinkActive="is-active">Clientes</a>
 
-      <a routerLink="/admin/panel/productos" routerLinkActive="is-active">Catálogo</a>
-
-      <a routerLink="/admin/panel/stock" routerLinkActive="is-active">Consultar Stock</a>
-
-      <a routerLink="/admin/panel/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
+      <div class="inventory-menu" routerLinkActive="is-active">
+        <button type="button" aria-haspopup="true">Inventario <span aria-hidden="true">▾</span></button>
+        <div class="inventory-submenu">
+          <a routerLink="/admin/panel/productos" routerLinkActive="is-active">Catálogo</a>
+          <a routerLink="/admin/panel/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
+          <a routerLink="/admin/panel/stock" routerLinkActive="is-active">Consultar Stock</a>
+        </div>
+      </div>
 
       <a routerLink="/admin/panel/ventas" routerLinkActive="is-active"> Ventas </a>
 
