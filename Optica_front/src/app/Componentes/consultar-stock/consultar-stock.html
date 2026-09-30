@@ -1,0 +1,84 @@
+<section class="stock-page">
+	<header class="stock-heading">
+		<div>
+			<p class="eyebrow">Inventario</p>
+			<h1>Consultar stock</h1>
+			<p>Existencias actuales de cada producto.</p>
+		</div>
+		<button class="refresh-button" type="button" (click)="cargarProductos()" [disabled]="cargando()">
+			{{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+		</button>
+	</header>
+
+	<label class="search-field" for="buscar-stock">
+		<span>Buscar producto</span>
+		<input id="buscar-stock" type="search" placeholder="Nombre, código o categoría" (input)="actualizarBusqueda($event)">
+	</label>
+
+	@if (cargando()) {
+		<p class="status" role="status">Consultando existencias...</p>
+	} @else if (error()) {
+		<div class="status error" role="alert">
+			<p>{{ error() }}</p>
+			<button type="button" (click)="cargarProductos()">Reintentar</button>
+		</div>
+	} @else if (productosFiltrados().length === 0) {
+		<p class="status">{{ productos().length ? 'No hay productos que coincidan con la búsqueda.' : 'No hay productos registrados.' }}</p>
+	} @else {
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Producto</th>
+						<th scope="col">Código</th>
+						<th scope="col">Categoría</th>
+						<th scope="col" class="stock-column">Existencias</th>
+						<th scope="col" class="stock-column">Stock mínimo</th>
+						<th scope="col" class="stock-column">Acciones</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (producto of productosFiltrados(); track producto.id) {
+						<tr>
+							<th scope="row">
+								<span class="product-name">{{ producto.nombre }}</span>
+								@if (producto.marca) { <small>{{ producto.marca }} {{ producto.modelo }}</small> }
+							</th>
+							<td>{{ producto.codigo }}</td>
+							<td>{{ producto.categoria }}</td>
+							<td class="stock-column">
+								@if (productoEditando() === producto.id) {
+									<label class="stock-input"><span>Existencias</span><input type="number" min="0" step="1" [value]="borradorStock().stock" (input)="actualizarBorradorStock('stock', $event)"></label>
+								} @else {
+									@if (producto.stock <= 0) {
+										<span class="stock-status out-of-stock">Sin stock</span>
+									} @else {
+										<span class="stock-status in-stock">{{ producto.stock }} unidades</span>
+									}
+								}
+							</td>
+							<td class="stock-column">
+								@if (productoEditando() === producto.id) {
+									<label class="stock-input"><span>Stock mínimo</span><input type="number" min="0" step="1" [value]="borradorStock().stockMinimo" (input)="actualizarBorradorStock('stockMinimo', $event)"></label>
+								} @else {
+									{{ producto.stockMinimo }} unidades
+								}
+							</td>
+							<td class="stock-column action-column">
+								@if (productoEditando() === producto.id) {
+									<button type="button" (click)="guardarStock(producto)" [disabled]="guardandoStock()">{{ guardandoStock() ? 'Guardando...' : 'Guardar' }}</button>
+									<button type="button" (click)="cancelarEdicionStock()" [disabled]="guardandoStock()">Cancelar</button>
+								} @else {
+									<button type="button" (click)="editarStock(producto)">Editar</button>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+	@if (errorStock()) {
+		<p class="status error" role="alert">{{ errorStock() }}</p>
+	}
+</section>

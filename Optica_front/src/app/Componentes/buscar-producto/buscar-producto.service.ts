@@ -53,6 +53,10 @@ export class BuscarProductoService {
     return this.http.put<Producto>(`${this.apiUrl}/${id}`, formData);
   }
 
+  actualizarStock(id: number, stock: number, stockMinimo: number): Observable<Producto> {
+    return this.http.patch<Producto>(`${this.apiUrl}/${id}/stock`, { stock, stockMinimo });
+  }
+
   obtenerCatalogo(tipo: string): Observable<CatalogoItem[]> {
     return this.http.get<CatalogoItem[]>(`${this.catalogosUrl}?tipo=${encodeURIComponent(tipo)}`);
   }
