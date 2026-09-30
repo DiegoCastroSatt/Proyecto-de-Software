@@ -139,72 +139,72 @@ INSERT INTO ventas (fecha, total) VALUES
 -- ==========================================
 
 INSERT INTO detalle_venta
-(id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES
-(1, 1, 1, 89990, 89990),
-(2, 2, 1, 109990, 109990),
+(id_venta, id_producto, nombre_producto, cantidad, precio_unitario, subtotal) VALUES
+(1, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
+(2, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
 
-(3, 3, 1, 79990, 79990),
-(3, 5, 5, 9990, 49950),
+(3, 3, 'Lentes Vogue Classic', 1, 79990, 79990),
+(3, 5, 'Estuche para lentes', 5, 9990, 49950),
 
-(4, 3, 1, 79990, 79990),
-(5, 4, 1, 69990, 69990),
+(4, 3, 'Lentes Vogue Classic', 1, 79990, 79990),
+(5, 4, 'Lentes de Sol Polaroid', 1, 69990, 69990),
 
-(6, 1, 1, 89990, 89990),
-(6, 5, 1, 9990, 9990),
+(6, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
+(6, 5, 'Estuche para lentes', 1, 9990, 9990),
 
-(7, 2, 1, 109990, 109990),
-(8, 1, 1, 89990, 89990),
+(7, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
+(8, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
 
-(9, 2, 1, 109990, 109990),
-(9, 5, 1, 9990, 9990),
+(9, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
+(9, 5, 'Estuche para lentes', 1, 9990, 9990),
 
-(10, 3, 1, 79990, 79990),
+(10, 3, 'Lentes Vogue Classic', 1, 79990, 79990),
 
-(11, 4, 2, 69990, 139980),
+(11, 4, 'Lentes de Sol Polaroid', 2, 69990, 139980),
 
-(12, 1, 1, 89990, 89990),
+(12, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
 
-(13, 2, 1, 109990, 109990),
-(13, 5, 1, 9990, 9990),
+(13, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
+(13, 5, 'Estuche para lentes', 1, 9990, 9990),
 
-(14, 1, 1, 89990, 89990),
-(14, 5, 1, 9990, 9990),
+(14, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
+(14, 5, 'Estuche para lentes', 1, 9990, 9990),
 
-(15, 1, 1, 89990, 89990),
-(15, 5, 1, 9990, 9990),
+(15, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
+(15, 5, 'Estuche para lentes', 1, 9990, 9990),
 
-(16, 2, 1, 109990, 109990),
-(16, 10, 1, 4990, 4990),
+(16, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
+(16, 10, 'Cordón ajustable para lentes', 1, 4990, 4990),
 
-(17, 9, 1, 32990, 32990),
-(17, 11, 2, 3990, 7980),
+(17, 9, 'Lentes de uso diario', 1, 32990, 32990),
+(17, 11, 'Toallitas húmedas para lentes', 2, 3990, 7980),
 
-(18, 3, 1, 79990, 79990),
-(18, 10, 1, 4990, 4990),
+(18, 3, 'Lentes Vogue Classic', 1, 79990, 79990),
+(18, 10, 'Cordón ajustable para lentes', 1, 4990, 4990),
 
-(19, 4, 1, 69990, 69990),
-(19, 10, 1, 4990, 4990),
+(19, 4, 'Lentes de Sol Polaroid', 1, 69990, 69990),
+(19, 10, 'Cordón ajustable para lentes', 1, 4990, 4990),
 
-(20, 1, 1, 89990, 89990),
-(20, 7, 1, 5990, 5990),
+(20, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
+(20, 7, 'Líquido limpiador para lentes', 1, 5990, 5990),
 
-(21, 2, 1, 109990, 109990),
-(21, 10, 1, 4990, 4990),
+(21, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
+(21, 10, 'Cordón ajustable para lentes', 1, 4990, 4990),
 
-(22, 3, 1, 79990, 79990),
-(22, 10, 1, 4990, 4990),
+(22, 3, 'Lentes Vogue Classic', 1, 79990, 79990),
+(22, 10, 'Cordón ajustable para lentes', 1, 4990, 4990),
 
-(23, 4, 1, 69990, 69990),
-(23, 10, 1, 4990, 4990),
+(23, 4, 'Lentes de Sol Polaroid', 1, 69990, 69990),
+(23, 10, 'Cordón ajustable para lentes', 1, 4990, 4990),
 
-(24, 1, 1, 89990, 89990),
-(24, 7, 1, 5990, 5990),
+(24, 1, 'Armazón Ray-Ban Classic', 1, 89990, 89990),
+(24, 7, 'Líquido limpiador para lentes', 1, 5990, 5990),
 
-(25, 9, 1, 32990, 32990),
-(25, 11, 2, 3990, 7980),
+(25, 9, 'Lentes de uso diario', 1, 32990, 32990),
+(25, 11, 'Toallitas húmedas para lentes', 2, 3990, 7980),
 
-(26, 2, 1, 109990, 109990),
-(26, 10, 1, 4990, 4990);
+(26, 2, 'Armazón Oakley Metal', 1, 109990, 109990),
+(26, 10, 'Cordón ajustable para lentes', 1, 4990, 4990);
 
 
 -- ==========================================

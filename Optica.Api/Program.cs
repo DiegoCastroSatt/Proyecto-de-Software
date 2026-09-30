@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Optica.Api.Modules.Ventas.Interfaces;
 using Optica.Api.Modules.Ventas.Repositories;
 using Optica.Api.Modules.Ventas.Services;
@@ -30,7 +34,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -57,6 +62,31 @@ builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdmi
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "Optica.Admin";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = false;
+        options.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
+        options.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
+        options.Events.OnValidatePrincipal = async ctx =>
+        {
+            var db = ctx.HttpContext.RequestServices.GetRequiredService<OpticaDbContext>();
+            if (!int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
+                || !await db.Administradores.AnyAsync(a => a.IdAdministrador == id && a.Estado == "Activo", ctx.HttpContext.RequestAborted))
+            {
+                ctx.RejectPrincipal();
+                await ctx.HttpContext.SignOutAsync();
+            }
+        };
+    });
+builder.Services.AddAuthorization(options =>
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -64,6 +94,25 @@ app.UseSwaggerUI();
 
 app.UseStaticFiles();
 app.UseCors("Angular");
+app.UseAuthentication();
+// Las operaciones con cookie requieren el origen conocido del frontend para evitar CSRF.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api")
+        && context.Request.Method is not ("GET" or "HEAD" or "OPTIONS")
+        && (context.User.Identity?.IsAuthenticated == true || context.Request.Path == "/api/Autenticacion/admin"))
+    {
+        var origin = context.Request.Headers.Origin.ToString();
+        if (origin != "http://localhost:4200" && origin != "http://localhost:4300"
+            && origin != $"{context.Request.Scheme}://{context.Request.Host}")
+        {
+            context.Response.StatusCode = 403;
+            return;
+        }
+    }
+    await next();
+});
+app.UseAuthorization();
 app.MapControllers();
 
 app.MapGet("/test-db", async (OpticaDbContext db) =>

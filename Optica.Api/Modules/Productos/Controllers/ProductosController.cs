@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -11,9 +12,11 @@ public class ProductosController : ControllerBase
         _productoService = productoService;
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> BuscarProductos([FromQuery] string termino = "") => Ok(await _productoService.BuscarProductos(termino));
 
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> ObtenerProducto(int id)
     {
@@ -28,6 +31,23 @@ public class ProductosController : ControllerBase
         try
         {
             return Ok(await _productoService.ActualizarProducto(id, dto));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:int}/stock")]
+    public async Task<IActionResult> ActualizarStock(int id, [FromBody] ActualizarStockDto dto)
+    {
+        try
+        {
+            return Ok(await _productoService.ActualizarStock(id, dto));
         }
         catch (KeyNotFoundException ex)
         {
