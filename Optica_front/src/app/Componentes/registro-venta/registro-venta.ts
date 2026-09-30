@@ -54,9 +54,14 @@ export class RegistroVentaComponent implements AfterViewInit {
     this.servicio.buscar(siguiente.codigo).subscribe({
       next: producto => {
         const actual = this.productos().find(p => p.idProducto === producto.idProducto);
-        if ((actual?.cantidad ?? 0) + siguiente.cantidad > 2147483647) {
-          this.error.set('La cantidad del producto es demasiado grande.');
+        const disponible = producto.stock - (actual?.cantidad ?? 0);
+        this.productos.update(items => items.map(p => p.idProducto === producto.idProducto ? { ...p, stock: producto.stock } : p));
+        if (disponible <= 0) {
+          this.error.set(`${producto.nombre}: Sin productos en stock`);
+        } else if (siguiente.cantidad > disponible) {
+          this.error.set(`${producto.nombre}: stock insuficiente. Puedes agregar ${disponible} unidad(es).`);
         } else {
+          this.error.set('');
           this.productos.update(items => actual
             ? items.map(p => p.idProducto === producto.idProducto ? { ...p, cantidad: p.cantidad + siguiente.cantidad } : p)
             : [...items, { ...producto, cantidad: siguiente.cantidad }]);
@@ -78,8 +83,14 @@ export class RegistroVentaComponent implements AfterViewInit {
 
   protected cambiarCantidad(id: number, diferencia: number): void {
     if (this.guardando() || this.pendientes()) return;
+    const producto = this.productos().find(p => p.idProducto === id);
+    if (producto && diferencia > 0 && producto.cantidad >= producto.stock) {
+      this.error.set(`${producto.nombre}: Sin productos en stock`);
+      return;
+    }
+    this.error.set('');
     this.productos.update(items => items.map(p => p.idProducto === id
-      ? { ...p, cantidad: Math.min(2147483647, Math.max(1, p.cantidad + diferencia)) } : p));
+      ? { ...p, cantidad: Math.max(1, Math.min(p.stock, p.cantidad + diferencia)) } : p));
   }
 
   protected quitar(codigo: string): void {
@@ -94,6 +105,10 @@ export class RegistroVentaComponent implements AfterViewInit {
     }
     if (!this.productos().length) {
       this.error.set('Agrega al menos un producto a la venta.');
+      return;
+    }
+    if (this.productos().some(p => p.cantidad > p.stock)) {
+      this.error.set('Revisa las cantidades: superan el stock disponible.');
       return;
     }
     this.guardando.set(true);
