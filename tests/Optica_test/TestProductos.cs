@@ -133,9 +133,7 @@ public class TestProductos
             Stock = -1,
             StockMinimo = 0
         }));
-    }
-
-    private static ProductoService CrearServicio(ProductoRepositorioPrueba repositorio) =>
+     private static ProductoService CrearServicio(ProductoRepositorioPrueba repositorio) =>
         new(repositorio, new EntornoPrueba());
 
     private static CrearProductoDto ProductoValido() => new()
