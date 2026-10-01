@@ -1,34 +1,19 @@
-:host {
-  display: block;
-  min-height: 100%;
-}
-
-.booking-page {
-  min-height: 100vh;
-  padding: 32px 20px;
-  display: grid;
-  place-items: center;
-  background: #e8f0ed;
-  background-image: radial-gradient(circle at 9% 16%, rgba(179, 215, 204, 0.62), transparent 31%), radial-gradient(circle at 92% 84%, rgba(224, 193, 151, 0.32), transparent 27%);
-  color: #1d3434;
-}
-
 .booking-shell {
   width: min(1080px, 100%);
   display: grid;
   grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.2fr);
   overflow: hidden;
-  background: #fffdf9;
+  background: var(--color-superficie-calida);
   box-shadow: 0 24px 70px rgba(35, 67, 65, 0.15);
-  border: 1px solid rgba(29, 52, 52, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
 }
 
 .booking-intro {
   display: flex;
   flex-direction: column;
   padding: clamp(32px, 5vw, 68px) clamp(28px, 5vw, 64px);
-  background: #1d4a47;
-  color: #f5f5e9;
+  background: var(--color-principal);
+  color: var(--color-texto-inverso);
 }
 
 .brand-mark {
@@ -37,8 +22,8 @@
   display: grid;
   place-items: center;
   margin-bottom: 52px;
-  border: 1px solid rgba(245, 245, 233, 0.5);
-  color: #e5c58d;
+  border: 1px solid color-mix(in srgb, var(--color-texto-inverso) 50%, transparent);
+  color: var(--color-acento-suave);
   font-family: Georgia, serif;
   font-size: 1.2rem;
   letter-spacing: 0.08em;
@@ -66,7 +51,7 @@
 .intro-copy {
   max-width: 330px;
   margin: 26px 0 0;
-  color: #c6d8d1;
+  color: var(--color-texto-inverso-secundario);
   font-size: 1rem;
   line-height: 1.65;
 }
@@ -94,27 +79,14 @@
   place-items: center;
   border: 1px solid #c28f50;
   border-radius: 50%;
-  color: #e5c58d;
+  color: var(--color-acento-suave);
   font-family: Georgia, serif;
   font-size: 0.8rem;
 }
 
-.booking-form-area {
-  padding: clamp(32px, 5vw, 66px) clamp(24px, 5vw, 66px);
-}
-
-.form-heading h2 {
-  margin: 0;
-  color: #1d3434;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  font-weight: 400;
-  letter-spacing: -0.03em;
-}
-
 .form-heading > p:last-child {
   margin: 9px 0 30px;
-  color: #6c7b78;
+  color: var(--color-texto-secundario);
   font-size: 0.9rem;
 }
 
@@ -123,15 +95,11 @@
   gap: 4px;
   margin-bottom: 24px;
   padding: 14px 16px;
-  border-left: 3px solid #bf8542;
-  background: #f5eedf;
-  color: #38514d;
+  border-left: 3px solid var(--color-acento);
+  background: var(--color-exito-fondo-calido);
+  color: var(--color-exito-texto-calido);
   font-size: 0.86rem;
   line-height: 1.4;
-}
-
-.success-message strong {
-  color: #1d4a47;
 }
 
 .form-grid {
@@ -140,57 +108,20 @@
   gap: 19px 16px;
 }
 
-.field {
-  min-width: 0;
-}
-
-.field-wide {
-  grid-column: 1 / -1;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #36504d;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
 input,
 select {
   width: 100%;
   min-height: 48px;
   box-sizing: border-box;
   padding: 12px 14px;
-  border: 1px solid #c9d3ce;
+  border: 1px solid var(--color-borde-control);
   border-radius: 2px;
   outline: none;
-  background: #fff;
-  color: #1d3434;
+  background: var(--color-superficie);
+  color: var(--color-texto);
   font: inherit;
   font-size: 0.92rem;
   transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-input::placeholder {
-  color: #9aa8a3;
-}
-
-input:focus {
-  border-color: #1d4a47;
-  box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.12);
-}
-
-input.ng-touched.ng-invalid {
-  border-color: #bb5e4a;
-}
-
-small {
-  display: block;
-  margin-top: 6px;
-  color: #a4483a;
-  font-size: 0.72rem;
 }
 
 button {
@@ -199,8 +130,8 @@ button {
   margin-top: 29px;
   border: 0;
   border-radius: 2px;
-  background: #bf8542;
-  color: #fffdf9;
+  background: var(--color-acento);
+  color: var(--color-superficie-calida);
   cursor: pointer;
   font: inherit;
   font-size: 0.86rem;
@@ -209,28 +140,15 @@ button {
   transition: background 160ms ease, transform 160ms ease;
 }
 
-button:hover {
-  background: #a96f32;
-  transform: translateY(-1px);
-}
-
-button:focus-visible {
-  outline: 3px solid rgba(29, 74, 71, 0.3);
-  outline-offset: 3px;
-}
-
 .form-footnote {
   margin: 13px 0 0;
-  color: #86938e;
+  color: var(--color-texto-nota);
   font-size: 0.72rem;
   line-height: 1.45;
   text-align: center;
 }
 
 @media (max-width: 720px) {
-  .booking-page {
-    padding: 0;
-  }
 
   .booking-shell {
     grid-template-columns: 1fr;
@@ -259,4 +177,25 @@ button:focus-visible {
   .field-wide {
     grid-column: auto;
   }
+}
+
+button:hover {
+  background: var(--color-acento-hover);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .booking-page {
+    padding: 0;
+  }
+}
+
+button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-principal) 30%, transparent);
+  outline-offset: 3px;
+}
+
+input:focus {
+  border-color: var(--color-principal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-principal) 12%, transparent);
 }
