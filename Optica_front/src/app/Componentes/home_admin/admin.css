@@ -3,7 +3,37 @@
 }
 
 .sesion-admin { display: grid; gap: 8px; font-size: .8rem; }
-.sesion-admin button { padding: 8px 12px; background: transparent; border: 1px solid var(--color-texto-inverso-secundario); color: var(--color-superficie); border-radius: 4px; cursor: pointer; }
+.sesion-admin button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 16px;
+  background: #783a3a;
+  border: 1px solid var(--color-superficie);
+  color: var(--color-superficie);
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-texto) 30%, transparent);
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.sesion-admin button:hover {
+  background: color-mix(in srgb, var(--color-error-oscuro) 85%, var(--color-superficie));
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--color-texto) 40%, transparent);
+}
+
+.sesion-admin button:focus-visible {
+  outline: 3px solid var(--color-superficie);
+  outline-offset: 3px;
+}
+
+.sesion-admin button:active {
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--color-texto) 25%, transparent);
+}
+
 @media (max-width: 680px) {
   .admin-header {
     align-items: flex-start;
@@ -23,4 +53,10 @@
   .admin-header nav a {
     flex: 0 0 auto;
   }
+}
+
+.icono-salir {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }

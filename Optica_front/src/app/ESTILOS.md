@@ -15,6 +15,6 @@ Para cambiar los colores, edita las variables al inicio del archivo, dentro de `
 
 El cambio se aplica en todos los lugares que usan esa variable.
 
-Cada componente conserva en su propio CSS los estilos que solo necesita esa vista. Antes de agregar uno nuevo, revisa si ya existe en `app.css`.
+Cada componente conserva en su propio CSS los estilos que solo necesita esa vista. Antes de agregar uno nuevo, se tiene que revisar si ya existe en `app.css`.
 
 Los colores de los PDF se configuran por separado.
