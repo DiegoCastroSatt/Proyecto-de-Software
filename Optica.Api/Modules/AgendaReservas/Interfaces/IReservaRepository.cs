@@ -1,7 +1,10 @@
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.AgendaReservas.DTOs;
 public interface IReservaRepository
 {
     Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles();
+
+    Task<IReadOnlyList<ReservaAgendaResponseDto>> ObtenerAgenda(bool historialAtendidas, CancellationToken cancellationToken);
 
     Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado);
 

@@ -48,4 +48,9 @@ public class ReservaService : IReservaService
 
     public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
         _reservaRepository.ObtenerHorariosDisponibles();
+
+    public Task<IReadOnlyList<Optica.Api.Modules.AgendaReservas.DTOs.ReservaAgendaResponseDto>> ObtenerAgenda(
+        bool historialAtendidas,
+        CancellationToken cancellationToken) =>
+        _reservaRepository.ObtenerAgenda(historialAtendidas, cancellationToken);
 }
