@@ -1,4 +1,5 @@
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.AgendaReservas.DTOs;
 public class MemoriaReservaRepository : IReservaRepository
 {
     private readonly List<Reserva> _reservas = [];
@@ -6,6 +7,9 @@ public class MemoriaReservaRepository : IReservaRepository
 
     public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
         Task.FromResult<IReadOnlyList<Horario>>([]);
+
+    public Task<IReadOnlyList<ReservaAgendaResponseDto>> ObtenerAgenda(bool historialAtendidas, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<ReservaAgendaResponseDto>>([]);
 
     public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado) =>
         Task.FromResult(false);

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[AllowAnonymous]
 [ApiController]
 [Route("api/[controller]")]
 public class ReservasController : ControllerBase
@@ -14,6 +13,7 @@ public class ReservasController : ControllerBase
         _reservaService = reservaService;
     }
 
+    [AllowAnonymous]
     [HttpGet("disponibles")]
     public async Task<IActionResult> ObtenerDisponibles()
     {
@@ -26,6 +26,17 @@ public class ReservasController : ControllerBase
         }));
     }
 
+    [Authorize]
+    [HttpGet("agenda")]
+    public async Task<ActionResult<IReadOnlyList<Optica.Api.Modules.AgendaReservas.DTOs.ReservaAgendaResponseDto>>> ObtenerAgenda(
+        [FromQuery] bool historialAtendidas = false,
+        CancellationToken cancellationToken = default)
+    {
+        var reservas = await _reservaService.ObtenerAgenda(historialAtendidas, cancellationToken);
+        return Ok(reservas);
+    }
+
+    [AllowAnonymous]
     [HttpPost]
     public async Task<IActionResult> CrearReserva(
         CrearReservaDto dto)

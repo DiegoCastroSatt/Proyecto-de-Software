@@ -1,4 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
 import { ReservaService } from './reserva.service';
@@ -10,7 +13,9 @@ import { ReservaService } from './reserva.service';
   styleUrl: './reserva.css'
 })
 export class ReservaComponent implements OnInit {
-  protected readonly minDate = new Date().toISOString().split('T')[0];
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  protected readonly minDate = this.obtenerFechaChile();
   protected readonly confirmedName = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');
@@ -42,7 +47,15 @@ export class ReservaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.reservaService.obtenerDisponibles().subscribe({
+    this.cargarHorariosDisponibles();
+    if (this.isBrowser) {
+      const refreshId = setInterval(() => this.cargarHorariosDisponibles(), 60_000);
+      this.destroyRef.onDestroy(() => clearInterval(refreshId));
+    }
+  }
+
+  private cargarHorariosDisponibles(): void {
+    this.reservaService.obtenerDisponibles().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (slots) => {
         const normalizedSlots = slots.map((slot) => ({
           idHorario: slot.idHorario,
@@ -51,6 +64,14 @@ export class ReservaComponent implements OnInit {
         }));
         this.availableSlots.set(normalizedSlots);
         this.availableDates.set([...new Set(normalizedSlots.map((slot) => slot.fecha))]);
+        const fechaSeleccionada = this.reservationForm.controls.date.value;
+        this.availableTimes.set(normalizedSlots
+          .filter((slot) => slot.fecha === fechaSeleccionada)
+          .map(({ idHorario, hora }) => ({ idHorario, hora })));
+        const idHorarioSeleccionado = Number(this.reservationForm.controls.time.value);
+        if (idHorarioSeleccionado && !normalizedSlots.some((slot) => slot.idHorario === idHorarioSeleccionado)) {
+          this.reservationForm.controls.time.reset('');
+        }
       },
       error: () => this.errorMessage.set('No hay horarios disponibles en este momento.')
     });
@@ -77,6 +98,7 @@ export class ReservaComponent implements OnInit {
         this.confirmedName.set(formValue.name ?? '');
         this.isSubmitting.set(false);
         this.reservationForm.reset();
+        this.cargarHorariosDisponibles();
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(
@@ -90,5 +112,13 @@ export class ReservaComponent implements OnInit {
   protected hasError(controlName: string, error: string): boolean {
     const control = this.reservationForm.get(controlName);
     return Boolean(control?.touched && control.hasError(error));
+  }
+
+  private obtenerFechaChile(): string {
+    const partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const valor = (tipo: string) => partes.find(parte => parte.type === tipo)?.value ?? '';
+    return `${valor('year')}-${valor('month')}-${valor('day')}`;
   }
 }

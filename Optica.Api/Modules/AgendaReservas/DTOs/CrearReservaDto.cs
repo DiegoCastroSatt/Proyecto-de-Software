@@ -5,4 +5,5 @@ public class CrearReservaDto
     public string Telefono { get; set; } = string.Empty;
     public string Correo { get; set; } = string.Empty;
     public int IdHorario { get; set; }
+    public string? Motivo { get; set; }
 }

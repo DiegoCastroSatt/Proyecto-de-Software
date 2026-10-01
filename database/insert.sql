@@ -215,8 +215,7 @@ INSERT INTO detalle_venta
 
 INSERT INTO administradores
 (nombre, correo, contrasena, estado) VALUES
-('Administrador Principal', 'admin@optica.cl', 'HASH_PRUEBA_ADMIN_1', 'Activo'),
-('Pablo Martinez', 'pablo@optica.cl', 'HASH_PRUEBA_ADMIN_2', 'Activo');
+('ale', 'admin@optica.cl', '1234', 'Activo'),
 
 
 -- ==========================================

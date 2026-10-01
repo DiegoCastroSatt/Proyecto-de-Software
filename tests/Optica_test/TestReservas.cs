@@ -1,4 +1,5 @@
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.AgendaReservas.DTOs;
 using Optica.Api.Modules.Clientes.Services;
 using Xunit;
 
@@ -162,6 +163,9 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public bool CorreoUsadoPorOtroCliente { get; set; }
 
     public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() => Task.FromResult(Horarios);
+
+    public Task<IReadOnlyList<ReservaAgendaResponseDto>> ObtenerAgenda(bool historialAtendidas, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<ReservaAgendaResponseDto>>([]);
 
     public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado) =>
         Task.FromResult(CorreoUsadoPorOtroCliente);

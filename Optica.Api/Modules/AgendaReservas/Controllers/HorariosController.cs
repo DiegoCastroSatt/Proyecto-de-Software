@@ -5,21 +5,26 @@ using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.AgendaReservas.DTOs;
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.AgendaReservas.Services;
 
 namespace Optica.Api.Modules.AgendaReservas.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HorariosController(OpticaDbContext context) : ControllerBase
+public class HorariosController(OpticaDbContext context, TimeProvider proveedorTiempo) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<HorarioAdministracionResponseDto>>> Listar(
         [FromQuery] string? fecha,
         CancellationToken cancellationToken)
     {
+        var ahoraChile = HoraChile.ObtenerAhora(proveedorTiempo);
+        var fechaHoy = ahoraChile.Date;
+        var horaActual = ahoraChile.TimeOfDay;
         var consulta = context.Horarios
             .AsNoTracking()
-            .Where(h => h.Fecha >= DateTime.Today);
+            .Where(h => h.Fecha.Date > fechaHoy
+                || (h.Fecha.Date == fechaHoy && h.HoraInicio > horaActual));
 
         if (!string.IsNullOrWhiteSpace(fecha) && DateTime.TryParseExact(
                 fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var fechaFiltro))
@@ -47,9 +52,12 @@ public class HorariosController(OpticaDbContext context) : ControllerBase
             return BadRequest(new { mensaje = "La fecha y las horas no tienen un formato válido." });
         }
 
-        if (fecha.Date < DateTime.Today || horaInicio >= horaFin)
+        var ahoraChile = HoraChile.ObtenerAhora(proveedorTiempo);
+        if (fecha.Date < ahoraChile.Date
+            || (fecha.Date == ahoraChile.Date && horaInicio <= ahoraChile.TimeOfDay)
+            || horaInicio >= horaFin)
         {
-            return BadRequest(new { mensaje = "La fecha o el rango de horas no son válidos." });
+            return BadRequest(new { mensaje = "La fecha debe ser futura y el rango debe comenzar después de la hora actual de Chile." });
         }
 
         if (dto.DuracionMinutos <= 0 || dto.DuracionMinutos > 480)
@@ -109,6 +117,14 @@ public class HorariosController(OpticaDbContext context) : ControllerBase
         if (horario is null)
         {
             return NotFound(new { mensaje = "No se encontró el horario." });
+        }
+
+        var ahoraChile = HoraChile.ObtenerAhora(proveedorTiempo);
+        if (dto.Estado == "Habilitada"
+            && (horario.Fecha.Date < ahoraChile.Date
+                || (horario.Fecha.Date == ahoraChile.Date && horario.HoraInicio <= ahoraChile.TimeOfDay)))
+        {
+            return Conflict(new { mensaje = "No se puede habilitar un horario que ya comenzó." });
         }
 
         horario.Estado = dto.Estado;
