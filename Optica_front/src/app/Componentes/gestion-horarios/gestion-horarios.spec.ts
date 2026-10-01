@@ -54,10 +54,10 @@ describe('Gestión de horarios', () => {
 
   it('crea bloques y los agrega al listado', () => {
     const { fixture, component, dom } = preparar();
-    const nuevos = [{ idHorario: 3, fecha: '2026-09-23', horaInicio: '10:00', horaFin: '10:20', estado: 'Habilitada' as const }];
+    const nuevos = [{ idHorario: 3, fecha: '2026-12-25', horaInicio: '10:00', horaFin: '10:20', estado: 'Habilitada' as const }];
     servicio.crearBloques.mockReturnValue(of(nuevos));
     component['scheduleForm'].setValue({
-      fecha: '2026-09-23',
+      fecha: '2026-12-25',
       horaInicio: '10:00',
       horaFin: '11:00',
       duracionMinutos: 20
@@ -67,7 +67,7 @@ describe('Gestión de horarios', () => {
     fixture.detectChanges();
 
     expect(servicio.crearBloques).toHaveBeenCalledWith({
-      fecha: '2026-09-23', horaInicio: '10:00', horaFin: '11:00', duracionMinutos: 20
+      fecha: '2026-12-25', horaInicio: '10:00', horaFin: '11:00', duracionMinutos: 20
     });
     expect(dom.textContent).toContain('10:00 - 10:20');
     expect(component['successMessage']()).toContain('fueron creados');
