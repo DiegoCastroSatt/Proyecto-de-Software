@@ -11,6 +11,13 @@ public class RecetasController : ControllerBase
         _recetaService = recetaService;
     }
 
+    [HttpGet("clientes/sugerencias")]
+    public async Task<IActionResult> BuscarSugerenciasRut([FromQuery] string termino)
+    {
+        var sugerencias = await _recetaService.BuscarSugerenciasRut(termino);
+        return Ok(sugerencias);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CrearReceta([FromForm] CrearRecetaDto dto)
     {

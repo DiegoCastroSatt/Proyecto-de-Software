@@ -127,4 +127,20 @@ public class RecetaService : IRecetaService
             }).ToList()
         };
     }
+    public async Task<List<ClienteSugerenciaDto>> BuscarSugerenciasRut(string termino)
+    {
+        if (string.IsNullOrWhiteSpace(termino))
+        {
+            return new List<ClienteSugerenciaDto>();
+        }
+
+        var clientes = await _recetaRepository.BuscarClientesPorRutParcial(termino);
+
+        return clientes.Select(c => new ClienteSugerenciaDto
+        {
+            Rut = c.Rut,
+            Nombre = c.Nombre,
+            Apellido = c.Apellido
+        }).ToList();
+    }
 }
