@@ -12,8 +12,8 @@ table { width: 100%; border-collapse: collapse; text-align: left; }
 th, td { padding: 15px 14px; border-bottom: 1px solid var(--color-borde-detalle); }
 thead th { color: var(--color-texto-catalogo); font-size: .75rem; font-weight: 700; text-transform: uppercase; }
 tbody th { min-width: 220px; color: var(--color-texto); font-weight: 700; }
-tbody td { color: #455b56; }
-tbody th small { margin-top: 4px; color: #73817d; font-size: .78rem; font-weight: 400; }
+tbody td { color: var(--color-texto-stock); }
+tbody th small { margin-top: 4px; color: var(--color-texto-tabla-suave); font-size: .78rem; font-weight: 400; }
 .stock-column { width: 190px; text-align: right; white-space: nowrap; }
 .action-column { min-width: 190px; }
 .action-column button + button { margin-left: 6px; }
@@ -21,7 +21,7 @@ tbody th small { margin-top: 4px; color: #73817d; font-size: .78rem; font-weight
 .stock-input span { color: var(--color-texto-catalogo); font-size: .72rem; }
 .stock-input input { width: 100%; min-width: 88px; padding: 7px 8px; }
 .stock-status { display: inline-block; font-weight: 800; }
-.in-stock { color: #28734b; }
+.in-stock { color: var(--color-exito-stock); }
 .status { margin: 36px 0; color: var(--color-texto-catalogo); text-align: center; }
 .error button { margin-left: 8px; color: var(--color-principal); }
 @media (max-width: 600px) {
