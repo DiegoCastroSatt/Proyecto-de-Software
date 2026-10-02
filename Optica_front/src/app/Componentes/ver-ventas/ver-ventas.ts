@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, ElementRef, ViewChild, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, signal, computed, ElementRef, ViewChild, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import type { Chart as ChartType } from 'chart.js';
@@ -66,8 +66,16 @@ interface ResumenMensual {
   templateUrl: './ver-ventas.html',
   styleUrls: ['../registro-venta/registro-venta.css', './ver-ventas.css']
 })
-export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('graficoIngresos') private graficoIngresos?: ElementRef<HTMLCanvasElement>;
+export class VerVentasComponent implements OnInit, OnDestroy {
+  private graficoIngresos?: ElementRef<HTMLCanvasElement>;
+
+  @ViewChild('graficoIngresos')
+  private set lienzoGrafico(elemento: ElementRef<HTMLCanvasElement> | undefined) {
+    this.graficoIngresos = elemento;
+    if (elemento && isPlatformBrowser(this.platformId)) {
+      queueMicrotask(() => void this.actualizarGrafico());
+    }
+  }
   private grafico?: ChartType;
   private relojRank?: ReturnType<typeof setInterval>;
   private destruido = false;
@@ -75,11 +83,12 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly error = signal('');
   constructor(private readonly servicio: RegistroVentaService,
     @Inject(PLATFORM_ID) private readonly platformId: object) {}
-  ngAfterViewInit(): void { void this.actualizarGrafico(); }
   ngOnDestroy(): void {
     this.destruido = true;
+    this.revisionGrafico++;
     if (this.relojRank !== undefined) clearInterval(this.relojRank);
     this.grafico?.destroy();
+    this.grafico = undefined;
   }
   protected readonly periodoRank = signal<PeriodoVentas>('semana');
   protected readonly limiteRank = signal<5 | 10>(5);
@@ -242,11 +251,18 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const revision = ++this.revisionGrafico;
     const { Chart, registerables } = await import('chart.js');
-    if (this.destruido || revision !== this.revisionGrafico) return;
+    if (this.destruido || revision !== this.revisionGrafico ||
+        lienzo !== this.graficoIngresos?.nativeElement || !lienzo.isConnected) return;
     Chart.register(...registerables);
 
     this.grafico?.destroy();
+    Chart.getChart(lienzo)?.destroy();
     const meses = this.meses();
+    const moneda = new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      maximumFractionDigits: 0
+    });
     this.grafico = new Chart(lienzo, {
       type: 'bar',
       data: {
@@ -263,7 +279,18 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: contexto => `Ingreso: ${moneda.format(Number(contexto.raw ?? 0))}`,
+              afterLabel: contexto => {
+                const cantidad = meses[contexto.dataIndex]?.cantidad ?? 0;
+                return `${cantidad} ${cantidad === 1 ? 'venta' : 'ventas'}`;
+              }
+            }
+          }
+        },
         scales: { y: { beginAtZero: true } }
       }
     });
