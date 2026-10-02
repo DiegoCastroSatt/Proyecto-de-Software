@@ -42,7 +42,9 @@ public class RecetaRepository : IRecetaRepository
         var rutNormalizado = RutChilenoValidator.Normalizar(rutParcial);
 
         return await _context.Clientes
-            .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper().StartsWith(rutNormalizado))
+            .Where(c => EF.Functions.Like(
+                c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
+                rutNormalizado + "%"))
             .OrderBy(c => c.Rut)
             .Take(8)
             .ToListAsync();
