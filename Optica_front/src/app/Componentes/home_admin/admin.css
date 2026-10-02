@@ -1,65 +1,37 @@
-:host {
-  display: block;
-  min-height: 100vh;
-}
-
-.admin-shell {
-  min-height: 100vh;
-  background: #eef2f0;
-  color: #1d3434;
-}
-
-.admin-header {
-  display: flex;
-  align-items: center;
-  gap: clamp(20px, 5vw, 72px);
-  min-height: 72px;
-  padding: 12px clamp(20px, 5vw, 64px);
-  background: #1d4a47;
-  border-bottom: 3px solid #bf8542;
-  color: #f5f5e9;
-}
-
-.brand {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: inherit;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.brand-logo {
-  display: block;
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-}
-
-.admin-header nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.admin-header nav a {
-  padding: 10px 14px;
-  border-radius: 3px;
-  color: #c6d8d1;
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.admin-header nav a:hover,
-.admin-header nav a.is-active {
-  background: #e5c58d;
-  color: #1d4a47;
-}
-
 .admin-content {
   min-height: calc(100vh - 75px);
+}
+
+.sesion-admin { display: grid; gap: 8px; font-size: .8rem; }
+.sesion-admin button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 16px;
+  background: #783a3a;
+  border: 1px solid var(--color-superficie);
+  color: var(--color-superficie);
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-texto) 30%, transparent);
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.sesion-admin button:hover {
+  background: color-mix(in srgb, var(--color-error-oscuro) 85%, var(--color-superficie));
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--color-texto) 40%, transparent);
+}
+
+.sesion-admin button:focus-visible {
+  outline: 3px solid var(--color-superficie);
+  outline-offset: 3px;
+}
+
+.sesion-admin button:active {
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--color-texto) 25%, transparent);
 }
 
 @media (max-width: 680px) {
@@ -68,18 +40,23 @@
     flex-direction: column;
     gap: 14px;
   }
-
+}
+@media (max-width: 680px) {
   .admin-header nav {
     width: 100%;
     overflow-x: auto;
     flex-wrap: nowrap;
     padding-bottom: 2px;
   }
-
+}
+@media (max-width: 680px) {
   .admin-header nav a {
     flex: 0 0 auto;
   }
 }
 
-.sesion-admin { display: grid; gap: 8px; font-size: .8rem; }
-.sesion-admin button { padding: 8px 12px; background: transparent; border: 1px solid #c6d8d1; color: #fff; border-radius: 4px; cursor: pointer; }
+.icono-salir {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}

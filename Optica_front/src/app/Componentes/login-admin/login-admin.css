@@ -21,9 +21,9 @@
 	justify-content: space-between;
 	overflow: hidden;
 	padding: 52px clamp(32px, 6vw, 84px);
-	border-right: 6px solid #bf8542;
-	background: #1d4a47;
-	color: #f5f5e9;
+	border-right: 6px solid var(--color-acento);
+	background: var(--color-principal);
+	color: var(--color-texto-inverso);
 }
 
 .login-brand::before,
@@ -50,7 +50,7 @@
 	right: -134px;
 	bottom: -179px;
 	width: 378px;
-	border-color: rgba(245, 245, 233, 0.18);
+	border-color: color-mix(in srgb, var(--color-texto-inverso) 18%, transparent);
 }
 
 .brand-lockup {
@@ -65,8 +65,8 @@
 	width: 48px;
 	aspect-ratio: 1;
 	place-items: center;
-	border: 1px solid rgba(245, 245, 233, 0.58);
-	color: #e5c58d;
+	border: 1px solid color-mix(in srgb, var(--color-texto-inverso) 57.99999999999999%, transparent);
+	color: var(--color-acento-suave);
 	font-family: Georgia, 'Times New Roman', serif;
 	font-size: 16px;
 }
@@ -83,7 +83,7 @@
 }
 
 .brand-name small {
-	color: #c6d8d1;
+	color: var(--color-texto-inverso-secundario);
 	font-size: 12px;
 }
 
@@ -103,7 +103,7 @@
 }
 
 .brand-eyebrow {
-	color: #e5c58d;
+	color: var(--color-acento-suave);
 }
 
 .brand-intro h1 {
@@ -119,12 +119,12 @@
 	width: 54px;
 	height: 3px;
 	margin-top: 30px;
-	background: #bf8542;
+	background: var(--color-acento);
 }
 
 .brand-footer {
 	margin: 0;
-	color: #c6d8d1;
+	color: var(--color-texto-inverso-secundario);
 	font-size: 10px;
 	font-weight: 700;
 	letter-spacing: 1.4px;
@@ -132,7 +132,7 @@
 
 .brand-footer span {
 	padding-inline: 6px;
-	color: #e5c58d;
+	color: var(--color-acento-suave);
 }
 
 .login-main {
@@ -192,8 +192,8 @@
 }
 
 .form-field input:focus-visible {
-	border-color: #1d4a47;
-	box-shadow: 0 0 0 3px rgba(29, 74, 71, 0.14);
+	border-color: var(--color-principal);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-principal) 14.000000000000002%, transparent);
 }
 
 .login-error {
@@ -206,10 +206,6 @@
 	line-height: 1.45;
 }
 
-.login-error[hidden] {
-	display: none;
-}
-
 .login-content button {
 	display: flex;
 	width: 100%;
@@ -219,9 +215,9 @@
 	margin-top: 31px;
 	padding: 0 18px;
 	border: 0;
-	border-bottom: 3px solid #bf8542;
+	border-bottom: 3px solid var(--color-acento);
 	border-radius: 2px;
-	background: #1d4a47;
+	background: var(--color-principal);
 	color: #fffefa;
 	cursor: pointer;
 	font: inherit;
@@ -237,13 +233,8 @@
 }
 
 .login-content button:hover {
-	border-bottom-color: #e5c58d;
+	border-bottom-color: var(--color-acento-suave);
 	background: #153b38;
-}
-
-.login-content button:focus-visible {
-	outline: 3px solid #bf8542;
-	outline-offset: 3px;
 }
 
 .login-index {
@@ -265,7 +256,7 @@
 		min-height: 300px;
 		padding: 27px 26px 32px;
 		border-right: 0;
-		border-bottom: 5px solid #bf8542;
+		border-bottom: 5px solid var(--color-acento);
 	}
 
 	.brand-mark {
@@ -325,4 +316,9 @@
 	.login-content button {
 		transition: none;
 	}
+}
+
+.login-content button:focus-visible {
+  outline: 3px solid var(--color-acento);
+  outline-offset: 3px;
 }

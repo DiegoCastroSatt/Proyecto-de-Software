@@ -1,9 +1,59 @@
+/* Paleta global: cambia estos valores para personalizar toda la aplicación. */
+:root {
+  --color-principal: #1d4a47;
+  --color-acento: #bf8542;
+  --color-acento-hover: #a96f32;
+  --color-acento-suave: #e5c58d;
+  --color-fondo: #eef2f0;
+  --color-fondo-calido: #f5f1e8;
+  --color-fondo-reserva: #e8f0ed;
+  --color-texto: #1d3434;
+  --color-texto-inverso: #f5f5e9;
+  --color-texto-inverso-secundario: #c6d8d1;
+  --color-superficie-calida: #fffdf9;
+  --color-superficie-catalogo: #fffdf7;
+  --color-superficie: #fff;
+  --color-texto-secundario: #6c7b78;
+  --color-texto-catalogo: #60716d;
+  --color-texto-informe: #657873;
+  --color-borde-control: #c9d3ce;
+  --color-borde-ventas: #a9b9b4;
+  --color-borde-neutro: #ccc;
+  --color-borde-calido: #e6e1d6;
+  --color-error: #dc3545;
+  --color-error-borde: #bb5e4a;
+  --color-error-texto: #a4483a;
+  --color-error-catalogo: #a33e2f;
+  --color-exito-texto: #0f5132;
+  --color-error-oscuro: #842029;
+  --color-aviso-texto: #856404;
+  --color-error-fondo: #f7e9e6;
+  --color-exito-fondo-calido: #f5eedf;
+  --color-exito-texto-calido: #38514d;
+  --color-texto-placeholder: #9aa8a3;
+  --color-texto-etiqueta: #36504d;
+  --color-texto-nota: #86938e;
+  --color-borde-catalogo: #b7c8c0;
+  --color-borde-seccion: #cbd7d1;
+  --color-borde-detalle: #d8e0dc;
+  --color-fondo-imagen: #dce7e1;
+  --color-borde-panel: #e2e8f0;
+  --color-borde-tabla: #cbd5e1;
+  --color-texto-tabla: #64748b;
+  --color-texto-tabla-fuerte: #334155;
+  --color-boton-deshabilitado: #cbb28d;
+  --color-acento-alternativo: #a86e28;
+  --color-fondo-acciones: #f7f4ec;
+  --color-texto-ventas: #526965;
+}
+
+/* Estructura principal y estilos compartidos. Los selectores delimitan cada vista. */
 .app-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 
-  background-color: #f5f1e8;
+  background-color: var(--color-fondo-calido);
 }
 
 .contenido {
@@ -28,4 +78,489 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+app-busqueda-producto,
+app-consultar-stock,
+app-dashboard,
+app-inicio-cliente,
+:where(app-consultar-stock) .product-name,
+:where(app-consultar-stock) tbody th small {
+  display: block;
+}
+:where(app-busqueda-producto) .catalogo,
+:where(app-consultar-stock) .stock-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px clamp(20px, 5vw, 64px);
+}
+:where(app-busqueda-producto) .catalogo-heading p:not(.eyebrow),
+:where(app-consultar-stock) .stock-heading p:last-child {
+  margin: 8px 0 0;
+  color: var(--color-texto-catalogo);
+}
+:where(app-busqueda-producto, app-consultar-stock) .error,
+:where(app-consultar-stock) .out-of-stock {
+  color: var(--color-error-catalogo);
+}
+:where(app-busqueda-producto) .image-picker input,
+:where(app-login-admin) .login-error[hidden] {
+  display: none;
+}
+app-crear-pedido,
+app-en-trabajo,
+app-gestion-horarios,
+app-pedido,
+app-producto,
+app-registro-receta,
+app-reserva {
+  display: block;
+  min-height: 100%;
+}
+:where(
+    app-crear-pedido,
+    app-pedido,
+    app-producto,
+    app-registro-receta,
+    app-registro-venta,
+    app-ver-ventas
+  )
+  .app-shell,
+:where(app-admin-layout) .admin-shell {
+  min-height: 100vh;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas) .topbar {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 40px);
+  padding: 0 clamp(20px, 4vw, 48px);
+  height: 68px;
+  background: var(--color-principal);
+  color: var(--color-texto-inverso);
+  border-bottom: 3px solid var(--color-acento);
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas)
+  .topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas) .brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-texto-inverso) 50%, transparent);
+  color: var(--color-acento-suave);
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas) .brand-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas) .topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.5vw, 10px);
+  flex: 1 1 auto;
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas) .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 3px;
+  color: var(--color-texto-inverso-secundario);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas)
+  .nav-link:hover {
+  color: var(--color-texto-inverso);
+  background: color-mix(in srgb, var(--color-texto-inverso) 8%, transparent);
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas)
+  .nav-link.is-active {
+  color: var(--color-principal);
+  background: var(--color-acento-suave);
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas)
+  .topbar-user {
+  flex: 0 0 auto;
+}
+:where(app-crear-pedido, app-pedido, app-producto, app-registro-venta, app-ver-ventas)
+  .user-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-acento);
+  color: var(--color-superficie-calida);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+:where(app-crear-pedido, app-pedido) .order-page,
+:where(app-reserva) .booking-page {
+  min-height: 100vh;
+  padding: 32px 20px;
+  display: grid;
+  place-items: center;
+  background: var(--color-fondo-reserva);
+  background-image:
+    radial-gradient(circle at 9% 16%, rgba(179, 215, 204, 0.62), transparent 31%),
+    radial-gradient(circle at 92% 84%, rgba(224, 193, 151, 0.32), transparent 27%);
+  color: var(--color-texto);
+}
+:where(app-crear-pedido, app-pedido) .order-shell {
+  width: min(800px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--color-superficie-calida);
+  box-shadow: 0 24px 70px rgba(35, 67, 65, 0.15);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
+  border-radius: 8px;
+}
+:where(app-crear-pedido, app-pedido) .order-form-area,
+:where(app-reserva) .booking-form-area {
+  padding: clamp(32px, 5vw, 66px) clamp(24px, 5vw, 66px);
+}
+:where(app-crear-pedido, app-pedido) .form-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+:where(app-crear-pedido, app-pedido, app-reserva) .form-heading h2 {
+  margin: 0;
+  color: var(--color-texto);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+:where(app-producto, app-registro-receta) button:hover {
+  background: var(--color-acento-hover);
+  transform: translateY(-1px);
+}
+:where(app-dashboard) .action-card strong,
+:where(app-producto, app-registro-receta, app-reserva) .success-message strong {
+  color: var(--color-principal);
+}
+
+:where(app-gestion-horarios, app-producto, app-registro-receta, app-reserva) .field {
+  min-width: 0;
+}
+
+:where(app-gestion-horarios, app-reserva) .field-wide {
+  grid-column: 1 / -1;
+}
+
+:where(app-gestion-horarios) .action-cell,
+:where(app-registro-venta, app-ver-ventas) .tabla-rank th:last-child,
+:where(app-registro-venta, app-ver-ventas) .tabla-rank td:last-child {
+  text-align: right;
+}
+app-admin-layout,
+app-cliente {
+  display: block;
+  min-height: 100vh;
+}
+:where(app-admin-layout) .admin-header,
+:where(app-cliente) .client-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 5vw, 72px);
+  min-height: 72px;
+  padding: 12px clamp(20px, 5vw, 64px);
+  background: var(--color-principal);
+  border-bottom: 3px solid var(--color-acento);
+  color: var(--color-texto-inverso);
+}
+:where(app-admin-layout, app-cliente) .brand {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+:where(app-admin-layout, app-cliente) .brand-logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+:where(app-admin-layout) .admin-header nav,
+:where(app-cliente) .client-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+:where(app-admin-layout) .admin-header nav a,
+:where(app-cliente) .client-header nav a {
+  padding: 10px 14px;
+  border-radius: 3px;
+  color: var(--color-texto-inverso-secundario);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+:where(app-admin-layout) .admin-header nav a:hover,
+:where(app-admin-layout) .admin-header nav a.is-active,
+:where(app-cliente) .client-header nav a:hover,
+:where(app-cliente) .client-header nav a.is-active {
+  background: var(--color-acento-suave);
+  color: var(--color-principal);
+}
+:where(app-pedido, app-producto, app-registro-venta, app-ver-ventas) .nav-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+:where(app-producto, app-registro-receta) button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-principal) 30%, transparent);
+  outline-offset: 3px;
+}
+
+:where(app-pedido) .search-input::placeholder,
+:where(app-producto, app-registro-receta, app-reserva) input::placeholder {
+  color: var(--color-texto-placeholder);
+}
+
+:where(app-producto, app-registro-receta) .page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 52px) clamp(20px, 4vw, 24px) 64px;
+}
+
+:where(app-producto, app-registro-receta) .page-header .eyebrow {
+  margin: 0 0 10px;
+  color: var(--color-acento-hover);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+:where(app-producto, app-registro-receta) .page-header h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-texto);
+}
+
+:where(app-producto, app-registro-receta) .page-subtitle {
+  margin: 10px 0 28px;
+  color: var(--color-texto-secundario);
+  font-size: 0.92rem;
+  max-width: 52ch;
+}
+
+:where(app-producto, app-registro-receta) .success-message,
+:where(app-producto, app-registro-receta) .error-message {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+:where(app-producto, app-registro-receta) .success-message {
+  border-left: 3px solid var(--color-acento);
+  background: var(--color-exito-fondo-calido);
+  color: var(--color-exito-texto-calido);
+}
+
+:where(app-producto, app-registro-receta) .error-message {
+  border-left: 3px solid var(--color-error-borde);
+  background: var(--color-error-fondo);
+  color: #7a3527;
+}
+
+:where(app-producto) .product-card,
+:where(app-registro-receta) .receta-card {
+  background: var(--color-superficie-calida);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
+  box-shadow: 0 18px 50px rgba(35, 67, 65, 0.1);
+}
+
+:where(app-producto, app-registro-receta) .form-section {
+  padding: 26px clamp(20px, 4vw, 32px);
+}
+
+:where(app-producto, app-registro-receta) .form-section + .form-section {
+  border-top: 1px solid var(--color-borde-calido);
+}
+
+:where(app-producto, app-registro-receta) .form-section h2 {
+  margin: 0 0 18px;
+  color: var(--color-principal);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+:where(app-producto, app-registro-receta) .form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+
+:where(app-producto, app-registro-receta) .field-wide {
+  grid-column: span 2;
+}
+
+:where(app-producto, app-registro-receta, app-reserva) label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-texto-etiqueta);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+:where(app-producto, app-registro-receta) input,
+:where(app-producto, app-registro-receta) select {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid var(--color-borde-control);
+  border-radius: 2px;
+  outline: none;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+  font-size: 0.9rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+:where(app-producto, app-registro-receta) input:focus,
+:where(app-registro-receta) select:focus {
+  border-color: var(--color-principal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-principal) 12%, transparent);
+}
+
+:where(app-producto, app-registro-receta, app-reserva) input.ng-touched.ng-invalid,
+:where(app-producto, app-registro-receta) select.ng-touched.ng-invalid {
+  border-color: var(--color-error-borde);
+}
+
+:where(app-producto, app-registro-receta, app-reserva) small {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-error-texto);
+  font-size: 0.72rem;
+}
+
+:where(app-producto, app-registro-receta) .form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px clamp(20px, 4vw, 32px);
+  background: var(--color-fondo-acciones);
+  border-top: 1px solid var(--color-borde-calido);
+}
+
+:where(app-producto, app-registro-receta) .form-footnote {
+  margin: 0;
+  color: var(--color-texto-nota);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  max-width: 34ch;
+}
+
+:where(app-producto, app-registro-receta) button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-acento);
+  color: var(--color-superficie-calida);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+:where(app-producto, app-registro-receta) button:disabled {
+  background: var(--color-boton-deshabilitado);
+  cursor: not-allowed;
+  transform: none;
+}
+:where(app-registro-receta) .modo-toggle,
+:where(app-registro-venta, app-ver-ventas) .acciones-informe {
+  display: flex;
+  gap: 10px;
+}
+
+.etiqueta-cliente {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.entrada-cliente {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-borde-neutro);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.mensaje-validacion {
+  color: var(--color-error);
+  font-size: 12px;
+  display: block;
+  margin-top: 2px;
+}
+
+.detalle-formulario-1 {
+  padding: 10px;
+}
+
+.etiqueta-cliente-compacta {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 13.5px;
+}
+
+.entrada-cliente-edicion {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-borde-tabla);
+  border-radius: 4px;
+  box-sizing: border-box;
 }
