@@ -71,7 +71,7 @@ h2 {
 .help-panel {
 	border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
 	background: var(--color-superficie-calida);
-	box-shadow: 0 16px 40px rgba(35, 67, 65, 0.08);
+	box-shadow: 0 16px 40px var(--sombra-principal-08);
 }
 
 .schedule-card {
@@ -132,7 +132,7 @@ select:focus {
 small {
 	display: block;
 	margin-top: 7px;
-	color: #72827e;
+	color: var(--color-texto-horario);
 	font-size: 0.76rem;
 	line-height: 1.4;
 }
@@ -244,14 +244,14 @@ td {
 }
 
 th {
-	color: #72827e;
+	color: var(--color-texto-horario);
 	font-size: 0.72rem;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 }
 
 td {
-	color: #405a55;
+	color: var(--color-texto-detalle);
 }
 
 td strong {
@@ -261,7 +261,7 @@ td strong {
 
 .toggle-button-enable {
 	border-color: var(--color-acento);
-	color: #925e26;
+	color: var(--color-aviso-horario);
 }
 
 .status {
@@ -280,15 +280,15 @@ td strong {
 }
 
 .status-active {
-	color: #26704d;
+	color: var(--color-exito-horario);
 }
 
 .status-active::before {
-	background: #4b9b71;
+	background: var(--color-exito-intenso);
 }
 
 .status-inactive {
-	color: #8c5d37;
+	color: var(--color-aviso-secundario);
 }
 
 .status-inactive::before {
@@ -372,7 +372,7 @@ td strong {
 	}
 
 	td::before {
-		color: #72827e;
+		color: var(--color-texto-horario);
 		content: attr(data-label);
 		font-size: 0.72rem;
 		font-weight: 800;

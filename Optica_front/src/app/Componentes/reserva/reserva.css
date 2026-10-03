@@ -4,7 +4,7 @@
   grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.2fr);
   overflow: hidden;
   background: var(--color-superficie-calida);
-  box-shadow: 0 24px 70px rgba(35, 67, 65, 0.15);
+  box-shadow: 0 24px 70px var(--sombra-principal-15);
   border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
 }
 
@@ -31,7 +31,7 @@
 
 .eyebrow {
   margin: 0 0 14px;
-  color: #c28f50;
+  color: var(--color-acento-reserva);
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -62,7 +62,7 @@
   align-items: flex-start;
   margin-top: auto;
   padding-top: 52px;
-  color: #dbe8dd;
+  color: var(--color-texto-inverso-suave);
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -77,7 +77,7 @@
   height: 21px;
   display: grid;
   place-items: center;
-  border: 1px solid #c28f50;
+  border: 1px solid var(--color-acento-reserva);
   border-radius: 50%;
   color: var(--color-acento-suave);
   font-family: Georgia, serif;
