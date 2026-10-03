@@ -23,12 +23,6 @@
   color: var(--color-superficie-calida);
 }
 
-@media (max-width: 640px) {
-
-  .modo-toggle {
-    flex-direction: column;
-  }
-}
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -37,36 +31,4 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
-}
-
-@media (max-width: 640px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .field-wide {
-    grid-column: auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-footnote {
-    max-width: none;
-    text-align: center;
-  }
-}
-
-@media (max-width: 640px) {
-  button {
-    width: 100%;
-  }
 }

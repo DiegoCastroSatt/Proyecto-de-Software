@@ -1,21 +1,3 @@
-.btn-primary, .btn-secondary {
-  width: auto;
-  min-height: 44px;
-  padding: 10px 20px;
-  border: 0;
-  border-radius: 3px;
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 160ms ease, transform 160ms ease;
-}
-
-.btn-primary {
-  background: var(--color-acento);
-  color: var(--color-superficie-calida);
-}
-
 .btn-secondary {
   background: transparent;
   color: var(--color-principal);
@@ -56,15 +38,15 @@
 }
 
 .error-text {
-  color: #d32f2f;
+  color: var(--color-error-alternativo);
   font-size: 0.85rem;
   margin-top: 4px;
   display: block;
 }
 
 .error-banner {
-  background: #fdecea;
-  color: #d32f2f;
+  background: var(--color-error-fondo-pedido);
+  color: var(--color-error-alternativo);
   padding: 12px;
   border-radius: 4px;
   margin-top: 20px;
@@ -72,8 +54,8 @@
 }
 
 .success-banner {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--color-exito-fondo);
+  color: var(--color-exito);
   padding: 12px;
   border-radius: 4px;
   margin-top: 20px;
@@ -83,23 +65,4 @@
 .form-actions {
   margin-top: 30px;
   text-align: right;
-}
-
-.btn-primary:hover {
-  background: var(--color-acento-hover);
-  transform: translateY(-1px);
-}
-
-@media (max-width: 720px) {
-  .order-page {
-    padding: 0;
-  }
-}
-
-@media (max-width: 720px) {
-  .order-shell {
-    min-height: 100vh;
-    border-radius: 0;
-    border: none;
-  }
 }
