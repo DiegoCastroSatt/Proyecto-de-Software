@@ -25,26 +25,14 @@
             <form (ngSubmit)="onLogin()">
                 <div class="form-field">
                     <label for="usuario">Nombre de usuario</label>
-                    <input
-                        type="text"
-                        id="usuario"
-                        name="usuario"
-                        [(ngModel)]="usuario"
-                        autocomplete="username"
-                        required
-                    >
+                    <input type="text" id="usuario" name="usuario" [(ngModel)]="usuario" autocomplete="username"
+                        required>
                 </div>
 
                 <div class="form-field">
                     <label for="contrasena">Contraseña</label>
-                    <input
-                        type="password"
-                        id="contrasena"
-                        name="contrasena"
-                        [(ngModel)]="contrasena"
-                        autocomplete="current-password"
-                        required
-                    >
+                    <input type="password" id="contrasena" name="contrasena" [(ngModel)]="contrasena"
+                        autocomplete="current-password" required>
                 </div>
 
                 <p class="login-error" [hidden]="!error()" role="alert">{{ error() }}</p>

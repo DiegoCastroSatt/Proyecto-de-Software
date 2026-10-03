@@ -38,4 +38,19 @@ export class DetallePedidoComponent implements OnInit {
       }
     });
   }
+
+  protected cambiarEstado(pedido: PedidoResponse, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const nuevoEstado = select.value;
+    
+    this.pedidoService.actualizarEstado(pedido.idPedido, nuevoEstado).subscribe({
+      next: (res) => {
+        this.pedido.set({ ...pedido, estado: res.estado });
+      },
+      error: () => {
+        select.value = pedido.estado;
+        alert('No se pudo actualizar el estado del pedido.');
+      }
+    });
+  }
 }

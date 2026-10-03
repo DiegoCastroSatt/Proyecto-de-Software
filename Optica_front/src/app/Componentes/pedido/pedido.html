@@ -6,7 +6,6 @@
       <div class="order-form-area">
         <div class="form-heading">
           <h2>Lista de Pedidos</h2>
-          <button type="button" class="btn-primary" routerLink="/admin/panel/crear-pedido">Crear Pedido</button>
         </div>
 
         <div class="search-bar-container">
@@ -28,13 +27,7 @@
               <span class="pedido-total">Total: ${{ pedido.total }}</span>
             </div>
             <div class="pedido-actions">
-              <select class="pedido-estado" [attr.data-estado]="pedido.estado" [value]="pedido.estado" (change)="cambiarEstado(pedido, $event)">
-                <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Listo">Listo</option>
-                <option value="Entregado">Entregado</option>
-                <option value="Cancelado">Cancelado</option>
-              </select>
+              <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
               <a class="btn-detalle" [routerLink]="['/admin/panel/pedido', pedido.idPedido]">Detalle</a>
             </div>
           </div>

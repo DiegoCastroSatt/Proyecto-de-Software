@@ -31,7 +31,13 @@
         } @else if (pedido(); as p) {
         <div class="pedido-detail-card">
 
-          <div class="detail-badge" [attr.data-estado]="p.estado">{{ p.estado }}</div>
+          <select class="detail-badge" [attr.data-estado]="p.estado" [value]="p.estado" (change)="cambiarEstado(p, $event)">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Listo">Listo</option>
+            <option value="Entregado">Entregado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
 
           <div class="detail-grid">
             <div class="detail-field">

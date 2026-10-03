@@ -34,7 +34,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     children: [
-      {path: '', component: LoginAdmin},
+      { path: '', component: LoginAdmin },
       {
         path: 'panel',
         component: AdminLayoutComponent,

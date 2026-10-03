@@ -142,6 +142,9 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   margin-bottom: 28px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
 }
 
 .detail-badge[data-estado="Pendiente"] {
