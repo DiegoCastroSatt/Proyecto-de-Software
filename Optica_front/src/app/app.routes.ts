@@ -1,6 +1,7 @@
 import { VerVentasComponent } from './Componentes/ver-ventas/ver-ventas';
 import { Routes } from '@angular/router';
 import { ReservaComponent } from './Componentes/reserva/reserva';
+import { BuscarReservas } from './Componentes/buscar-reservas/buscar-reservas';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
@@ -43,6 +44,7 @@ export const routes: Routes = [
         children: [
           { path: '', component: DashboardComponent },
           { path: 'horarios', component: GestionHorariosComponent },
+          { path: 'agenda', component: BuscarReservas },
           { path: 'productos/nuevo', component: ProductoComponent },
           { path: 'clientes', component: ClientesComponent },
           { path: 'productos', component: BuscarProductoAdmin },

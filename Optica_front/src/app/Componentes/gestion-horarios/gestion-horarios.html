@@ -28,7 +28,7 @@
             <form class="schedule-form" [formGroup]="scheduleForm" (ngSubmit)="crearBloques()" novalidate>
                 <div class="field field-wide">
                     <label for="fecha">Día de atención</label>
-                    <input id="fecha" type="date" formControlName="fecha" />
+                    <input id="fecha" type="date" formControlName="fecha" [min]="fechaMinima()" />
                     @if (formHasError('fecha')) {
                         <small>Selecciona un día.</small>
                     }
@@ -36,7 +36,7 @@
 
                 <div class="field">
                     <label for="horaInicio">Hora de inicio</label>
-                    <input id="horaInicio" type="time" formControlName="horaInicio" />
+                    <input id="horaInicio" type="time" formControlName="horaInicio" [attr.min]="horaMinima()" />
                 </div>
 
                 <div class="field">
