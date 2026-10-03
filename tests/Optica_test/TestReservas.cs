@@ -179,4 +179,5 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public Task<bool> ExisteReserva(DateTime fecha, TimeSpan hora) => Task.FromResult(false);
     public Task<Reserva> Crear(Reserva reserva) => Task.FromResult(reserva);
     public Task<Reserva?> ObtenerPorId(int id) => Task.FromResult<Reserva?>(null);
+    public Task<bool> CancelarReserva(int id, CancellationToken cancellationToken) => Task.FromResult(false);
 }
