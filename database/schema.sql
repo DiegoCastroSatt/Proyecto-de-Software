@@ -165,10 +165,10 @@ CREATE TABLE reservas (
     CONSTRAINT fk_reservas_horario
         FOREIGN KEY (id_horario)
         REFERENCES horarios_atencion(id_horario)
-        ON DELETE RESTRICT,
+        ON DELETE RESTRICT
 
-    CONSTRAINT uq_reserva_horario
-        UNIQUE (id_horario)
+    -- Se permiten varias filas históricas por horario cuando una reserva se cancela.
+    -- La API controla que solo exista una reserva activa para cada horario.
 );
 
 CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);

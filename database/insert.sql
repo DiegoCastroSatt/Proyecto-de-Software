@@ -1,4 +1,4 @@
-use optica_db;
+USE optica_db;
 SET NAMES utf8mb4;
 -- ==========================================
 -- CLIENTES
@@ -134,9 +134,6 @@ INSERT INTO ventas (fecha, total) VALUES
 ('2026-09-20 10:30:00', 114980);
 
 
--- ==========================================
--- DETALLE VENTA
--- ==========================================
 
 INSERT INTO detalle_venta
 (id_venta, id_producto, nombre_producto, cantidad, precio_unitario, subtotal) VALUES
@@ -207,39 +204,7 @@ INSERT INTO detalle_venta
 (26, 10, 'Cordón ajustable para lentes', 1, 4990, 4990);
 
 
--- ==========================================
--- ADMINISTRADORES
--- Contraseñas ficticias para datos de prueba
--- En producción deben guardarse como hash
--- ==========================================
 
 INSERT INTO administradores
 (nombre, correo, contrasena, estado) VALUES
-('ale', 'admin@optica.cl', '1234', 'Activo'),
-
-
--- ==========================================
--- HORARIOS DE ATENCION
--- ==========================================
-
-INSERT INTO horarios_atencion
-(id_administrador, fecha, hora_inicio, hora_fin, estado) VALUES
-(1, '2026-09-22', '09:00:00', '09:30:00', 'Habilitada'),
-(1, '2026-09-22', '09:30:00', '10:00:00', 'Habilitada'),
-(1, '2026-09-22', '10:00:00', '10:30:00', 'Habilitada'),
-(1, '2026-09-23', '09:00:00', '09:30:00', 'Habilitada'),
-(1, '2026-09-23', '09:30:00', '10:00:00', 'Habilitada'),
-(2, '2026-09-24', '15:00:00', '15:30:00', 'Habilitada'),
-(2, '2026-09-24', '15:30:00', '16:00:00', 'Inhabilitada');
-
-
--- ==========================================
--- RESERVAS
--- ==========================================
-
-INSERT INTO reservas
-(id_cliente, id_horario, motivo, estado) VALUES
-(1, 1, 'Control de visión', 'Confirmada'),
-(2, 2, 'Cambio de lentes', 'Pendiente'),
-(3, 4, 'Control de graduación', 'Confirmada'),
-(4, 6, 'Primera consulta', 'Pendiente');
+('ale', 'admin@optica.cl', '1234', 'Activo');

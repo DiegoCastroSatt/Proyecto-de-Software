@@ -56,4 +56,23 @@ public class ReservasController : ControllerBase
             });
         }
     }
+
+    [Authorize]
+    [HttpPost("{id:int}/cancelar")]
+    public async Task<IActionResult> CancelarReserva(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _reservaService.CancelarReserva(id, cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { mensaje = ex.Message });
+        }
+    }
 }

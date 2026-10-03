@@ -106,11 +106,6 @@ public class ReservaRepository : IReservaRepository
             throw new InvalidOperationException("El horario seleccionado ya no está disponible.");
         }
 
-        if (await _context.Reservas.AnyAsync(r => r.HorarioId == horario.Id && r.Estado != "Cancelada"))
-        {
-            throw new InvalidOperationException("La hora seleccionada ya está reservada.");
-        }
-
         var rut = RutChilenoValidator.Normalizar(dto.Rut);
         var cliente = await _context.Clientes
             .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut)
@@ -175,5 +170,50 @@ public class ReservaRepository : IReservaRepository
     {
         return await _context.Reservas
             .FirstOrDefaultAsync(r => r.Id == id);
+    }
+
+    public async Task<bool> CancelarReserva(int id, CancellationToken cancellationToken)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        var horarioId = await _context.Reservas
+            .Where(r => r.Id == id)
+            .Select(r => (int?)r.HorarioId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (horarioId is null)
+        {
+            return false;
+        }
+
+        // El bloqueo del horario serializa la cancelación con una nueva reserva.
+        var horariosBloqueados = await _context.Horarios
+            .FromSqlInterpolated($"SELECT id_horario, id_administrador, fecha, hora_inicio, hora_fin, estado FROM horarios_atencion WHERE id_horario = {horarioId.Value} FOR UPDATE")
+            .ToListAsync(cancellationToken);
+        var horario = horariosBloqueados.SingleOrDefault();
+        var reserva = await _context.Reservas.SingleOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+        if (horario is null || reserva is null)
+        {
+            return false;
+        }
+
+        if (reserva.Estado == "Cancelada")
+        {
+            throw new InvalidOperationException("Esta reserva ya fue cancelada.");
+        }
+
+        var ahoraChile = HoraChile.ObtenerAhora(_proveedorTiempo);
+        if (reserva.Estado == "Realizada"
+            || horario.Fecha.Date < ahoraChile.Date
+            || (horario.Fecha.Date == ahoraChile.Date && horario.HoraInicio <= ahoraChile.TimeOfDay))
+        {
+            throw new InvalidOperationException("No se pueden cancelar horas que ya fueron realizadas.");
+        }
+
+        reserva.Estado = "Cancelada";
+        horario.Estado = "Habilitada";
+        await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return true;
     }
 }
