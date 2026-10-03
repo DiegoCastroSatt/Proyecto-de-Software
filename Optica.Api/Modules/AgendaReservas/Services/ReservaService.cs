@@ -53,4 +53,12 @@ public class ReservaService : IReservaService
         bool historialAtendidas,
         CancellationToken cancellationToken) =>
         _reservaRepository.ObtenerAgenda(historialAtendidas, cancellationToken);
+
+    public async Task CancelarReserva(int id, CancellationToken cancellationToken)
+    {
+        if (!await _reservaRepository.CancelarReserva(id, cancellationToken))
+        {
+            throw new KeyNotFoundException("No se encontró la reserva seleccionada.");
+        }
+    }
 }
