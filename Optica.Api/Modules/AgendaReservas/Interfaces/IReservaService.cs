@@ -7,4 +7,6 @@ public interface IReservaService
     Task<ReservaResponseDto> CrearReserva(
         CrearReservaDto dto
     );
+
+    Task CancelarReserva(int id, CancellationToken cancellationToken);
 }

@@ -1,19 +1,4 @@
-.btn-primary {
-  width: auto;
-  min-height: 44px;
-  margin-top: 0;
-  padding: 10px 20px;
-  border: 0;
-  border-radius: 3px;
-  background: var(--color-acento);
-  color: var(--color-superficie-calida);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: background 160ms ease, transform 160ms ease;
-}
+.btn-primary { margin-top: 0; letter-spacing: 0.02em; }
 
 .search-bar-container {
   margin-bottom: 24px;
@@ -42,7 +27,7 @@
 .empty-state {
   padding: 60px 20px;
   text-align: center;
-  background: #f9fbfb;
+  background: var(--color-fondo-panel);
   border: 1px dashed var(--color-borde-control);
   border-radius: 4px;
 }
@@ -71,8 +56,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #f9fbfb;
-  border: 1px solid #e0e8e5;
+  background: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-pedido);
   border-radius: 6px;
   transition: box-shadow 160ms ease, border-color 160ms ease;
 }
@@ -109,50 +94,26 @@
 }
 
 .pedido-estado[data-estado="Pendiente"] {
-  background: #fff3e0;
-  color: #e65100;
+  background: var(--color-estado-pendiente-fondo);
+  color: var(--color-estado-pendiente);
 }
 
 .pedido-estado[data-estado="En proceso"] {
-  background: #e3f2fd;
-  color: #1565c0;
+  background: var(--color-estado-proceso-fondo);
+  color: var(--color-estado-proceso);
 }
 
 .pedido-estado[data-estado="Listo"] {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--color-exito-fondo);
+  color: var(--color-exito);
 }
 
 .pedido-estado[data-estado="Entregado"] {
-  background: #ede7f6;
-  color: #4527a0;
+  background: var(--color-estado-listo-fondo);
+  color: var(--color-estado-listo);
 }
 
 .pedido-estado[data-estado="Cancelado"] {
-  background: #fce4ec;
-  color: #c62828;
-}
-
-.btn-primary:hover {
-  background: var(--color-acento-hover);
-  transform: translateY(-1px);
-}
-
-@media (max-width: 720px) {
-  .order-page {
-    padding: 0;
-  }
-}
-
-@media (max-width: 720px) {
-  .order-shell {
-    min-height: 100vh;
-    border-radius: 0;
-    border: none;
-  }
-}
-
-.btn-primary:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-principal) 30%, transparent);
-  outline-offset: 3px;
+  background: var(--color-estado-cancelado-fondo);
+  color: var(--color-estado-cancelado);
 }

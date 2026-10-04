@@ -18,4 +18,6 @@ public interface IReservaRepository
     Task<Reserva> Crear(Reserva reserva);
 
     Task<Reserva?> ObtenerPorId(int id);
+
+    Task<bool> CancelarReserva(int id, CancellationToken cancellationToken);
 }

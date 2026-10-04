@@ -24,4 +24,8 @@ export class AgendaReservasService {
     const params = new HttpParams().set('historialAtendidas', historialAtendidas);
     return this.http.get<ReservaAgenda[]>(this.apiUrl, { params });
   }
+
+  cancelar(id: number): Observable<void> {
+    return this.http.post<void>(`http://localhost:8080/api/Reservas/${id}/cancelar`, {});
+  }
 }
