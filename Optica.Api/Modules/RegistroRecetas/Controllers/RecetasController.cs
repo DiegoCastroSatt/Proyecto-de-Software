@@ -11,6 +11,27 @@ public class RecetasController : ControllerBase
         _recetaService = recetaService;
     }
 
+    [HttpGet("clientes/sugerencias")]
+    public async Task<IActionResult> BuscarSugerenciasRut([FromQuery] string termino)
+    {
+        var sugerencias = await _recetaService.BuscarSugerenciasRut(termino);
+        return Ok(sugerencias);
+    }
+
+    [HttpGet("historial")]
+    public async Task<IActionResult> ObtenerHistorialPorRut([FromQuery] string rut)
+    {
+        try
+        {
+            var historial = await _recetaService.ObtenerHistorialPorRut(rut);
+            return Ok(historial);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> CrearReceta([FromForm] CrearRecetaDto dto)
     {
