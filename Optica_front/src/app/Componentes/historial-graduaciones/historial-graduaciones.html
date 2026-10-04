@@ -23,17 +23,66 @@
     <p class="sin-resultados">Este cliente no tiene recetas registradas.</p>
   }
 
+  
+  @if (recetas().length > 1) {
+    <p class="comparacion-ayuda">Selecciona hasta 2 recetas con la casilla "Comparar" para ver los cambios de graduación.</p>
+  }
+
+  @if (comparacion(); as comp) {
+    <section class="comparacion-card">
+      <header class="comparacion-card__header">
+        <h2>Comparación de recetas</h2>
+        <button type="button" class="comparacion-card__cerrar" (click)="limpiarSeleccion()">Quitar selección</button>
+      </header>
+
+      @for (grupo of comp.porOjo; track grupo.ojo) {
+        <div class="comparacion-ojo">
+          <h3>{{ grupo.etiqueta }}</h3>
+          <table class="comparacion-tabla">
+            <thead>
+              <tr>
+                <th>Campo</th>
+                <th>{{ comp.fechaA | date: 'dd-MM-yyyy' }}</th>
+                <th>{{ comp.fechaB | date: 'dd-MM-yyyy' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of grupo.filas; track fila.campo) {
+                <tr [class.cambio]="fila.cambio">
+                  <td>{{ fila.campo }}</td>
+                  <td>{{ fila.valorA ?? '—' }}</td>
+                  <td>{{ fila.valorB ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
   @if (recetas().length > 0) {
     <div class="historial-lista">
       @for (receta of recetas(); track receta.id) {
-        <article class="receta-card">
+        <article class="receta-card" [class.receta-card--seleccionada]="estaSeleccionada(receta)">
           <header class="receta-card__header">
-            <h2>{{ receta.fecha | date: 'dd-MM-yyyy' }}</h2>
-            @if (receta.observaciones) {
-              <p class="receta-card__observaciones">{{ receta.observaciones }}</p>
-            }
-          </header>
-
+            <div>
+              <h2>{{ receta.fecha | date: 'dd-MM-yyyy' }}</h2>
+              @if (receta.observaciones) {
+                <p class="receta-card__observaciones">{{ receta.observaciones }}</p>
+              }
+            </div>
+            <label class="receta-card__seleccion">
+              <input
+                type="checkbox"
+                [checked]="estaSeleccionada(receta)"
+                [disabled]="!estaSeleccionada(receta) && seleccionadas().length >= 2"
+                (change)="toggleSeleccion(receta)"
+              />
+              Comparar
+            </label>
+        </header>
+        
           <div class="graduaciones-grid">
             @for (graduacion of receta.graduaciones; track graduacion.ojo) {
               <div class="graduacion-item">
