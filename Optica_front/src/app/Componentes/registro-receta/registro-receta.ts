@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Validators } from '@angular/forms';
 import { Graduacion, RegistrarRecetaService } from './registro-receta.service';
-import { AutocompletadoRut } from '../autocompletado-rut/autocompletado-rut';
+import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
 
 @Component({
   selector: 'app-registro-receta',
