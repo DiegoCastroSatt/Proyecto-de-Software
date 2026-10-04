@@ -1,0 +1,58 @@
+<div class="historial-page">
+  <div class="page-header">
+    <p class="eyebrow">Recetas</p>
+    <h1>Historial de graduaciones</h1>
+    <p class="page-subtitle">Consulta las recetas anteriores de un cliente para ver cómo ha cambiado su graduación.</p>
+  </div>
+
+  <div class="busqueda-card">
+    <div class="field">
+      <label for="rut">RUT del cliente</label>
+      <app-autocompletado-rut [(value)]="rut" />
+    </div>
+    <button type="button" (click)="buscarHistorial()" [disabled]="isLoading()">
+      {{ isLoading() ? 'Buscando...' : 'Buscar historial' }}
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-message" role="alert">{{ errorMessage() }}</div>
+  }
+
+  @if (yaBusco() && !isLoading() && !errorMessage() && recetas().length === 0) {
+    <p class="sin-resultados">Este cliente no tiene recetas registradas.</p>
+  }
+
+  @if (recetas().length > 0) {
+    <div class="historial-lista">
+      @for (receta of recetas(); track receta.id) {
+        <article class="receta-card">
+          <header class="receta-card__header">
+            <h2>{{ receta.fecha | date: 'dd-MM-yyyy' }}</h2>
+            @if (receta.observaciones) {
+              <p class="receta-card__observaciones">{{ receta.observaciones }}</p>
+            }
+          </header>
+
+          <div class="graduaciones-grid">
+            @for (graduacion of receta.graduaciones; track graduacion.ojo) {
+              <div class="graduacion-item">
+                <h3>{{ graduacion.ojo === 'OD' ? 'Ojo derecho (OD)' : 'Ojo izquierdo (OI)' }}</h3>
+                <dl>
+                  <dt>Esfera</dt>
+                  <dd>{{ graduacion.esfera ?? '—' }}</dd>
+                  <dt>Cilindro</dt>
+                  <dd>{{ graduacion.cilindro ?? '—' }}</dd>
+                  <dt>Eje</dt>
+                  <dd>{{ graduacion.eje ?? '—' }}</dd>
+                  <dt>Adición</dt>
+                  <dd>{{ graduacion.adicion ?? '—' }}</dd>
+                </dl>
+              </div>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

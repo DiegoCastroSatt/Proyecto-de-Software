@@ -18,6 +18,7 @@ import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
+import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
 
 export const routes: Routes = [
   {
@@ -27,7 +28,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
-      { path: 'productos', component: BuscarProductoCliente }
+      { path: 'productos', component: BuscarProductoCliente } 
     ]
   },
 
@@ -52,7 +53,8 @@ export const routes: Routes = [
           { path: 'ventas/historial', component: VerVentasComponent },
           { path: 'recetas', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
-          { path: 'crear-pedido', component: CrearPedidoComponent }
+          { path: 'crear-pedido', component: CrearPedidoComponent },
+          { path: 'historial-graduaciones', component: HistorialGraduaciones }
         ]
       }
     ]
