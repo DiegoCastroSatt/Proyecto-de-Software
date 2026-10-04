@@ -24,7 +24,7 @@
 }
 
 .add-option-button:hover {
-  background: #2b625d;
+  background: var(--color-principal-claro);
 }
 
 select {
@@ -35,63 +35,7 @@ select {
   background-repeat: no-repeat;
 }
 
-@media (max-width: 720px) {
-  .topbar {
-    gap: 12px;
-  }
-
-  .brand-name {
-    display: none;
-  }
-
-  .topbar-nav {
-    gap: 2px;
-  }
-
-  .nav-link {
-    padding: 8px 9px;
-    font-size: 0;
-  }
-
-  .nav-icon {
-    width: 18px;
-    height: 18px;
-  }
-}
-
 select:focus {
   border-color: var(--color-principal);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-principal) 12%, transparent);
-}
-
-@media (max-width: 640px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .field-wide {
-    grid-column: auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-footnote {
-    max-width: none;
-    text-align: center;
-  }
-}
-
-@media (max-width: 640px) {
-  button {
-    width: 100%;
-  }
 }

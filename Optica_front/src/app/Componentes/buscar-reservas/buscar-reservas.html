@@ -77,10 +77,15 @@
       </dl>
 
       <footer class="acciones-reserva">
-        <button type="button" disabled title="Esta acción estará disponible próximamente">Cancelar hora</button>
+        @if (mensajeCancelacion()) {
+          <p class="mensaje-cancelacion" role="alert">{{ mensajeCancelacion() }}</p>
+        }
+        <button class="boton-cancelar" type="button" [disabled]="cancelando() || reserva.estado === 'Realizada' || reserva.estado === 'Cancelada'" (click)="cancelarReserva(reserva)">
+          {{ cancelando() ? 'Cancelando...' : 'Cancelar hora' }}
+        </button>
         <button type="button" disabled title="Esta acción estará disponible próximamente">Reprogramar hora</button>
       </footer>
-      <p class="acciones-pendientes">Estas acciones estarán disponibles próximamente.</p>
+      <p class="acciones-pendientes">La cancelación conserva el registro y libera el horario para una nueva reserva.</p>
     </section>
   </div>
 }
