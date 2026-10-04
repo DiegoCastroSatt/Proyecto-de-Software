@@ -18,6 +18,20 @@ public class RecetasController : ControllerBase
         return Ok(sugerencias);
     }
 
+    [HttpGet("historial")]
+    public async Task<IActionResult> ObtenerHistorialPorRut([FromQuery] string rut)
+    {
+        try
+        {
+            var historial = await _recetaService.ObtenerHistorialPorRut(rut);
+            return Ok(historial);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> CrearReceta([FromForm] CrearRecetaDto dto)
     {

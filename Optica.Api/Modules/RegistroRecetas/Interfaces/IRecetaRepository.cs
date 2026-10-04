@@ -7,4 +7,5 @@ public interface IRecetaRepository
     Task<Receta> Crear(Receta receta);
     Task<Receta?> ObtenerPorId(int id);
     Task<List<Cliente>> BuscarClientesPorRutParcial(string rutParcial);
+    Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId);
 }

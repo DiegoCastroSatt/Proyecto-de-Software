@@ -49,4 +49,12 @@ public class RecetaRepository : IRecetaRepository
             .Take(8)
             .ToListAsync();
     }
+    public async Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId)
+    {
+        return await _context.Recetas
+            .Include(r => r.Graduaciones)
+        .   Where(r => r.ClienteId == clienteId)
+            .OrderBy(r => r.Fecha)
+            .ToListAsync();
+}
 }
