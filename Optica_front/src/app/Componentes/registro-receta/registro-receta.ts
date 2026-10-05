@@ -2,10 +2,11 @@ import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Validators } from '@angular/forms';
 import { Graduacion, RegistrarRecetaService } from './registro-receta.service';
+import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
 
 @Component({
   selector: 'app-registro-receta',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AutocompletadoRut],
   templateUrl: './registro-receta.html',
   styleUrl: './registro-receta.css'
 })
@@ -16,6 +17,9 @@ export class RegistroRecetaComponent {
   protected readonly successMessage = signal('');
   protected readonly selectedImage = signal<File | null>(null);
 
+  protected readonly rut = signal('');
+  protected readonly rutTouched = signal(false);
+
   protected readonly recetaForm;
 
   constructor(
@@ -23,7 +27,6 @@ export class RegistroRecetaComponent {
     private readonly recetaService: RegistrarRecetaService
   ) {
     this.recetaForm = this.formBuilder.group({
-      rut: ['', [Validators.required, Validators.maxLength(13)]],
       fecha: ['', Validators.required],
       observaciones: [''],
       esferaOD: [0, Validators.required],
@@ -48,13 +51,18 @@ export class RegistroRecetaComponent {
     this.selectedImage.set(image);
   }
 
+  protected rutInvalido(): boolean {
+    const valor = this.rut().trim();
+    return !valor || valor.length > 13;
+  }
+
   protected submitReceta(): void {
     const modo = this.modo();
 
-    const rutInvalido = this.recetaForm.get('rut')?.invalid;
     const fechaInvalida = this.recetaForm.get('fecha')?.invalid;
 
-    if (rutInvalido || fechaInvalida) {
+    if (this.rutInvalido() || fechaInvalida) {
+      this.rutTouched.set(true);
       this.recetaForm.markAllAsTouched();
       return;
     }
@@ -99,7 +107,7 @@ export class RegistroRecetaComponent {
     }
 
     this.recetaService.crearReceta({
-      rut: formValue.rut ?? '',
+      rut: this.rut().trim(),
       fecha: formValue.fecha ?? '',
       observaciones: formValue.observaciones ?? undefined,
       graduaciones,
@@ -109,6 +117,8 @@ export class RegistroRecetaComponent {
         this.successMessage.set('Receta registrada correctamente.');
         this.isSubmitting.set(false);
         this.selectedImage.set(null);
+        this.rut.set('');
+        this.rutTouched.set(false);
         this.recetaForm.reset();
       },
       error: (error: { error?: { mensaje?: string } }) => {

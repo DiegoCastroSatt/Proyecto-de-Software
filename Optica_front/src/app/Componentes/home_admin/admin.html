@@ -13,11 +13,14 @@
 
       <a routerLink="/admin/panel/clientes" routerLinkActive="is-active">Clientes</a>
 
-      <a routerLink="/admin/panel/productos" routerLinkActive="is-active">Catálogo</a>
-
-      <a routerLink="/admin/panel/stock" routerLinkActive="is-active">Consultar Stock</a>
-
-      <a routerLink="/admin/panel/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
+      <div class="inventory-menu" routerLinkActive="is-active">
+        <button type="button" aria-haspopup="true">Inventario <span aria-hidden="true">▾</span></button>
+        <div class="inventory-submenu">
+          <a routerLink="/admin/panel/productos" routerLinkActive="is-active">Catálogo</a>
+          <a routerLink="/admin/panel/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
+          <a routerLink="/admin/panel/stock" routerLinkActive="is-active">Consultar Stock</a>
+        </div>
+      </div>
 
       <a routerLink="/admin/panel/ventas" routerLinkActive="is-active"> Ventas </a>
 
@@ -27,6 +30,51 @@
 
       <a routerLink="/admin/panel/crear-pedido" routerLinkActive="is-active">Crear Pedido</a>
     </nav>
+    <div class="notificaciones">
+      <button
+        class="boton-notificaciones"
+        type="button"
+        (click)="alternarNotificaciones()"
+        [attr.aria-expanded]="notificacionesAbiertas()"
+        aria-controls="panel-notificaciones"
+        [attr.aria-label]="'Notificaciones: ' + cantidadNotificaciones()">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        @if (cantidadNotificaciones() > 0) { <span class="contador-notificaciones">{{ cantidadNotificaciones() }}</span> }
+      </button>
+      @if (notificacionesAbiertas()) {
+        <section class="panel-notificaciones" id="panel-notificaciones" aria-label="Últimas notificaciones" aria-live="polite">
+          <h2>Notificaciones</h2>
+          @if (errorInventario()) {
+            <p role="alert">No se pudo verificar el stock.</p>
+          } @if (notificaciones().length) {
+            <ul>
+              @for (notificacion of notificaciones(); track notificacion.id) {
+                <li>
+                  <div class="contenido-notificacion">
+                    <strong>{{ notificacion.titulo }}</strong>
+                    <span>{{ notificacion.mensaje }}</span>
+                  </div>
+                  <button
+                    class="boton-eliminar-notificacion"
+                    type="button"
+                    (click)="eliminarNotificacion(notificacion.id)"
+                    [attr.aria-label]="'Eliminar notificación: ' + notificacion.titulo"
+                    title="Eliminar notificación">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (!errorInventario()) {
+            <p>No hay notificaciones.</p>
+          }
+        </section>
+      }
+    </div>
     <div class="sesion-admin">
       @if (sesion.administrador(); as admin) { <span>{{ admin.nombre }}</span> }
       <button type="button" (click)="salir()">

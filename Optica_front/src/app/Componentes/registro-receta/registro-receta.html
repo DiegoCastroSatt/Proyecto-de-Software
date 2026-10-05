@@ -23,10 +23,10 @@
         <div class="form-grid">
           <div class="field">
             <label for="rut">RUT del cliente</label>
-            <input id="rut" type="text" formControlName="rut" autocomplete="off" placeholder="12345678-9" />
-            @if (hasError('rut', 'required')) {
+            <app-autocompletado-rut [(value)]="rut" (blurred)="rutTouched.set(true)" />
+            @if (rutTouched() && !rut().trim()) {
               <small>Ingresa el RUT del cliente.</small>
-            } @else if (hasError('rut', 'maxlength')) {
+            } @else if (rutTouched() && rut().trim().length > 13) {
               <small>El RUT ingresado es demasiado largo.</small>
             }
           </div>

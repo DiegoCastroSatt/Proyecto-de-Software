@@ -1,0 +1,45 @@
+.autocompletado-rut {
+  position: relative;
+}
+
+.autocompletado-rut__input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.autocompletado-rut__lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.autocompletado-rut__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.autocompletado-rut__item:hover {
+  background: #f0f0f0;
+}
+
+.autocompletado-rut__rut {
+  font-weight: 600;
+}
+
+.autocompletado-rut__nombre {
+  color: #555;
+}

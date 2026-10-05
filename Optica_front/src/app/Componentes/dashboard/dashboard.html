@@ -31,7 +31,7 @@
       <div>
         <span class="metric-label">Stock por revisar</span>
         <strong>{{ productosBajoStock() }}</strong>
-        <a routerLink="/admin/panel/productos">Ver inventario</a>
+        <a routerLink="/admin/panel/stock">Ver inventario</a>
       </div>
     </article>
 
@@ -79,6 +79,10 @@
       <a routerLink="/admin/panel/recetas" class="action-card">
         <span aria-hidden="true"><svg class="dashboard-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H5v20h14V7l-5-5ZM14 2v5h5M8 17h8M8 12h6M11 9v6"/></svg></span>
         <div><strong>Registrar receta</strong><p>Guarda una nueva prescripción óptica.</p></div>
+      </a>
+      <a routerLink="/admin/panel/historial-graduaciones" class="action-card">
+        <span aria-hidden="true"><svg class="dashboard-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></span>
+        <div><strong>Historial de graduaciones</strong><p>Consulta la evolución de las recetas de un cliente.</p></div>
       </a>
     </div>
   </section>

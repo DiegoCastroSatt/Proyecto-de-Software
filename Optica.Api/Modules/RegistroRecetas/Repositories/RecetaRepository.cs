@@ -36,4 +36,25 @@ public class RecetaRepository : IRecetaRepository
             .Include(r => r.Graduaciones)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
+
+    public async Task<List<Cliente>> BuscarClientesPorRutParcial(string rutParcial)
+    {
+        var rutNormalizado = RutChilenoValidator.Normalizar(rutParcial);
+
+        return await _context.Clientes
+            .Where(c => EF.Functions.Like(
+                c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
+                rutNormalizado + "%"))
+            .OrderBy(c => c.Rut)
+            .Take(8)
+            .ToListAsync();
+    }
+    public async Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId)
+    {
+        return await _context.Recetas
+            .Include(r => r.Graduaciones)
+        .   Where(r => r.ClienteId == clienteId)
+            .OrderBy(r => r.Fecha)
+            .ToListAsync();
+}
 }

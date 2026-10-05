@@ -127,4 +127,46 @@ public class RecetaService : IRecetaService
             }).ToList()
         };
     }
+    public async Task<List<ClienteSugerenciaDto>> BuscarSugerenciasRut(string termino)
+    {
+        if (string.IsNullOrWhiteSpace(termino))
+        {
+            return new List<ClienteSugerenciaDto>();
+        }
+
+        var clientes = await _recetaRepository.BuscarClientesPorRutParcial(termino);
+
+        return clientes.Select(c => new ClienteSugerenciaDto
+        {
+            Rut = c.Rut,
+            Nombre = c.Nombre,
+            Apellido = c.Apellido
+        }).ToList();
+    }
+    public async Task<List<RecetaHistorialDto>> ObtenerHistorialPorRut(string rut)
+    {
+        var cliente = await _recetaRepository.BuscarClientePorRut(rut);
+
+        if (cliente is null)
+        {   
+            throw new ArgumentException("No existe un cliente con ese RUT.");
+        }
+
+        var recetas = await _recetaRepository.ObtenerRecetasPorClienteId(cliente.IdCliente);
+
+        return recetas.Select(r => new RecetaHistorialDto
+        {
+            Id = r.Id,
+            Fecha = r.Fecha,
+            Observaciones = r.Observaciones,
+            Graduaciones = r.Graduaciones.Select(g => new GraduacionHistorialDto
+            {
+                Ojo = g.Ojo,
+                Esfera = g.Esfera,
+                Cilindro = g.Cilindro,
+                Eje = g.Eje,
+                Adicion = g.Adicion
+            }).ToList()
+        }).ToList();
+    }
 }
