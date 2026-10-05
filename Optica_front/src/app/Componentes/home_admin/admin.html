@@ -37,7 +37,7 @@
         (click)="alternarNotificaciones()"
         [attr.aria-expanded]="notificacionesAbiertas()"
         aria-controls="panel-notificaciones"
-        [attr.aria-label]="'Notificaciones: ' + cantidadNotificaciones() + (cantidadNotificaciones() === 1 ? ' alerta de bajo stock' : ' alertas de bajo stock')">
+        [attr.aria-label]="'Notificaciones: ' + cantidadNotificaciones()">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
@@ -46,21 +46,21 @@
       @if (notificacionesAbiertas()) {
         <section class="panel-notificaciones" id="panel-notificaciones" aria-label="Últimas notificaciones" aria-live="polite">
           <h2>Notificaciones</h2>
-          @if (errorNotificaciones()) {
-            <p role="alert">No se pudieron cargar las notificaciones.</p>
+          @if (errorInventario()) {
+            <p role="alert">No se pudo verificar el stock.</p>
           } @if (notificaciones().length) {
             <ul>
               @for (notificacion of notificaciones(); track notificacion.id) {
                 <li>
                   <div class="contenido-notificacion">
-                    <strong>Bajo stock: {{ notificacion.nombre }}</strong>
-                    <span>Quedan {{ notificacion.stock }}; mínimo {{ notificacion.stockMinimo }}.</span>
+                    <strong>{{ notificacion.titulo }}</strong>
+                    <span>{{ notificacion.mensaje }}</span>
                   </div>
                   <button
                     class="boton-eliminar-notificacion"
                     type="button"
                     (click)="eliminarNotificacion(notificacion.id)"
-                    [attr.aria-label]="'Eliminar notificación de ' + notificacion.nombre"
+                    [attr.aria-label]="'Eliminar notificación: ' + notificacion.titulo"
                     title="Eliminar notificación">
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -69,8 +69,8 @@
                 </li>
               }
             </ul>
-          } @else if (!errorNotificaciones()) {
-            <p>No hay alertas de bajo stock.</p>
+          } @else if (!errorInventario()) {
+            <p>No hay notificaciones.</p>
           }
         </section>
       }
