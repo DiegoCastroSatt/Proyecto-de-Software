@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { AdminLayoutComponent } from './admin';
+import { NotificacionesAdminService } from '../../shared/services/notificaciones-admin.service';
 
 describe('AdminLayoutComponent', () => {
   let component: AdminLayoutComponent;
@@ -35,7 +36,7 @@ describe('AdminLayoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('crea y permite borrar una notificación cuando el stock cruza el mínimo', async () => {
+  it('crea y permite borrar una notificación de stock cuando cruza el mínimo', async () => {
     await vi.advanceTimersByTimeAsync(15_000);
     TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/Productos?termino=').flush([
       { id: 1, nombre: 'Armazón clásico', stock: 3, stockMinimo: 3 },
@@ -45,7 +46,7 @@ describe('AdminLayoutComponent', () => {
     fixture.detectChanges();
 
     const boton = fixture.nativeElement.querySelector('.boton-notificaciones') as HTMLButtonElement;
-    expect(boton.getAttribute('aria-label')).toContain('1 alerta de bajo stock');
+    expect(boton.getAttribute('aria-label')).toBe('Notificaciones: 1');
     boton.click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('Armazón clásico');
@@ -55,7 +56,23 @@ describe('AdminLayoutComponent', () => {
     (fixture.nativeElement.querySelector('.boton-eliminar-notificacion') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.contador-notificaciones')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('No hay alertas');
+    expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('No hay notificaciones');
+  });
+
+  it('muestra notificaciones publicadas desde otras funcionalidades', async () => {
+    TestBed.inject(NotificacionesAdminService).agregar({
+      titulo: 'Nueva reserva',
+      mensaje: 'Se recibió una solicitud de reserva.',
+      tipo: 'informacion'
+    });
+    fixture.detectChanges();
+
+    const boton = fixture.nativeElement.querySelector('.boton-notificaciones') as HTMLButtonElement;
+    expect(boton.getAttribute('aria-label')).toBe('Notificaciones: 1');
+    boton.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('Nueva reserva');
+    expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('Se recibió una solicitud de reserva.');
   });
 
   it('reanuda la detección después de un error al consultar el inventario', async () => {
@@ -74,6 +91,6 @@ describe('AdminLayoutComponent', () => {
     (fixture.nativeElement.querySelector('.boton-notificaciones') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('No hay alertas');
+    expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('No hay notificaciones');
   });
 });
