@@ -1,5 +1,6 @@
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -16,6 +17,7 @@ import {
 })
 export class GestionHorariosComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly formBuilder = inject(FormBuilder);
   private readonly horariosService = inject(GestionHorariosService);
 
@@ -26,6 +28,8 @@ export class GestionHorariosComponent implements OnInit {
   protected readonly isSaving = signal(false);
   protected readonly changingId = signal<number | null>(null);
   protected readonly filterDate = signal('');
+  protected readonly fechaMinima = signal(this.obtenerFechaChile());
+  protected readonly horaMinima = signal('00:00');
 
   protected readonly scheduleForm = this.formBuilder.group({
     fecha: ['', Validators.required],
@@ -36,20 +40,30 @@ export class GestionHorariosComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSchedules();
+    this.scheduleForm.controls.fecha.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(fecha => this.actualizarLimites(fecha));
+
+    if (this.isBrowser) {
+      const refreshId = setInterval(() => this.loadSchedules(false), 60_000);
+      this.destroyRef.onDestroy(() => clearInterval(refreshId));
+    }
   }
 
-  protected loadSchedules(): void {
-    this.isLoading.set(true);
+  protected loadSchedules(mostrarCarga = true): void {
+    this.actualizarLimites(this.scheduleForm.controls.fecha.value);
+    if (mostrarCarga) this.isLoading.set(true);
+    this.errorMessage.set('');
     this.horariosService.listar()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (horarios) => {
           this.horarios.set(horarios);
-          this.isLoading.set(false);
+          if (mostrarCarga) this.isLoading.set(false);
         },
         error: (error: { error?: { mensaje?: string } }) => {
           this.errorMessage.set(error.error?.mensaje ?? 'No se pudieron cargar los horarios.');
-          this.isLoading.set(false);
+          if (mostrarCarga) this.isLoading.set(false);
         }
       });
   }
@@ -63,6 +77,12 @@ export class GestionHorariosComponent implements OnInit {
     const { fecha, horaInicio, horaFin, duracionMinutos } = this.scheduleForm.getRawValue();
     if (!fecha || !horaInicio || !horaFin || !duracionMinutos || horaInicio >= horaFin) {
       this.errorMessage.set('La hora de término debe ser posterior a la hora de inicio.');
+      return;
+    }
+
+    const hoyChile = this.obtenerFechaChile();
+    if (fecha < hoyChile || (fecha === hoyChile && horaInicio <= this.obtenerHoraChile())) {
+      this.errorMessage.set('No se pueden crear bloques que ya comenzaron según la hora de Chile.');
       return;
     }
 
@@ -117,5 +137,27 @@ export class GestionHorariosComponent implements OnInit {
   protected formHasError(controlName: string): boolean {
     const control = this.scheduleForm.get(controlName);
     return Boolean(control?.touched && control.invalid);
+  }
+
+  private obtenerFechaChile(): string {
+    const partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const valor = (tipo: string) => partes.find(parte => parte.type === tipo)?.value ?? '';
+    return `${valor('year')}-${valor('month')}-${valor('day')}`;
+  }
+
+  private obtenerHoraChile(): string {
+    const partes = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).formatToParts(new Date());
+    const valor = (tipo: string) => partes.find(parte => parte.type === tipo)?.value ?? '';
+    return `${valor('hour')}:${valor('minute')}`;
+  }
+
+  private actualizarLimites(fechaSeleccionada: string | null): void {
+    const hoyChile = this.obtenerFechaChile();
+    this.fechaMinima.set(hoyChile);
+    this.horaMinima.set(fechaSeleccionada === hoyChile ? this.obtenerHoraChile() : '00:00');
   }
 }

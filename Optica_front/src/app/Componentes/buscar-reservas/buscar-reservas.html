@@ -1,0 +1,91 @@
+<section class="agenda-section" aria-labelledby="agenda-titulo">
+  <header class="agenda-header">
+    <div>
+      <p class="eyebrow">Administración</p>
+      <h1 id="agenda-titulo">Agenda de atención</h1>
+      <p>Revisa las próximas reservas y los datos de cada cliente.</p>
+    </div>
+
+    <nav class="agenda-vistas" aria-label="Vistas de la agenda">
+      <button
+        type="button"
+        [class.activa]="!mostrarHistorial()"
+        [attr.aria-pressed]="!mostrarHistorial()"
+        (click)="mostrarPorAtender()">
+        Por atender
+      </button>
+      <button
+        type="button"
+        [class.activa]="mostrarHistorial()"
+        [attr.aria-pressed]="mostrarHistorial()"
+        (click)="mostrarAtendidas()">
+        Atendidas
+      </button>
+    </nav>
+  </header>
+
+  <p class="vista-ayuda">
+    @if (mostrarHistorial()) {
+      Aquí puedes consultar las reservas que ya fueron atendidas.
+    } @else {
+      Se muestran las reservas pendientes y confirmadas desde hoy.
+    }
+  </p>
+
+  @if (cargando()) {
+    <p class="estado-pagina" role="status">Cargando reservas...</p>
+  } @else if (error()) {
+    <p class="estado-pagina error" role="alert">{{ error() }}</p>
+    <button class="boton-reintentar" type="button" (click)="mostrarHistorial() ? mostrarAtendidas() : mostrarPorAtender()">Reintentar</button>
+  } @else if (reservas().length === 0) {
+    <div class="agenda-vacia">
+      <h2>{{ mostrarHistorial() ? 'Aún no hay atenciones anteriores' : 'No hay reservas por atender' }}</h2>
+      <p>{{ mostrarHistorial() ? 'Cuando se registren atenciones realizadas, aparecerán aquí.' : 'Las nuevas reservas aparecerán aquí para que puedas organizar la atención.' }}</p>
+    </div>
+  } @else {
+    <div class="agenda-lista">
+      @for (reserva of reservas(); track reserva.id) {
+        <button class="reserva-tarjeta" type="button" (click)="abrirDetalle(reserva)" [attr.aria-label]="'Ver reserva de ' + reserva.nombreCliente">
+          <span class="reserva-hora">{{ reserva.horaInicio.slice(0, 5) }}</span>
+          <span class="reserva-resumen">
+            <strong>{{ reserva.nombreCliente }}</strong>
+            <span>{{ reserva.fecha | date:'dd/MM/yyyy' }} · RUT {{ reserva.rutCliente }}</span>
+          </span>
+          <span class="reserva-estado" [class.atendida]="reserva.estado === 'Realizada'">{{ reserva.estado }}</span>
+          <span class="indicador-detalle" aria-hidden="true">›</span>
+        </button>
+      }
+    </div>
+  }
+</section>
+
+@if (reservaSeleccionada(); as reserva) {
+  <div class="modal-fondo" role="presentation" (click)="cerrarDetalle()" (keydown.escape)="cerrarDetalle()">
+    <section class="modal-detalle" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo" (click)="$event.stopPropagation()">
+      <button class="cerrar-modal" type="button" aria-label="Cerrar detalle" (click)="cerrarDetalle()">×</button>
+
+      <p class="eyebrow">{{ mostrarHistorial() ? 'Atención realizada' : 'Próxima atención' }}</p>
+      <h2 id="detalle-titulo">{{ reserva.nombreCliente }}</h2>
+      <p class="detalle-fecha">{{ reserva.fecha | date:'EEEE d MMMM yyyy' }} · {{ reserva.horaInicio.slice(0, 5) }} a {{ reserva.horaFin.slice(0, 5) }}</p>
+
+      <dl class="datos-cliente">
+        <div><dt>RUT</dt><dd>{{ reserva.rutCliente }}</dd></div>
+        <div><dt>Teléfono</dt><dd>{{ reserva.telefonoCliente || 'No registrado' }}</dd></div>
+        <div><dt>Correo</dt><dd>{{ reserva.correoCliente || 'No registrado' }}</dd></div>
+        <div><dt>Motivo</dt><dd>{{ reserva.motivo || 'No especificado' }}</dd></div>
+        <div><dt>Estado</dt><dd>{{ reserva.estado }}</dd></div>
+      </dl>
+
+      <footer class="acciones-reserva">
+        @if (mensajeCancelacion()) {
+          <p class="mensaje-cancelacion" role="alert">{{ mensajeCancelacion() }}</p>
+        }
+        <button class="boton-cancelar" type="button" [disabled]="cancelando() || reserva.estado === 'Realizada' || reserva.estado === 'Cancelada'" (click)="cancelarReserva(reserva)">
+          {{ cancelando() ? 'Cancelando...' : 'Cancelar hora' }}
+        </button>
+        <button type="button" disabled title="Esta acción estará disponible próximamente">Reprogramar hora</button>
+      </footer>
+      <p class="acciones-pendientes">La cancelación conserva el registro y libera el horario para una nueva reserva.</p>
+    </section>
+  </div>
+}

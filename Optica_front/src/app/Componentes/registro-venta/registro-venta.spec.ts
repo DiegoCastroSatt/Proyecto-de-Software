@@ -7,7 +7,7 @@ import { provideRouter } from '@angular/router';
 import { RegistroVentaService, ProductoCaja, Venta } from './registro-venta.service';
 
 describe('Registro de ventas', () => {
-  const producto = { idProducto: 1, codigoProducto: 'A', nombre: 'Lentes', precio: 100, cantidad: 1 };
+  const producto = { idProducto: 1, codigoProducto: 'A', nombre: 'Lentes', precio: 100, stock: 2, cantidad: 1 };
   const servicio = { listar: vi.fn(), buscar: vi.fn(), crear: vi.fn() };
 
   beforeEach(async () => {
@@ -67,6 +67,24 @@ describe('Registro de ventas', () => {
     expect(dom.textContent).toContain('No existe');
     expect(registrar().disabled).toBe(true);
   });
+
+  it('rechaza un producto con stock cero', () => {
+    servicio.buscar.mockReturnValue(of({ ...producto, stock: 0 }));
+    const { dom, agregar } = preparar();
+    agregar('A');
+    expect(dom.querySelectorAll('.linea')).toHaveLength(0);
+    expect(dom.textContent).toContain('Sin productos en stock');
+  });
+
+  it('rechaza cantidades superiores al stock sin agregar parcialmente', () => {
+    const { dom, agregar } = preparar();
+    const cantidad = dom.querySelector<HTMLInputElement>('#cantidad')!;
+    cantidad.value = '3'; cantidad.dispatchEvent(new Event('input'));
+    agregar('A');
+    expect(dom.querySelectorAll('.linea')).toHaveLength(0);
+    expect(dom.textContent).toContain('stock insuficiente');
+  });
+
   it('permite cambiar el top y el período desde la pantalla de ventas', () => {
     const ahora = new Date();
     const anterior = new Date(ahora);

@@ -1,6 +1,7 @@
 import { VerVentasComponent } from './Componentes/ver-ventas/ver-ventas';
 import { Routes } from '@angular/router';
 import { ReservaComponent } from './Componentes/reserva/reserva';
+import { BuscarReservas } from './Componentes/buscar-reservas/buscar-reservas';
 import { ProductoComponent } from './Componentes/registro-producto/registro-producto';
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
@@ -17,6 +18,7 @@ import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
+import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
 
 export const routes: Routes = [
   {
@@ -26,7 +28,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
-      { path: 'productos', component: BuscarProductoCliente }
+      { path: 'productos', component: BuscarProductoCliente } 
     ]
   },
 
@@ -42,6 +44,7 @@ export const routes: Routes = [
         children: [
           { path: '', component: DashboardComponent },
           { path: 'horarios', component: GestionHorariosComponent },
+          { path: 'agenda', component: BuscarReservas },
           { path: 'productos/nuevo', component: ProductoComponent },
           { path: 'clientes', component: ClientesComponent },
           { path: 'productos', component: BuscarProductoAdmin },
@@ -50,7 +53,8 @@ export const routes: Routes = [
           { path: 'ventas/historial', component: VerVentasComponent },
           { path: 'recetas', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
-          { path: 'crear-pedido', component: CrearPedidoComponent }
+          { path: 'crear-pedido', component: CrearPedidoComponent },
+          { path: 'historial-graduaciones', component: HistorialGraduaciones }
         ]
       }
     ]

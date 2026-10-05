@@ -142,7 +142,7 @@ public class TestVentas
         var controlador = new VentasController(CrearServicio(out _), new ConsultaPrueba());
         var respuesta = Assert.IsType<OkObjectResult>(await controlador.BuscarProducto("A"));
         Assert.Equal(200, respuesta.StatusCode);
-        Assert.Equal(new ProductoCajaDto(1, "A", "Producto A", 100),
+        Assert.Equal(new ProductoCajaDto(1, "A", "Producto A", 100, 5),
             Assert.IsType<ProductoCajaDto>(respuesta.Value));
     }
 
@@ -205,6 +205,24 @@ public class TestVentas
         Assert.Equal(0, repositorio.Guardadas);
     }
 
+    [Fact]
+    public async Task Crear_RechazaCantidadAcumuladaSuperiorAlStock()
+    {
+        var servicio = CrearServicio(out var repositorio);
+        var error = await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(Solicitud(("A", 3), ("A", 3))));
+        Assert.Contains("stock insuficiente", error.Message);
+        Assert.Equal(0, repositorio.Guardadas);
+    }
+
+    [Fact]
+    public async Task Crear_RechazaProductoSinStock()
+    {
+        var servicio = CrearServicio(out var repositorio);
+        var error = await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(Solicitud(("C", 1))));
+        Assert.Contains("Sin productos en stock", error.Message);
+        Assert.Equal(0, repositorio.Guardadas);
+    }
+
     private static VentaService CrearServicio(out RepositorioPrueba repositorio)
     {
         repositorio = new RepositorioPrueba();
@@ -231,8 +249,9 @@ public sealed class ConsultaPrueba : IConsultaProductoVenta
 {
     public Task<ProductoCajaDto?> Buscar(string codigo) => Task.FromResult(codigo switch
     {
-        "A" => new ProductoCajaDto(1, "A", "Producto A", 100),
-        "B" => new ProductoCajaDto(2, "B", "Producto B", 250),
+        "A" => new ProductoCajaDto(1, "A", "Producto A", 100, 5),
+        "C" => new ProductoCajaDto(3, "C", "Producto C", 100, 0),
+        "B" => new ProductoCajaDto(2, "B", "Producto B", 250, 10),
         _ => null
     });
 }
