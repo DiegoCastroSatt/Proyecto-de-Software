@@ -8,22 +8,13 @@
     <div class="caja">
       <section>
         <form [formGroup]="formulario" (ngSubmit)="agregar()">
-          <label for="codigo">Código del producto</label>
-          <input #codigo id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="30"
-            placeholder="Escanea o escribe el código">
-          <label for="cantidad">Unidades por lectura</label>
-          <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
-          <button type="submit" [disabled]="guardando()">Agregar producto</button>
-        </form>
-        <section class="busqueda-manual" aria-labelledby="titulo-busqueda">
-          <h2 id="titulo-busqueda">Buscar producto</h2>
-          <label for="buscar-producto">Nombre o código del producto</label>
-          <input id="buscar-producto" type="search" autocomplete="off" placeholder="Escribe un nombre o parte del código"
-            [value]="terminoBusqueda()" (input)="buscarProductos($any($event.target).value)" [disabled]="guardando()"
-            aria-describedby="estado-busqueda">
+          <label for="codigo">Nombre o código del producto</label>
+          <input #codigo id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="150" [readOnly]="guardando()" aria-describedby="estado-busqueda"
+            placeholder="Escanea el código o escribe un nombre o código">
           <p id="estado-busqueda" role="status">
             @if (buscando()) { Buscando productos… }
             @else if (errorBusqueda()) { {{ errorBusqueda() }} }
+            @else if (terminoBusqueda().trim() && !coincidencias().length) { No se encontraron productos. }
             @else if (terminoBusqueda().trim()) { {{ coincidencias().length }} coincidencia(s). }
           </p>
           <ul class="coincidencias">
@@ -33,12 +24,16 @@
                   (click)="seleccionarProducto(producto)" [attr.aria-label]="'Agregar ' + producto.nombre + ', código ' + producto.codigoProducto">
                   <strong>{{ producto.nombre }}</strong>
                   <span>Código: {{ producto.codigoProducto }} · ${{ producto.precio | number:'1.0-2' }}</span>
-                  <small>{{ disponibles(producto) ? 'Disponibles: ' + disponibles(producto) : 'Sin stock disponible' }}</small>
+                  <small>Stock disponible: {{ disponibles(producto) }} · {{ producto.stock === 0 ? 'Agotado' : (disponibles(producto) ? 'Disponible' : 'Todo el stock está en la venta') }}</small>
                 </button>
               </li>
             }
           </ul>
-        </section>
+
+          <label for="cantidad">Unidades por lectura</label>
+          <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
+          <button type="submit" [disabled]="guardando()">Agregar producto</button>
+        </form>
         @if (pendientes()) { <p role="status">Consultando {{ pendientes() }} código(s)…</p> }
         <h2>Productos de la venta</h2>
         @if (!productos().length) { <p class="vacio">La venta está vacía. Escanea el primer producto.</p> }

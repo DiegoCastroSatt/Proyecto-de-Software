@@ -39,7 +39,7 @@ describe('Registro de ventas', () => {
 
   it('busca desde una letra y agrega la coincidencia por su código', async () => {
     const { fixture, dom } = preparar();
-    const input = dom.querySelector<HTMLInputElement>('#buscar-producto')!;
+    const input = dom.querySelector<HTMLInputElement>('#codigo')!;
     input.value = 'a'; input.dispatchEvent(new Event('input'));
     await new Promise(resolve => setTimeout(resolve, 300));
     fixture.detectChanges();
@@ -58,7 +58,7 @@ describe('Registro de ventas', () => {
     servicio.buscarCoincidencias.mockReturnValueOnce(anterior)
       .mockReturnValueOnce(of([{ ...producto, stock: 0 }]));
     const { fixture, dom } = preparar();
-    const input = dom.querySelector<HTMLInputElement>('#buscar-producto')!;
+    const input = dom.querySelector<HTMLInputElement>('#codigo')!;
     input.value = 'l'; input.dispatchEvent(new Event('input'));
     await new Promise(resolve => setTimeout(resolve, 300));
     input.value = 'a'; input.dispatchEvent(new Event('input'));
@@ -66,7 +66,65 @@ describe('Registro de ventas', () => {
     await new Promise(resolve => setTimeout(resolve, 300));
     fixture.detectChanges();
     expect(dom.querySelector<HTMLButtonElement>('.coincidencias button')!.disabled).toBe(true);
-    expect(dom.querySelector('.coincidencias')?.textContent).toContain('Sin stock disponible');
+    expect(dom.querySelector('.coincidencias')?.textContent).toContain('Agotado');
+  });
+
+  it('muestra un mensaje sin coincidencias y elimina la lista al borrar la búsqueda', async () => {
+    servicio.buscarCoincidencias.mockReturnValue(of([]));
+    const { fixture, dom } = preparar();
+    const input = dom.querySelector<HTMLInputElement>('#codigo')!;
+    input.value = 'xyz'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300));
+    fixture.detectChanges();
+    expect(dom.textContent).toContain('No se encontraron productos');
+    input.value = ''; input.dispatchEvent(new Event('input')); fixture.detectChanges();
+    expect(dom.textContent).not.toContain('No se encontraron productos');
+    expect(dom.querySelectorAll('.coincidencias button')).toHaveLength(0);
+  });
+
+  it('reutiliza la validación de stock al seleccionar un producto que ya está en la venta', async () => {
+    const { fixture, dom, agregar } = preparar();
+    agregar('A');
+    const input = dom.querySelector<HTMLInputElement>('#codigo')!;
+    const cantidad = dom.querySelector<HTMLInputElement>('#cantidad')!;
+    cantidad.value = '2'; cantidad.dispatchEvent(new Event('input'));
+    input.value = 'lentes'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300)); fixture.detectChanges();
+    expect(dom.querySelector('.coincidencias')?.textContent).toContain('Stock disponible: 1');
+    dom.querySelector<HTMLButtonElement>('.coincidencias button')!.click(); fixture.detectChanges();
+    expect(dom.textContent).toContain('stock insuficiente');
+    expect(dom.querySelector('.cantidad span')?.textContent).toBe('1');
+    expect(dom.querySelectorAll('.coincidencias button')).toHaveLength(0);
+    expect(input.value).toBe('');
+    agregar('A');
+    input.value = 'A'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300)); fixture.detectChanges();
+    expect(dom.querySelector<HTMLButtonElement>('.coincidencias button')!.disabled).toBe(true);
+    expect(dom.querySelector('.cantidad span')?.textContent).toBe('2');
+  });
+
+  it('permite reintentar la búsqueda después de un error', async () => {
+    servicio.buscarCoincidencias.mockReturnValueOnce(throwError(() => new Error('Error')))
+      .mockReturnValueOnce(of([producto]));
+    const { fixture, dom } = preparar();
+    const input = dom.querySelector<HTMLInputElement>('#codigo')!;
+    input.value = 'l'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300)); fixture.detectChanges();
+    expect(dom.textContent).toContain('No se pudieron buscar los productos');
+    input.value = 'le'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300)); fixture.detectChanges();
+    expect(dom.querySelectorAll('.coincidencias button')).toHaveLength(1);
+  });
+
+  it('usa un único campo y conserva el envío directo del lector sin esperar las coincidencias', async () => {
+    const { fixture, dom, agregar } = preparar();
+    expect(dom.querySelectorAll('input[type="text"], input:not([type])')).toHaveLength(1);
+    agregar('A');
+    await new Promise(resolve => setTimeout(resolve, 300)); fixture.detectChanges();
+    expect(servicio.buscar).toHaveBeenCalledWith('A');
+    expect(servicio.buscarCoincidencias).not.toHaveBeenCalled();
+    expect(dom.querySelector<HTMLInputElement>('#codigo')!.value).toBe('');
+    expect(dom.querySelectorAll('.coincidencias button')).toHaveLength(0);
   });
 
   it('acumula códigos repetidos y registra todos los productos juntos', () => {

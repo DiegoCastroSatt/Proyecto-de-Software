@@ -52,6 +52,9 @@ export class RegistroVentaComponent implements AfterViewInit {
       codigoProducto: ['', Validators.required],
       cantidad: [1, [Validators.required, Validators.min(1)]]
     });
+    this.formulario.controls.codigoProducto.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(termino => this.buscarProductos(termino ?? ''));
     this.consultas.pipe(
       switchMap(termino => !termino ? of({ productos: [] as ProductoCaja[], error: '' }) : timer(250).pipe(
         switchMap(() => this.servicio.buscarCoincidencias(termino)),
@@ -77,7 +80,6 @@ export class RegistroVentaComponent implements AfterViewInit {
     this.cola.push({ codigo, cantidad: unidades });
     this.pendientes.update(n => n + 1);
     this.formulario.reset({ codigoProducto: '', cantidad: 1 });
-    this.buscarProductos('');
     this.mensaje.set('');
     this.enfocar();
     this.procesarCola();
