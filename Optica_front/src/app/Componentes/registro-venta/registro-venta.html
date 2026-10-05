@@ -1,16 +1,35 @@
 <div class="app-shell">
   <main class="ventas">
     <div class="encabezado-ventas"><h1>Registrar venta</h1><a class="boton-ventas" routerLink="/admin/panel/ventas/historial">Ver ventas</a></div>
-    <p>Escanea un código o escríbelo y presiona Enter. Cada lectura agrega el producto a esta venta.</p>
+    <p>Escanea un código o busca el producto por su nombre o código para agregarlo a la venta.</p>
     @if (mensaje()) { <p class="exito" role="status">{{ mensaje() }}</p> }
     @if (error()) { <p class="error" role="alert">{{ error() }} <button type="button"
         (click)="error.set('')">Cerrar</button></p> }
     <div class="caja">
       <section>
         <form [formGroup]="formulario" (ngSubmit)="agregar()">
-          <label for="codigo">Código del producto</label>
-          <input #codigo id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="30"
-            placeholder="Escanea o escribe el código">
+          <label for="codigo">Nombre o código del producto</label>
+          <input #codigo id="codigo" formControlName="codigoProducto" autocomplete="off" maxlength="150" [readOnly]="guardando()" aria-describedby="estado-busqueda"
+            placeholder="Escanea el código o escribe un nombre o código">
+          <p id="estado-busqueda" role="status">
+            @if (buscando()) { Buscando productos… }
+            @else if (errorBusqueda()) { {{ errorBusqueda() }} }
+            @else if (terminoBusqueda().trim() && !coincidencias().length) { No se encontraron productos. }
+            @else if (terminoBusqueda().trim()) { {{ coincidencias().length }} coincidencia(s). }
+          </p>
+          <ul class="coincidencias">
+            @for (producto of coincidencias(); track producto.idProducto) {
+              <li>
+                <button type="button" [disabled]="guardando() || disponibles(producto) === 0"
+                  (click)="seleccionarProducto(producto)" [attr.aria-label]="'Agregar ' + producto.nombre + ', código ' + producto.codigoProducto">
+                  <strong>{{ producto.nombre }}</strong>
+                  <span>Código: {{ producto.codigoProducto }} · ${{ producto.precio | number:'1.0-2' }}</span>
+                  <small>Stock disponible: {{ disponibles(producto) }} · {{ producto.stock === 0 ? 'Agotado' : (disponibles(producto) ? 'Disponible' : 'Todo el stock está en la venta') }}</small>
+                </button>
+              </li>
+            }
+          </ul>
+
           <label for="cantidad">Unidades por lectura</label>
           <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
           <button type="submit" [disabled]="guardando()">Agregar producto</button>
