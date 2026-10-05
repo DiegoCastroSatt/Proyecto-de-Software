@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface Venta {
   idVenta: number;
@@ -37,6 +37,15 @@ export class RegistroVentaService {
 
   buscar(codigo: string): Observable<ProductoCaja> {
     return this.http.get<ProductoCaja>(`${this.url}/producto`, { params: { codigo } });
+  }
+
+  buscarCoincidencias(termino: string): Observable<ProductoCaja[]> {
+    return this.http.get<{ id: number; codigo: string; nombre: string; precio: number; stock: number }[]>(
+      'http://localhost:8080/api/Productos', { params: { termino } }
+    ).pipe(map(productos => productos.map(p => ({
+      idProducto: p.id, codigoProducto: p.codigo, nombre: p.nombre,
+      precio: p.precio, stock: p.stock, cantidad: 1
+    }))));
   }
 
   listar(): Observable<Venta[]> {

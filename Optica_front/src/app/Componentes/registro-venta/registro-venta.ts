@@ -1,4 +1,6 @@
-import { Component, signal, computed, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, signal, computed, ElementRef, ViewChild, AfterViewInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, timer, of, switchMap, catchError, map } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,6 +13,27 @@ import { RegistroVentaService, ProductoCaja } from './registro-venta.service';
   styleUrl: './registro-venta.css'
 })
 export class RegistroVentaComponent implements AfterViewInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly consultas = new Subject<string>();
+  protected readonly terminoBusqueda = signal('');
+  protected readonly coincidencias = signal<ProductoCaja[]>([]);
+  protected readonly buscando = signal(false);
+  protected readonly errorBusqueda = signal('');
+  protected buscarProductos(termino: string): void {
+    this.terminoBusqueda.set(termino);
+    this.coincidencias.set([]);
+    this.errorBusqueda.set('');
+    this.buscando.set(!!termino.trim());
+    this.consultas.next(termino.trim());
+  }
+  protected disponibles(producto: ProductoCaja): number {
+    return Math.max(0, producto.stock - (this.productos().find(p => p.idProducto === producto.idProducto)?.cantidad ?? 0));
+  }
+  protected seleccionarProducto(producto: ProductoCaja): void {
+    if (this.guardando() || !this.disponibles(producto)) return;
+    this.formulario.controls.codigoProducto.setValue(producto.codigoProducto);
+    this.agregar();
+  }
   protected readonly productos = signal<ProductoCaja[]>([]);
   @ViewChild('codigo') private codigoInput?: ElementRef<HTMLInputElement>;
   protected readonly pendientes = signal(0);
@@ -29,6 +52,18 @@ export class RegistroVentaComponent implements AfterViewInit {
       codigoProducto: ['', Validators.required],
       cantidad: [1, [Validators.required, Validators.min(1)]]
     });
+    this.consultas.pipe(
+      switchMap(termino => !termino ? of({ productos: [] as ProductoCaja[], error: '' }) : timer(250).pipe(
+        switchMap(() => this.servicio.buscarCoincidencias(termino)),
+        map(productos => ({ productos, error: '' })),
+        catchError(() => of({ productos: [] as ProductoCaja[], error: 'No se pudieron buscar los productos. Vuelve a escribir para reintentar.' }))
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(resultado => {
+      this.coincidencias.set(resultado.productos);
+      this.errorBusqueda.set(resultado.error);
+      this.buscando.set(false);
+    });
   }
   protected agregar(): void {
     if (this.guardando()) return;
@@ -42,6 +77,7 @@ export class RegistroVentaComponent implements AfterViewInit {
     this.cola.push({ codigo, cantidad: unidades });
     this.pendientes.update(n => n + 1);
     this.formulario.reset({ codigoProducto: '', cantidad: 1 });
+    this.buscarProductos('');
     this.mensaje.set('');
     this.enfocar();
     this.procesarCola();

@@ -1,7 +1,7 @@
 <div class="app-shell">
   <main class="ventas">
     <div class="encabezado-ventas"><h1>Registrar venta</h1><a class="boton-ventas" routerLink="/admin/panel/ventas/historial">Ver ventas</a></div>
-    <p>Escanea un código o escríbelo y presiona Enter. Cada lectura agrega el producto a esta venta.</p>
+    <p>Escanea un código o busca el producto por su nombre o código para agregarlo a la venta.</p>
     @if (mensaje()) { <p class="exito" role="status">{{ mensaje() }}</p> }
     @if (error()) { <p class="error" role="alert">{{ error() }} <button type="button"
         (click)="error.set('')">Cerrar</button></p> }
@@ -15,6 +15,30 @@
           <input id="cantidad" type="number" formControlName="cantidad" min="1" step="1">
           <button type="submit" [disabled]="guardando()">Agregar producto</button>
         </form>
+        <section class="busqueda-manual" aria-labelledby="titulo-busqueda">
+          <h2 id="titulo-busqueda">Buscar producto</h2>
+          <label for="buscar-producto">Nombre o código del producto</label>
+          <input id="buscar-producto" type="search" autocomplete="off" placeholder="Escribe un nombre o parte del código"
+            [value]="terminoBusqueda()" (input)="buscarProductos($any($event.target).value)" [disabled]="guardando()"
+            aria-describedby="estado-busqueda">
+          <p id="estado-busqueda" role="status">
+            @if (buscando()) { Buscando productos… }
+            @else if (errorBusqueda()) { {{ errorBusqueda() }} }
+            @else if (terminoBusqueda().trim()) { {{ coincidencias().length }} coincidencia(s). }
+          </p>
+          <ul class="coincidencias">
+            @for (producto of coincidencias(); track producto.idProducto) {
+              <li>
+                <button type="button" [disabled]="guardando() || disponibles(producto) === 0"
+                  (click)="seleccionarProducto(producto)" [attr.aria-label]="'Agregar ' + producto.nombre + ', código ' + producto.codigoProducto">
+                  <strong>{{ producto.nombre }}</strong>
+                  <span>Código: {{ producto.codigoProducto }} · ${{ producto.precio | number:'1.0-2' }}</span>
+                  <small>{{ disponibles(producto) ? 'Disponibles: ' + disponibles(producto) : 'Sin stock disponible' }}</small>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
         @if (pendientes()) { <p role="status">Consultando {{ pendientes() }} código(s)…</p> }
         <h2>Productos de la venta</h2>
         @if (!productos().length) { <p class="vacio">La venta está vacía. Escanea el primer producto.</p> }

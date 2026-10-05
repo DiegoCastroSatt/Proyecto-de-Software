@@ -8,11 +8,12 @@ import { RegistroVentaService, ProductoCaja, Venta } from './registro-venta.serv
 
 describe('Registro de ventas', () => {
   const producto = { idProducto: 1, codigoProducto: 'A', nombre: 'Lentes', precio: 100, stock: 2, cantidad: 1 };
-  const servicio = { listar: vi.fn(), buscar: vi.fn(), crear: vi.fn() };
+  const servicio = { listar: vi.fn(), buscar: vi.fn(), crear: vi.fn(), buscarCoincidencias: vi.fn() };
 
   beforeEach(async () => {
     vi.resetAllMocks();
     servicio.listar.mockReturnValue(of([]));
+    servicio.buscarCoincidencias.mockReturnValue(of([producto]));
     servicio.buscar.mockReturnValue(of(producto));
     servicio.crear.mockReturnValue(of({ idVenta: 1, fecha: '', total: 200, productos: [] }));
     await TestBed.configureTestingModule({
@@ -35,6 +36,38 @@ describe('Registro de ventas', () => {
     const registrar = () => Array.from(dom.querySelectorAll('button')).find(b => b.textContent?.includes('Registrar compra'))!;
     return { fixture, dom, agregar, registrar };
   }
+
+  it('busca desde una letra y agrega la coincidencia por su código', async () => {
+    const { fixture, dom } = preparar();
+    const input = dom.querySelector<HTMLInputElement>('#buscar-producto')!;
+    input.value = 'a'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300));
+    fixture.detectChanges();
+    expect(servicio.buscarCoincidencias).toHaveBeenCalledWith('a');
+    expect(dom.querySelector('.coincidencias')?.textContent).toContain('Lentes');
+    expect(dom.querySelector('.coincidencias')?.textContent).toContain('Código: A');
+    dom.querySelector<HTMLButtonElement>('.coincidencias button')!.click();
+    fixture.detectChanges();
+    expect(servicio.buscar).toHaveBeenCalledWith('A');
+    expect(dom.querySelectorAll('.linea')).toHaveLength(1);
+    expect(input.value).toBe('');
+  });
+
+  it('descarta una búsqueda anterior y bloquea coincidencias sin stock', async () => {
+    const anterior = new Subject<ProductoCaja[]>();
+    servicio.buscarCoincidencias.mockReturnValueOnce(anterior)
+      .mockReturnValueOnce(of([{ ...producto, stock: 0 }]));
+    const { fixture, dom } = preparar();
+    const input = dom.querySelector<HTMLInputElement>('#buscar-producto')!;
+    input.value = 'l'; input.dispatchEvent(new Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 300));
+    input.value = 'a'; input.dispatchEvent(new Event('input'));
+    anterior.next([producto]);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    fixture.detectChanges();
+    expect(dom.querySelector<HTMLButtonElement>('.coincidencias button')!.disabled).toBe(true);
+    expect(dom.querySelector('.coincidencias')?.textContent).toContain('Sin stock disponible');
+  });
 
   it('acumula códigos repetidos y registra todos los productos juntos', () => {
     const { dom, agregar, registrar } = preparar();
@@ -115,6 +148,7 @@ describe('Registro de ventas', () => {
     const dom = fixture.nativeElement as HTMLElement;
     expect(dom.querySelector('.rank-productos')?.textContent).toContain('No se pudo cargar el rank');
     servicio.listar.mockReturnValue(of([]));
+    servicio.buscarCoincidencias.mockReturnValue(of([producto]));
     dom.querySelector<HTMLButtonElement>('.rank-productos button')!.click();
     fixture.detectChanges();
     expect(dom.querySelector('.rank-productos')?.textContent).toContain('No hay ventas en el período seleccionado');
