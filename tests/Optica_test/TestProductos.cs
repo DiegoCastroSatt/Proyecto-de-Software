@@ -135,6 +135,54 @@ public class TestProductos
         }));
     }
 
+    [Theory]
+    [InlineData(0, 0, "Agotado")]
+    [InlineData(0, 5, "Agotado")]
+    [InlineData(1, 5, "Disponible")]
+    [InlineData(20, 5, "Disponible")]
+    public async Task ActualizarStock_PersisteCantidadesYEstado(int stock, int minimo, string estado)
+    {
+        var repositorio = new ProductoRepositorioPrueba { ProductoActual = new Producto
+        {
+            IdProducto = 7, Codigo = "OPT-007", Nombre = "Armazón", Categoria = "Armazones",
+            Precio = 12000, Stock = 4, StockMinimo = 1, Estado = "Agotado", RutaImagen = "/imagen.png"
+        }};
+        var resultado = await CrearServicio(repositorio).ActualizarStock(7,
+            new ActualizarStockDto { Stock = stock, StockMinimo = minimo });
+        Assert.NotNull(repositorio.UltimoProducto);
+        Assert.Equal(stock, repositorio.UltimoProducto.Stock);
+        Assert.Equal(minimo, repositorio.UltimoProducto.StockMinimo);
+        Assert.Equal(estado, resultado.Estado);
+        Assert.Equal(estado, repositorio.UltimoProducto.Estado);
+        Assert.Equal(12000m, repositorio.UltimoProducto.Precio);
+        Assert.Equal("/imagen.png", repositorio.UltimoProducto.RutaImagen);
+    }
+
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(1, -1)]
+    [InlineData(-1, -1)]
+    public async Task ActualizarStock_InvalidoNoModificaNiGuarda(int stock, int minimo)
+    {
+        var producto = new Producto { Stock = 5, StockMinimo = 2, Estado = "Disponible" };
+        var repositorio = new ProductoRepositorioPrueba { ProductoActual = producto };
+        await Assert.ThrowsAsync<ArgumentException>(() => CrearServicio(repositorio).ActualizarStock(7,
+            new ActualizarStockDto { Stock = stock, StockMinimo = minimo }));
+        Assert.Null(repositorio.UltimoProducto);
+        Assert.Equal(5, producto.Stock);
+        Assert.Equal(2, producto.StockMinimo);
+        Assert.Equal("Disponible", producto.Estado);
+    }
+
+    [Fact]
+    public async Task ActualizarStock_ProductoInexistenteNoGuarda()
+    {
+        var repositorio = new ProductoRepositorioPrueba();
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => CrearServicio(repositorio).ActualizarStock(999,
+            new ActualizarStockDto { Stock = 3, StockMinimo = 1 }));
+        Assert.Null(repositorio.UltimoProducto);
+    }
+
     private static ProductoService CrearServicio(ProductoRepositorioPrueba repositorio) =>
         new(repositorio, new EntornoPrueba());
 
