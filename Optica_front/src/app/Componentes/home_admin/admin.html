@@ -30,6 +30,51 @@
 
       <a routerLink="/admin/panel/crear-pedido" routerLinkActive="is-active">Crear Pedido</a>
     </nav>
+    <div class="notificaciones">
+      <button
+        class="boton-notificaciones"
+        type="button"
+        (click)="alternarNotificaciones()"
+        [attr.aria-expanded]="notificacionesAbiertas()"
+        aria-controls="panel-notificaciones"
+        [attr.aria-label]="'Notificaciones: ' + cantidadNotificaciones() + (cantidadNotificaciones() === 1 ? ' alerta de bajo stock' : ' alertas de bajo stock')">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        @if (cantidadNotificaciones() > 0) { <span class="contador-notificaciones">{{ cantidadNotificaciones() }}</span> }
+      </button>
+      @if (notificacionesAbiertas()) {
+        <section class="panel-notificaciones" id="panel-notificaciones" aria-label="Últimas notificaciones" aria-live="polite">
+          <h2>Notificaciones</h2>
+          @if (errorNotificaciones()) {
+            <p role="alert">No se pudieron cargar las notificaciones.</p>
+          } @if (notificaciones().length) {
+            <ul>
+              @for (notificacion of notificaciones(); track notificacion.id) {
+                <li>
+                  <div class="contenido-notificacion">
+                    <strong>Bajo stock: {{ notificacion.nombre }}</strong>
+                    <span>Quedan {{ notificacion.stock }}; mínimo {{ notificacion.stockMinimo }}.</span>
+                  </div>
+                  <button
+                    class="boton-eliminar-notificacion"
+                    type="button"
+                    (click)="eliminarNotificacion(notificacion.id)"
+                    [attr.aria-label]="'Eliminar notificación de ' + notificacion.nombre"
+                    title="Eliminar notificación">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (!errorNotificaciones()) {
+            <p>No hay alertas de bajo stock.</p>
+          }
+        </section>
+      }
+    </div>
     <div class="sesion-admin">
       @if (sesion.administrador(); as admin) { <span>{{ admin.nombre }}</span> }
       <button type="button" (click)="salir()">
