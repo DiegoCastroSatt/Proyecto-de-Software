@@ -92,12 +92,25 @@ public class TestRecetas : IDisposable
         public Task<Cliente?> BuscarClientePorRut(string rut) => Task.FromResult(Cliente);
         public Task<Receta> Crear(Receta receta) { receta.Id = 11; Guardada = receta; return Task.FromResult(receta); }
         public Task<Receta?> ObtenerPorId(int id) => Task.FromResult(Guardada);
-        public Task<List<Cliente>> BuscarClientesPorRutParcial(string rutParcial) =>
-            Task.FromResult(Cliente is not null && RutChilenoValidator.Normalizar(Cliente.Rut)
-                .StartsWith(RutChilenoValidator.Normalizar(rutParcial), StringComparison.OrdinalIgnoreCase)
-                ? new List<Cliente> { Cliente } : new List<Cliente>());
-        public Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId) =>
-            Task.FromResult(Guardada is not null && Guardada.ClienteId == clienteId
-                ? new List<Receta> { Guardada } : new List<Receta>());
+        public Task<List<Cliente>> BuscarClientesPorRutParcial(string rutParcial)
+        {
+            var clientes = new List<Cliente>();
+            if (Cliente is not null && RutChilenoValidator.Normalizar(Cliente.Rut).StartsWith(
+                RutChilenoValidator.Normalizar(rutParcial), StringComparison.OrdinalIgnoreCase))
+            {
+                clientes.Add(Cliente);
+            }
+            return Task.FromResult(clientes);
+        }
+
+        public Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId)
+        {
+            var recetas = new List<Receta>();
+            if (Guardada is not null && Guardada.ClienteId == clienteId)
+            {
+                recetas.Add(Guardada);
+            }
+            return Task.FromResult(recetas);
+        }
     }
 }
