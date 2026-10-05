@@ -5,9 +5,11 @@
     </a>
 
     <nav aria-label="Navegación del administrador">
-      <a routerLink="/admin/panel" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"> Dashboard </a>
+      <a routerLink="/admin/panel" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
 
       <a routerLink="/admin/panel/horarios" routerLinkActive="is-active"> Horarios </a>
+
+      <a routerLink="/admin/panel/agenda" routerLinkActive="is-active"> Agenda </a>
 
       <a routerLink="/admin/panel/clientes" routerLinkActive="is-active">Clientes</a>
 
@@ -30,7 +32,13 @@
     </nav>
     <div class="sesion-admin">
       @if (sesion.administrador(); as admin) { <span>{{ admin.nombre }}</span> }
-      <button type="button" (click)="salir()">Cerrar sesión</button>
+      <button type="button" (click)="salir()">
+        <span>Cerrar sesión</span>
+        <svg class="icono-salir" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M14 5V3H4v18h10v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M15 7v3H9v4h6v3l7-5Z" fill="currentColor" />
+        </svg>
+      </button>
       @if (errorSesion()) { <small role="alert">{{ errorSesion() }}</small> }
     </div>
   </header>

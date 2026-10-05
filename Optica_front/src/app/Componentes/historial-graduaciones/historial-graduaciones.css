@@ -1,0 +1,157 @@
+.historial-page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 52px) clamp(20px, 4vw, 24px) 64px;
+}
+
+.page-header .eyebrow {
+  margin: 0 0 10px;
+  color: var(--color-acento-hover);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-texto);
+}
+
+.page-subtitle {
+  margin: 10px 0 28px;
+  color: var(--color-texto-secundario);
+  font-size: 0.92rem;
+  max-width: 52ch;
+}
+
+.busqueda-card {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.field {
+  min-width: 0;
+  flex: 1;
+  max-width: 320px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-texto-etiqueta);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.busqueda-card button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-acento);
+  color: var(--color-superficie-calida);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.busqueda-card button:hover {
+  background: var(--color-acento-hover);
+  transform: translateY(-1px);
+}
+
+.busqueda-card button:disabled {
+  background: var(--color-boton-deshabilitado);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-message {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  border-left: 3px solid var(--color-error-borde);
+  background: var(--color-error-fondo);
+  color: #7a3527;
+}
+
+.sin-resultados {
+  color: var(--color-texto-secundario);
+}
+
+.historial-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.receta-card {
+  background: var(--color-superficie-calida);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
+  box-shadow: 0 18px 50px rgba(35, 67, 65, 0.1);
+  border-radius: 4px;
+  padding: 22px clamp(20px, 4vw, 28px);
+}
+
+.receta-card__header h2 {
+  margin: 0 0 4px;
+  color: var(--color-principal);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.receta-card__observaciones {
+  margin: 0;
+  color: var(--color-texto-secundario);
+  font-size: 0.86rem;
+}
+
+.graduaciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.graduacion-item h3 {
+  margin: 0 0 8px;
+  color: var(--color-texto-etiqueta);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.graduacion-item dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.graduacion-item dt {
+  font-weight: 600;
+  color: var(--color-texto-tabla);
+  font-size: 0.82rem;
+}
+
+.graduacion-item dd {
+  margin: 0;
+  color: var(--color-texto);
+  font-size: 0.82rem;
+}

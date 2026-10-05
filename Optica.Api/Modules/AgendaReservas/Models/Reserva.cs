@@ -7,4 +7,5 @@ public class Reserva
     public DateTime Fecha { get; set; }
     public TimeSpan Hora { get; set; }
     public string Estado { get; set; } = "Pendiente";
+    public string? Motivo { get; set; }
 }

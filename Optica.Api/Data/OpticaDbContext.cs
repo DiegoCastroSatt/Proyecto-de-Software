@@ -104,6 +104,10 @@ public class OpticaDbContext : DbContext
             entity.Property(r => r.Estado)
                 .HasColumnName("estado");
 
+            entity.Property(r => r.Motivo)
+                .HasColumnName("motivo")
+                .HasMaxLength(150);
+
         });
 
         modelBuilder.Entity<Horario>(entity =>

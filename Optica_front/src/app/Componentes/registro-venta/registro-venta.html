@@ -21,13 +21,16 @@
         @for (producto of productos(); track producto.idProducto) {
         <article class="linea">
           <div><strong>{{ producto.nombre }}</strong><small>{{ producto.codigoProducto }} · ${{ producto.precio |
-              number:'1.0-2' }} c/u</small></div>
+              number:'1.0-2' }} c/u</small>
+            @if (producto.cantidad >= producto.stock) { <small role="status">Sin productos en stock</small> }
+            @else { <small>Disponibles para agregar: {{ producto.stock - producto.cantidad }}</small> }
+          </div>
           <div class="cantidad">
             <button type="button" [disabled]="guardando() || pendientes() > 0 || producto.cantidad <= 1"
               (click)="cambiarCantidad(producto.idProducto, -1)"
               [attr.aria-label]="'Restar unidad de ' + producto.nombre">−</button>
             <span>{{ producto.cantidad }}</span>
-            <button type="button" [disabled]="guardando() || pendientes() > 0"
+            <button type="button" [disabled]="guardando() || pendientes() > 0 || producto.cantidad >= producto.stock"
               (click)="cambiarCantidad(producto.idProducto, 1)"
               [attr.aria-label]="'Sumar unidad de ' + producto.nombre">+</button>
           </div>

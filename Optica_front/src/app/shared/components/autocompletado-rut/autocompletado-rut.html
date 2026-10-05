@@ -1,0 +1,26 @@
+<div class="autocompletado-rut">
+  <input
+    type="text"
+    class="autocompletado-rut__input"
+    [value]="value()"
+    (input)="onInputChange($any($event.target).value)"
+    (blur)="ocultarSugerencias()"
+    (focus)="mostrarSugerencias.set(sugerencias().length > 0)"
+    placeholder="Ingresa el RUT del cliente"
+    autocomplete="off"
+  />
+
+  @if (mostrarSugerencias()) {
+    <ul class="autocompletado-rut__lista">
+      @for (sugerencia of sugerencias(); track sugerencia.rut) {
+        <li
+          class="autocompletado-rut__item"
+          (mousedown)="seleccionarSugerencia(sugerencia)"
+        >
+          <span class="autocompletado-rut__rut">{{ sugerencia.rut }}</span>
+          <span class="autocompletado-rut__nombre">{{ sugerencia.nombre }} {{ sugerencia.apellido }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>

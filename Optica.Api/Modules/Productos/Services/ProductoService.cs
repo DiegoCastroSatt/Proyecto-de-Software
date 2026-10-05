@@ -127,6 +127,7 @@ public class ProductoService : IProductoService
 
         producto.Stock = dto.Stock;
         producto.StockMinimo = dto.StockMinimo;
+        producto.Estado = dto.Stock > 0 ? "Disponible" : "Agotado";
         return Mapear(await _productoRepository.Actualizar(producto));
     }
 

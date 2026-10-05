@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, ElementRef, ViewChild, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, signal, computed, ElementRef, ViewChild, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import type { Chart as ChartType } from 'chart.js';
@@ -66,8 +66,16 @@ interface ResumenMensual {
   templateUrl: './ver-ventas.html',
   styleUrls: ['../registro-venta/registro-venta.css', './ver-ventas.css']
 })
-export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('graficoIngresos') private graficoIngresos?: ElementRef<HTMLCanvasElement>;
+export class VerVentasComponent implements OnInit, OnDestroy {
+  private graficoIngresos?: ElementRef<HTMLCanvasElement>;
+
+  @ViewChild('graficoIngresos')
+  private set lienzoGrafico(elemento: ElementRef<HTMLCanvasElement> | undefined) {
+    this.graficoIngresos = elemento;
+    if (elemento && isPlatformBrowser(this.platformId)) {
+      queueMicrotask(() => void this.actualizarGrafico());
+    }
+  }
   private grafico?: ChartType;
   private relojRank?: ReturnType<typeof setInterval>;
   private destruido = false;
@@ -75,11 +83,12 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly error = signal('');
   constructor(private readonly servicio: RegistroVentaService,
     @Inject(PLATFORM_ID) private readonly platformId: object) {}
-  ngAfterViewInit(): void { void this.actualizarGrafico(); }
   ngOnDestroy(): void {
     this.destruido = true;
+    this.revisionGrafico++;
     if (this.relojRank !== undefined) clearInterval(this.relojRank);
     this.grafico?.destroy();
+    this.grafico = undefined;
   }
   protected readonly periodoRank = signal<PeriodoVentas>('semana');
   protected readonly limiteRank = signal<5 | 10>(5);
@@ -166,26 +175,71 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
     const { jsPDF } = await import('jspdf');
     const moneda = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
     const documento = new jsPDF({ unit: 'pt', format: 'a4' });
-    const lineas = [
-      'INFORME DE VENTAS',
-      `Centro Óptico San Francisco · ${new Intl.DateTimeFormat('es-CL', { dateStyle: 'long' }).format(new Date())}`,
-      '',
-      `Ingreso del mes: ${moneda.format(this.mesActual().ingreso)}`,
-      `Ventas del mes: ${this.mesActual().cantidad}`,
-      '',
-      'Ingresos de los últimos 12 meses',
-      ...this.meses().map(mes => `${mes.etiqueta}: ${moneda.format(mes.ingreso)} (${mes.cantidad} ventas)`)
-    ];
-    let posicionY = 48;
-
-    lineas.forEach(linea => {
-      if (posicionY > 790) {
-        documento.addPage();
-        posicionY = 48;
+    const ancho = documento.internal.pageSize.getWidth();
+    const alto = documento.internal.pageSize.getHeight();
+    const margen = 42;
+    const contenido = ancho - margen * 2;
+    const verde = '#1d4a47';
+    const gris = '#657873';
+    const meses = this.meses();
+    const fecha = new Intl.DateTimeFormat('es-CL', { dateStyle: 'long' }).format(new Date());
+    const texto = (valor: string, x: number, y: number, tamano = 10, color = verde,
+      negrita = false, alineacion: 'left' | 'right' = 'left', maxAncho = Infinity) => {
+      documento.setFont('helvetica', negrita ? 'bold' : 'normal');
+      documento.setTextColor(color);
+      documento.setFontSize(tamano);
+      while (documento.getTextWidth(valor) > maxAncho && documento.getFontSize() > 12) {
+        documento.setFontSize(documento.getFontSize() - 1);
       }
-      documento.text(linea, 40, posicionY);
-      posicionY += 18;
+      documento.text(valor, x, y, { align: alineacion });
+    };
+    const fondo = (x: number, y: number, ancho: number, alto: number, color: string, radio = 0) => {
+      documento.setFillColor(color);
+      documento.roundedRect(x, y, ancho, alto, radio, radio, 'F');
+    };
+    const fila = (valores: string[], y: number, alto: number, color: string, negrita = false,
+      tinta = verde, desplazamiento = 16) => {
+      fondo(margen, y, contenido, alto, color);
+      const columnas = [margen + 14, ancho - margen - 170, ancho - margen - 14];
+      valores.forEach((valor, i) => texto(valor, columnas[i], y + desplazamiento, 10, tinta, negrita, i ? 'right' : 'left'));
+    };
+
+    documento.setProperties({ title: 'Informe de ventas - Óptica San Francisco', author: 'Centro Óptico San Francisco' });
+    fondo(0, 0, ancho, 142, verde);
+    fondo(0, 142, ancho, 4, '#bf8542');
+    texto('CENTRO ÓPTICO SAN FRANCISCO', margen, 39, 10, '#e5c58d', true);
+    texto('Informe de ventas', margen, 79, 28, '#ffffff', true);
+    texto(`Emitido el ${fecha}`, margen, 108, 10, '#ffffff');
+    texto('Moneda: pesos chilenos (CLP)', margen, 125, 10, '#ffffff');
+
+    const actual = this.mesActual();
+    const tarjetas = [
+      ['INGRESOS DEL MES', moneda.format(actual.ingreso), actual.etiqueta],
+      ['VENTAS DEL MES', String(actual.cantidad), 'Ventas registradas en el mes actual']
+    ];
+    tarjetas.forEach(([titulo, valor, detalle], indice) => {
+      const x = margen + indice * (contenido + 16) / 2;
+      const anchoTarjeta = (contenido - 16) / 2;
+      fondo(x, 170, anchoTarjeta, 100, '#eef3f0', 6);
+      texto(titulo, x + 16, 193, 10, gris);
+      texto(valor, x + 16, 226, 23, verde, true, 'left', anchoTarjeta - 32);
+      texto(detalle, x + 16, 249, 9, gris);
     });
+    texto('Ingresos de los últimos 12 meses', margen, 307, 15, verde, true);
+    texto(`${meses[0]?.etiqueta ?? ''} a ${meses[meses.length - 1]?.etiqueta ?? ''}`, margen, 325, 9, gris);
+    fila(['MES', 'VENTAS', 'INGRESOS (CLP)'], 342, 28, verde, true, '#ffffff', 18);
+    meses.forEach((mes, i) => fila(
+      [mes.etiqueta, String(mes.cantidad), moneda.format(mes.ingreso)],
+      370 + i * 25, 25, i % 2 === 0 ? '#f2f5f3' : '#ffffff', mes.clave === actual.clave
+    ));
+    const y = 370 + meses.length * 25;
+    fila(['TOTAL DEL PERÍODO', String(meses.reduce((s, m) => s + m.cantidad, 0)),
+      moneda.format(meses.reduce((s, m) => s + m.ingreso, 0))], y, 32, '#e1eae5', true, verde, 21);
+    texto('Resumen elaborado con las ventas registradas en el sistema.', margen, y + 55, 9, gris);
+    documento.setDrawColor('#d5dfd9');
+    documento.line(margen, alto - 48, ancho - margen, alto - 48);
+    texto('Óptica San Francisco | Informe administrativo', margen, alto - 30, 8, gris);
+    texto('Página 1 de 1', ancho - margen, alto - 30, 8, gris, false, 'right');
 
     return documento.output('blob');
   }
@@ -197,11 +251,18 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const revision = ++this.revisionGrafico;
     const { Chart, registerables } = await import('chart.js');
-    if (this.destruido || revision !== this.revisionGrafico) return;
+    if (this.destruido || revision !== this.revisionGrafico ||
+        lienzo !== this.graficoIngresos?.nativeElement || !lienzo.isConnected) return;
     Chart.register(...registerables);
 
     this.grafico?.destroy();
+    Chart.getChart(lienzo)?.destroy();
     const meses = this.meses();
+    const moneda = new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      maximumFractionDigits: 0
+    });
     this.grafico = new Chart(lienzo, {
       type: 'bar',
       data: {
@@ -218,7 +279,18 @@ export class VerVentasComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: contexto => `Ingreso: ${moneda.format(Number(contexto.raw ?? 0))}`,
+              afterLabel: contexto => {
+                const cantidad = meses[contexto.dataIndex]?.cantidad ?? 0;
+                return `${cantidad} ${cantidad === 1 ? 'venta' : 'ventas'}`;
+              }
+            }
+          }
+        },
         scales: { y: { beginAtZero: true } }
       }
     });

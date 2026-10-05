@@ -35,6 +35,10 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
             }
             if ((long)detalle.Cantidad + item.Cantidad > int.MaxValue)
                 throw new ArgumentException("La cantidad del producto es demasiado grande.");
+            if (producto.Stock <= 0)
+                throw new ArgumentException($"{producto.Nombre}: Sin productos en stock.");
+            if ((long)detalle.Cantidad + item.Cantidad > producto.Stock)
+                throw new ArgumentException($"{producto.Nombre}: stock insuficiente. Disponibles: {producto.Stock}.");
             detalle.Cantidad += item.Cantidad;
         }
         calculo.Calcular(venta);
