@@ -15,6 +15,9 @@ using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Autenticacion.Interfaces;
 using Optica.Api.Modules.Autenticacion.Repositories;
 using Optica.Api.Modules.Autenticacion.Services;
+using Optica.Api.Modules.Clientes.Interfaces;
+using Optica.Api.Modules.Clientes.Repositories;
+using Optica.Api.Modules.Clientes.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +62,9 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
+
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
