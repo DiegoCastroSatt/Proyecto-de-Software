@@ -152,12 +152,10 @@
     </div>
     <div style="padding: 20px;">
       <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-        <input 
-          type="text" 
-          [(ngModel)]="terminoBusqueda" 
-          (keyup.enter)="consultar()" 
-          placeholder="Buscar por Nombre, Apellido o RUT..."
-          style="flex: 1; padding: 8px 12px; border: 1px solid var(--color-borde-neutro); border-radius: 4px;"
+        <app-autocompletado-rut
+          [(value)]="terminoBusqueda"
+          (keyup.enter)="consultar()"
+          style="flex: 1; min-width: 0"
         />
         <button 
           (click)="consultar()" 
@@ -189,7 +187,7 @@
                 [style.background-color]="c.estado === 'Inactivo' ? '#fbfbfb' : 'var(--color-superficie)'"
               >
                 <td style="padding: 10px; font-weight: bold;">{{ c.rut }}</td>
-                <td class="detalle-formulario-1">{{ c.nombre }}</td>
+                <td class="detalle-formulario-1"><a routerLink="/admin/panel/recetas/cliente" [queryParams]="{ rut: c.rut }" [attr.aria-label]="'Ver recetas de ' + c.nombre + ' ' + c.apellido">{{ c.nombre }}</a></td>
                 <td class="detalle-formulario-1">{{ c.apellido }}</td>
                 <td class="detalle-formulario-1">{{ c.telefono || '-' }}</td>
                 <td class="detalle-formulario-1">{{ c.correo || '-' }}</td>
