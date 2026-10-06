@@ -19,6 +19,7 @@ import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
+import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
 
 export const routes: Routes = [
   {
@@ -54,7 +55,8 @@ export const routes: Routes = [
           { path: 'recetas', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
           { path: 'crear-pedido', component: CrearPedidoComponent },
-          { path: 'pedido/:id', component: DetallePedidoComponent }
+          { path: 'pedido/:id', component: DetallePedidoComponent },
+          { path: 'historial-graduaciones', component: HistorialGraduaciones }
         ]
       }
     ]

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PedidoService, PedidoResponse } from './pedido.service';
@@ -11,6 +11,15 @@ import { PedidoService, PedidoResponse } from './pedido.service';
 })
 export class PedidoComponent implements OnInit {
   protected readonly pedidos = signal<PedidoResponse[]>([]);
+  protected readonly terminoBusqueda = signal<string>('');
+
+  protected readonly pedidosFiltrados = computed(() => {
+    const termino = this.terminoBusqueda().toLowerCase().trim();
+    if (!termino) {
+      return this.pedidos();
+    }
+    return this.pedidos().filter(p => p.nombreCliente.toLowerCase().includes(termino));
+  });
 
   constructor(private readonly pedidoService: PedidoService) {}
 
