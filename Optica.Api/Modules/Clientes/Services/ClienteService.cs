@@ -94,4 +94,13 @@ public class ClienteService : IClienteService
         await _repository.ActualizarAsync(cliente);
         return cliente;
     }
+    public async Task<HistorialClienteDto?> ObtenerHistorialAsync(int idCliente)
+{
+    var historial = await _repository.ObtenerHistorialAsync(idCliente);
+    if (historial == null)
+    {
+        throw new KeyNotFoundException($"No se encontró el cliente con ID {idCliente}.");
+    }
+    return historial;
+}
 }
