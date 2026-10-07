@@ -1,6 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
-import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ClienteService, Cliente, HistorialCliente } from './cliente.service';
@@ -15,7 +14,7 @@ function requireContactValidator(group: AbstractControl): ValidationErrors | nul
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, AutocompletadoRut],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, AutocompletadoRut],
   templateUrl: './clientes.html',
   styles: [`
     .clientes-contenedor {

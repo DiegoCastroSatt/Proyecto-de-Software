@@ -179,7 +179,7 @@
                 [style.background-color]="c.estado === 'Inactivo' ? '#fbfbfb' : 'var(--color-superficie)'"
               >
                 <td style="padding: 10px; font-weight: bold;">{{ c.rut }}</td>
-                <td class="detalle-formulario-1"><a class="nombre-cliente" routerLink="/admin/panel/recetas/cliente" [queryParams]="{ rut: c.rut }" [attr.aria-label]="'Ver recetas de ' + c.nombre + ' ' + c.apellido">{{ c.nombre }}</a></td>
+                <td class="detalle-formulario-1">{{ c.nombre }}</td>
                 <td class="detalle-formulario-1">{{ c.apellido }}</td>
                 <td class="detalle-formulario-1">{{ c.telefono || '-' }}</td>
                 <td class="detalle-formulario-1">{{ c.correo || '-' }}</td>
