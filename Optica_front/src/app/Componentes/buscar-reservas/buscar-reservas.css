@@ -151,6 +151,22 @@ h1 { margin-bottom: .5rem; font-size: clamp(1.8rem, 4vw, 2.5rem); }
 .acciones-reserva .boton-cancelar:disabled { cursor: not-allowed; opacity: .55; }
 .mensaje-cancelacion { flex-basis: 100%; margin: 0; color: #9a342d; font-size: .9rem; }
 .acciones-pendientes { margin: .7rem 0 0; color: #879699; font-size: .82rem; text-align: center; }
+.boton-reprogramar { color: #176b6c !important; border-color: #9fc7c0 !important; cursor: pointer; }
+.mensaje-exito { padding: .75rem; border-radius: .65rem; color: #28644e; background: #e0f3e9; }
+.modal-reprogramacion-fondo { z-index: 1001; }
+.modal-reprogramacion { width: min(100%, 620px); }
+.reserva-actual { padding: .85rem; border-radius: .7rem; color: #415b60; background: #f3f8f6; line-height: 1.8; }
+.selector-fecha { display: grid; gap: .45rem; margin: 1rem 0 1.4rem; color: #31535a; font-weight: 700; }
+.selector-fecha input { width: 100%; padding: .7rem; border: 1px solid #cbd8d6; border-radius: .6rem; color: inherit; font: inherit; }
+.modal-reprogramacion h3 { margin-bottom: .7rem; font-size: 1rem; }
+.horarios-disponibles { display: flex; flex-wrap: wrap; gap: .55rem; }
+.horarios-disponibles button, .acciones-modal-reprogramar button { padding: .7rem .9rem; border: 1px solid #cbd8d6; border-radius: .65rem; color: #31535a; background: #f3f8f6; font: inherit; font-weight: 700; cursor: pointer; }
+.horarios-disponibles button.seleccionado { border-color: #176b6c; color: #fff; background: #176b6c; }
+.horarios-disponibles button:disabled, .acciones-modal-reprogramar button:disabled { cursor: not-allowed; opacity: .55; }
+.sin-horarios { color: #63777c; }
+.acciones-modal-reprogramar { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .65rem; margin-top: 1.5rem; }
+.acciones-modal-reprogramar .boton-confirmar { border-color: #176b6c; color: #fff; background: #176b6c; }
+.acciones-modal-reprogramar .boton-confirmar:disabled { cursor: not-allowed; opacity: .5; }
 
 @media (max-width: 600px) {
   .reserva-tarjeta { grid-template-columns: 4rem minmax(0, 1fr) auto; gap: .65rem; padding: .9rem; }

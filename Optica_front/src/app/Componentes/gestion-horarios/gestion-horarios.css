@@ -181,6 +181,16 @@ small {
 	box-shadow: none;
 }
 
+.duration-badge {
+	display: grid;
+	place-items: center;
+	width: 80px;
+	height: 22px;
+
+	color: var(--color-acento-hover);
+	font-family: Georgia, serif;
+}
+
 .help-icon {
 	display: grid;
 	place-items: center;

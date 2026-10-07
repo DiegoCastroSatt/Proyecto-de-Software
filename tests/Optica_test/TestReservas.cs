@@ -88,6 +88,76 @@ public class TestReservas
     }
 
     [Fact]
+    public async Task ReprogramarReserva_ActualizaHorarioSinCambiarCliente()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15, Horarios =
+        [ new() { Id = 15, Estado = "Inhabilitada" }, new() { Id = 27, Estado = "Habilitada" } ] };
+        var servicio = new ReservaService(repositorio);
+
+        await servicio.ReprogramarReserva(25, 27, CancellationToken.None);
+
+        Assert.Equal(27, repositorio.HorarioId);
+        Assert.Equal(8, repositorio.ClienteId);
+        Assert.Equal(1, repositorio.CantidadReservas);
+        Assert.Equal("Habilitada", repositorio.Horarios.Single(h => h.Id == 15).Estado);
+        Assert.Equal("Inhabilitada", repositorio.Horarios.Single(h => h.Id == 27).Estado);
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_RechazaHorarioOcupadoSinModificarReserva()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15, HorarioOcupado = true,
+            Horarios = [ new() { Id = 15, Estado = "Inhabilitada" }, new() { Id = 27, Estado = "Habilitada" } ] };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => new ReservaService(repositorio).ReprogramarReserva(25, 27, CancellationToken.None));
+
+        Assert.Contains("ya no está disponible", error.Message);
+        Assert.Equal(15, repositorio.HorarioId);
+        Assert.Equal(8, repositorio.ClienteId);
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_RechazaHorarioInexistenteSinModificarReserva()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15 };
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => new ReservaService(repositorio).ReprogramarReserva(25, 27, CancellationToken.None));
+
+        Assert.Equal(15, repositorio.HorarioId);
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_RechazaReservaInexistente()
+    {
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => new ReservaService(new ReservaRepositorioPrueba()).ReprogramarReserva(25, 27, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_RechazaHorarioInhabilitadoSinModificarReserva()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15,
+            Horarios = [ new() { Id = 27, Estado = "Inhabilitada" } ] };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => new ReservaService(repositorio).ReprogramarReserva(25, 27, CancellationToken.None));
+
+        Assert.Contains("no está disponible", error.Message);
+        Assert.Equal(15, repositorio.HorarioId);
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_RechazaElMismoHorarioActual()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15,
+            Horarios = [ new() { Id = 15, Estado = "Inhabilitada" } ] };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => new ReservaService(repositorio).ReprogramarReserva(25, 15, CancellationToken.None));
+
+        Assert.Contains("distinto al horario actual", error.Message);
+        Assert.Equal(15, repositorio.HorarioId);
+        Assert.Equal(8, repositorio.ClienteId);
+    }
+
+    [Fact]
     public async Task CrearReserva_RechazaHorarioInvalido()
     {
         var repositorio = new ReservaRepositorioPrueba();
@@ -161,8 +231,13 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public Reserva? ReservaCreada { get; set; }
     public IReadOnlyList<Horario> Horarios { get; set; } = [];
     public bool CorreoUsadoPorOtroCliente { get; set; }
+    public int ReservaId { get; set; }
+    public int ClienteId { get; set; }
+    public int HorarioId { get; set; }
+    public bool HorarioOcupado { get; set; }
+    public int CantidadReservas { get; private set; } = 1;
 
-    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() => Task.FromResult(Horarios);
+    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles(DateTime? fecha = null, int? excluirReservaId = null) => Task.FromResult(Horarios);
 
     public Task<IReadOnlyList<ReservaAgendaResponseDto>> ObtenerAgenda(bool historialAtendidas, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<ReservaAgendaResponseDto>>([]);
@@ -180,4 +255,19 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public Task<Reserva> Crear(Reserva reserva) => Task.FromResult(reserva);
     public Task<Reserva?> ObtenerPorId(int id) => Task.FromResult<Reserva?>(null);
     public Task<bool> CancelarReserva(int id, CancellationToken cancellationToken) => Task.FromResult(false);
+
+    public Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken)
+    {
+        if (ReservaId != id) return Task.FromResult(false);
+        var horario = Horarios.SingleOrDefault(h => h.Id == idHorario);
+        if (horario is null) throw new KeyNotFoundException("El horario seleccionado no existe.");
+        if (idHorario == HorarioId) throw new InvalidOperationException("El nuevo horario debe ser distinto al horario actual.");
+        if (horario.Estado != "Habilitada" || HorarioOcupado)
+            throw new InvalidOperationException(horario.Estado != "Habilitada" ? "El horario seleccionado no está disponible." : "El horario seleccionado ya no está disponible.");
+        var anterior = Horarios.Single(h => h.Id == HorarioId);
+        anterior.Estado = "Habilitada";
+        horario.Estado = "Inhabilitada";
+        HorarioId = idHorario;
+        return Task.FromResult(true);
+    }
 }
