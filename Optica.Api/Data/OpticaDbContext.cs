@@ -108,6 +108,20 @@ public class OpticaDbContext : DbContext
                 .HasColumnName("motivo")
                 .HasMaxLength(150);
 
+            entity.Property(r => r.TokenConfirmacionHash)
+                .HasColumnName("token_confirmacion_hash")
+                .HasMaxLength(64);
+            entity.Property(r => r.TokenCancelacionHash)
+                .HasColumnName("token_cancelacion_hash")
+                .HasMaxLength(64);
+            entity.Property(r => r.TokenAccionExpiraUtc)
+                .HasColumnName("token_accion_expira_utc");
+            entity.Property(r => r.RecordatorioEnviadoUtc)
+                .HasColumnName("recordatorio_enviado_utc");
+            entity.HasIndex(r => r.TokenConfirmacionHash).IsUnique();
+            entity.HasIndex(r => r.TokenCancelacionHash).IsUnique();
+            entity.HasIndex(r => new { r.Estado, r.RecordatorioEnviadoUtc });
+
         });
 
         modelBuilder.Entity<Horario>(entity =>

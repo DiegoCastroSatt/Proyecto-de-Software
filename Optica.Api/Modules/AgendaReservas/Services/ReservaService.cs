@@ -1,17 +1,31 @@
 using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.AgendaReservas.DTOs;
+using Optica.Api.Modules.AgendaReservas.Interfaces;
+using Optica.Api.Modules.AgendaReservas.Services;
 using Optica.Api.Modules.Clientes.Services;
+using System.Net.Mail;
 public class ReservaService : IReservaService
 {
     private readonly IReservaRepository _reservaRepository;
+    private readonly IReservaCorreoService _correoService;
+    private readonly TimeProvider _proveedorTiempo;
+    private readonly ILogger<ReservaService> _logger;
 
     public ReservaService(
-        IReservaRepository reservaRepository)
+        IReservaRepository reservaRepository,
+        IReservaCorreoService correoService,
+        TimeProvider proveedorTiempo,
+        ILogger<ReservaService> logger)
     {
         _reservaRepository = reservaRepository;
+        _correoService = correoService;
+        _proveedorTiempo = proveedorTiempo;
+        _logger = logger;
     }
 
     public async Task<ReservaResponseDto> CrearReserva(
-        CrearReservaDto dto)
+        CrearReservaDto dto,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.NombreCompleto) || string.IsNullOrWhiteSpace(dto.Rut) || dto.IdHorario <= 0)
         {
@@ -28,6 +42,23 @@ public class ReservaService : IReservaService
             throw new ArgumentException("El teléfono debe ser un celular válido de 9 dígitos; puedes incluir el prefijo +56.");
         }
 
+        if (string.IsNullOrWhiteSpace(dto.Correo))
+        {
+            throw new ArgumentException("El correo electrónico es obligatorio para enviar la confirmación de la reserva.");
+        }
+        try
+        {
+            var correo = new MailAddress(dto.Correo.Trim());
+            if (!string.Equals(correo.Address, dto.Correo.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("El correo electrónico no tiene un formato válido.");
+            }
+        }
+        catch (FormatException)
+        {
+            throw new ArgumentException("El correo electrónico no tiene un formato válido.");
+        }
+
         var rutNormalizado = RutChilenoValidator.Normalizar(dto.Rut);
         if (!string.IsNullOrWhiteSpace(dto.Correo)
             && await _reservaRepository.ExisteCorreoEnOtroCliente(dto.Correo, rutNormalizado))
@@ -35,14 +66,33 @@ public class ReservaService : IReservaService
             throw new ArgumentException("Ese correo ya está registrado con otro cliente. Ingresa otro correo o revisa el RUT.");
         }
 
-        var reservaCreada = await _reservaRepository.CrearReserva(dto);
+        var tokenConfirmacion = TokenAccionReserva.Crear();
+        var tokenCancelacion = TokenAccionReserva.Crear();
+        var reservaCreada = await _reservaRepository.CrearReserva(
+            dto,
+            TokenAccionReserva.ObtenerHash(tokenConfirmacion),
+            TokenAccionReserva.ObtenerHash(tokenCancelacion));
+
+        var correoEnviado = false;
+        try
+        {
+            var detalleCorreo = await _reservaRepository.ObtenerDatosCorreoReserva(reservaCreada.Id, CancellationToken.None);
+            correoEnviado = detalleCorreo is not null
+                && await _correoService.EnviarReservaCreada(detalleCorreo, tokenConfirmacion, tokenCancelacion, CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            _logger.LogError("La reserva {ReservaId} se guardó, pero no se pudo preparar o enviar su correo inicial.", reservaCreada.Id);
+        }
+
         return new ReservaResponseDto
         {
             Id = reservaCreada.Id,
             IdHorario = reservaCreada.HorarioId,
             Fecha = reservaCreada.Fecha,
             Hora = reservaCreada.Hora,
-            Estado = reservaCreada.Estado
+            Estado = reservaCreada.Estado,
+            CorreoEnviado = correoEnviado
         };
     }
 
@@ -74,4 +124,17 @@ public class ReservaService : IReservaService
             throw new KeyNotFoundException("La reserva no existe.");
         }
     }
+
+    public async Task<ResultadoAccionReserva> EjecutarAccionPorToken(string token, bool confirmar, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return new ResultadoAccionReserva { Tipo = TipoResultadoAccionReserva.TokenInvalido };
+        }
+
+        var ahoraUtc = _proveedorTiempo.GetUtcNow().UtcDateTime;
+        return await _reservaRepository.EjecutarAccionPorToken(
+            TokenAccionReserva.ObtenerHash(token), confirmar, ahoraUtc, cancellationToken);
+    }
+
 }
