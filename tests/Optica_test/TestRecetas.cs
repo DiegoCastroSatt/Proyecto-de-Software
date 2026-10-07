@@ -87,28 +87,6 @@ public class TestRecetas : IDisposable
     }
 
     [Fact]
-    public async Task Actualizar_ConservaIdYReemplazaDatosSinDuplicar()
-    {
-        var repo = new RepositorioRecetas();
-        var servicio = Servicio(repo);
-        await servicio.CrearReceta(new CrearRecetaDto { Rut = "123456785", GraduacionesJson = "[{\"ojo\":\"OD\",\"esfera\":-1}]" });
-        var resultado = await servicio.ActualizarReceta(11, new CrearRecetaDto
-        {
-            Rut = "123456785", Fecha = new DateTime(2026, 10, 6), Observaciones = "Corregida",
-            GraduacionesJson = "[{\"ojo\":\"OI\",\"esfera\":-2}]"
-        });
-        Assert.Equal(11, resultado.Id);
-        Assert.Equal("Corregida", resultado.Observaciones);
-        Assert.Equal(new DateTime(2026, 10, 6), resultado.Fecha);
-        Assert.Single(resultado.Graduaciones);
-        Assert.Equal("OI", resultado.Graduaciones[0].Ojo);
-        Assert.Equal(-2m, resultado.Graduaciones[0].Esfera);
-        var cargada = await servicio.ObtenerReceta(11);
-        Assert.Equal("123456785", cargada.Rut);
-        Assert.Equal("Corregida", cargada.Observaciones);
-    }
-
-    [Fact]
     public async Task Actualizar_InvalidaNoModificaRecetaExistente()
     {
         var repo = new RepositorioRecetas();
@@ -118,22 +96,6 @@ public class TestRecetas : IDisposable
             new CrearRecetaDto { Rut = "123456785", Observaciones = "Cambio", GraduacionesJson = "no-json" }));
         Assert.Equal("Original", repo.Guardada!.Observaciones);
         Assert.Single(repo.Guardada.Graduaciones);
-    }
-
-    [Fact]
-    public async Task Actualizar_ConservaImagenSinSubirlaOtraVez()
-    {
-        var repo = new RepositorioRecetas();
-        var servicio = Servicio(repo);
-        using var bytes = new MemoryStream(new byte[] { 1, 2, 3 });
-        var original = await servicio.CrearReceta(new CrearRecetaDto
-        { Rut = "123456785", Imagen = new FormFile(bytes, 0, 3, "imagen", "receta.png") });
-        var resultado = await servicio.ActualizarReceta(11, new CrearRecetaDto
-        { Rut = "123456785", Observaciones = "Control" });
-        Assert.Equal(original.ImagenUrl, resultado.ImagenUrl);
-        Assert.Equal("Control", resultado.Observaciones);
-        Assert.Single(Directory.GetFiles(Path.Combine(carpeta, "uploads", "recetas")));
-        Assert.Equal(original.ImagenUrl, (await servicio.ObtenerHistorialPorRut("123456785"))[0].ImagenUrl);
     }
 
     [Fact]
@@ -156,9 +118,13 @@ public class TestRecetas : IDisposable
         await contexto.SaveChangesAsync();
         var servicio = new RecetaService(new RecetaRepository(contexto), new EntornoPrueba { WebRootPath = carpeta });
         var creada = await servicio.CrearReceta(new CrearRecetaDto { Rut = "123456785", GraduacionesJson = "[{\"ojo\":\"OD\",\"esfera\":-1}]" });
-        await servicio.ActualizarReceta(creada.Id, new CrearRecetaDto { Rut = "123456785", GraduacionesJson = "[{\"ojo\":\"OI\",\"esfera\":-3}]" });
+        await servicio.ActualizarReceta(creada.Id, new CrearRecetaDto { Rut = "123456785", Fecha = new DateTime(2026, 10, 6), Observaciones = "Corregida", GraduacionesJson = "[{\"ojo\":\"OI\",\"esfera\":-3}]" });
         contexto.ChangeTracker.Clear();
         var guardada = await servicio.ObtenerReceta(creada.Id);
+        Assert.Equal(creada.Id, guardada.Id);
+        Assert.Equal("123456785", guardada.Rut);
+        Assert.Equal("Corregida", guardada.Observaciones);
+        Assert.Equal(new DateTime(2026, 10, 6), guardada.Fecha);
         Assert.Single(await contexto.Recetas.ToListAsync());
         Assert.Single(await contexto.Graduaciones.ToListAsync());
         Assert.Equal("OI", guardada.Graduaciones[0].Ojo);
@@ -199,6 +165,13 @@ public class TestRecetas : IDisposable
         { Rut = "123456785", GraduacionesJson = "[{\"ojo\":\"OD\",\"esfera\":-2}]" });
         Assert.Equal(creada.ImagenUrl, actualizada.ImagenUrl);
         Assert.Equal(-2m, actualizada.Graduaciones[0].Esfera);
+        var sinCambiosDeContenido = await servicio.ActualizarReceta(11, new CrearRecetaDto
+        { Rut = "123456785", Observaciones = "Control" });
+        Assert.Equal(creada.ImagenUrl, sinCambiosDeContenido.ImagenUrl);
+        Assert.Equal("Control", sinCambiosDeContenido.Observaciones);
+        Assert.Single(sinCambiosDeContenido.Graduaciones);
+        Assert.Single(Directory.GetFiles(Path.Combine(carpeta, "uploads", "recetas")));
+        Assert.Equal(creada.ImagenUrl, (await servicio.ObtenerHistorialPorRut("123456785"))[0].ImagenUrl);
         using var nuevosBytes = new MemoryStream(new byte[] { 4, 5, 6 });
         var conNuevaImagen = await servicio.ActualizarReceta(11, new CrearRecetaDto
         { Rut = "123456785", Imagen = new FormFile(nuevosBytes, 0, 3, "imagen", "nueva.png") });
