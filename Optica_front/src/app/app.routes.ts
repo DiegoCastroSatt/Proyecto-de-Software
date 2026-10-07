@@ -52,6 +52,8 @@ export const routes: Routes = [
           { path: 'ventas', component: RegistroVentaComponent },
           { path: 'ventas/historial', component: VerVentasComponent },
           { path: 'recetas', component: RegistroRecetaComponent },
+          { path: 'recetas/cliente', component: HistorialGraduaciones, data: { verRecetas: true } },
+          { path: 'recetas/:id/editar', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
           { path: 'crear-pedido', component: CrearPedidoComponent },
           { path: 'historial-graduaciones', component: HistorialGraduaciones }
