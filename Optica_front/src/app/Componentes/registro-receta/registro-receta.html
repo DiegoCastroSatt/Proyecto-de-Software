@@ -2,8 +2,8 @@
   <main class="page">
     <div class="page-header">
       <p class="eyebrow">Recetas</p>
-      <h1>Nueva receta</h1>
-      <p class="page-subtitle">Registra una receta y asóciala al cliente correspondiente, de forma escrita o mediante una imagen.</p>
+      <h1>{{ recetaId === null ? 'Nueva receta' : 'Editar receta' }}</h1>
+      <p class="page-subtitle">{{ recetaId === null ? 'Registra una receta y asóciala al cliente correspondiente, con datos escritos, una imagen o ambos.' : 'Modifica los datos de la receta seleccionada y guarda los cambios.' }}</p>
     </div>
 
     @if (successMessage()) {
@@ -17,7 +17,10 @@
       <div class="error-message" role="alert">{{ errorMessage() }}</div>
     }
 
+    @if (isLoading()) { <p role="status">Cargando receta...</p> }
+    @if (recetaId !== null) { <a routerLink="/admin/panel/recetas/cliente" [queryParams]="{ rut: rutOriginal() }">Volver a las recetas del cliente</a> }
     <form class="receta-card" [formGroup]="recetaForm" (ngSubmit)="submitReceta()" novalidate>
+      <fieldset [disabled]="isLoading() || isSubmitting() || cargaFallida()" style="border: 0; padding: 0; margin: 0; min-width: 0">
       <section class="form-section">
         <h2>Cliente y fecha</h2>
         <div class="form-grid">
@@ -47,7 +50,8 @@
       </section>
 
       <section class="form-section">
-        <h2>Tipo de receta</h2>
+        <h2>Vista de la receta</h2>
+        <p>Puedes alternar entre las vistas sin perder lo ingresado. Al guardar se incluirán los datos escritos y la imagen que hayas agregado.</p>
         <div class="modo-toggle">
           <button type="button" class="modo-button" [class.is-active]="modo() === 'escrita'" (click)="setModo('escrita')">
             Receta escrita
@@ -58,7 +62,7 @@
         </div>
       </section>
 
-      @if (modo() === 'escrita') {
+      <div [hidden]="modo() !== 'escrita'">
         <section class="form-section">
           <h2>Graduación · Ojo derecho (OD)</h2>
           <div class="form-grid">
@@ -120,28 +124,33 @@
             </div>
           </div>
         </section>
-      }
+      </div>
 
-      @if (modo() === 'imagen') {
+      <div [hidden]="modo() !== 'imagen'">
         <section class="form-section">
           <h2>Imagen de la receta</h2>
           <div class="field">
+            @if (imagenActual()) {
+              <img [src]="apiBase + imagenActual()" alt="Imagen actual de la receta" style="max-width: 100%; max-height: 320px" />
+              <small>Puedes conservar la imagen actual o seleccionar otra para reemplazarla.</small>
+            }
             <label for="imagen">Imagen</label>
-            <input id="imagen" type="file" accept="image/jpeg,image/png,image/webp" (change)="handleImageChange($event)" />
+            <input #imagenInput id="imagen" type="file" accept="image/jpeg,image/png,image/webp" (change)="handleImageChange($event)" />
             <small>Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 5 MB.</small>
             @if (selectedImage()) {
               <small>{{ selectedImage()?.name }}</small>
             }
           </div>
         </section>
-      }
+      </div>
 
       <div class="form-actions">
         <p class="form-footnote">La receta quedará asociada al cliente según el RUT ingresado.</p>
         <button type="submit" [disabled]="isSubmitting()">
-          {{ isSubmitting() ? 'Guardando...' : 'Guardar receta' }}
+          {{ isSubmitting() ? 'Guardando...' : recetaId === null ? 'Guardar receta' : 'Guardar cambios' }}
         </button>
       </div>
+      </fieldset>
     </form>
   </main>
 </div>

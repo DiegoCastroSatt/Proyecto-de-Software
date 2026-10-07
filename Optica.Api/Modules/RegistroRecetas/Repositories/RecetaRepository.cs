@@ -30,6 +30,15 @@ public class RecetaRepository : IRecetaRepository
         return receta;
     }
 
+    public async Task<Receta> Actualizar(Receta receta)
+    {
+        await _context.SaveChangesAsync();
+        return receta;
+    }
+
+    public Task<Cliente?> ObtenerClientePorId(int id) =>
+        _context.Clientes.FirstOrDefaultAsync(c => c.IdCliente == id);
+
     public async Task<Receta?> ObtenerPorId(int id)
     {
         return await _context.Recetas
@@ -40,15 +49,21 @@ public class RecetaRepository : IRecetaRepository
     public async Task<List<Cliente>> BuscarClientesPorRutParcial(string rutParcial)
     {
         var rutNormalizado = RutChilenoValidator.Normalizar(rutParcial);
+        var nombreBuscado = rutParcial.Trim().ToUpper();
+        var patronRut = EscaparPatron(rutNormalizado) + "%";
+        var patronNombre = "%" + EscaparPatron(nombreBuscado) + "%";
 
         return await _context.Clientes
             .Where(c => EF.Functions.Like(
-                c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
-                rutNormalizado + "%"))
+                c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(), patronRut, "!")
+                || EF.Functions.Like((c.Nombre + " " + c.Apellido).ToUpper(), patronNombre, "!"))
             .OrderBy(c => c.Rut)
             .Take(8)
             .ToListAsync();
     }
+    private static string EscaparPatron(string valor) =>
+        valor.Replace("!", "!!").Replace("%", "!%").Replace("_", "!_");
+
     public async Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId)
     {
         return await _context.Recetas
