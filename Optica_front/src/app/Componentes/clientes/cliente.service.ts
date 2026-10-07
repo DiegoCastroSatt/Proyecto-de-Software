@@ -13,42 +13,6 @@ export interface Cliente {
   fechaRegistro?: string;
 }
 
-export interface HistorialGraduacion {
-  ojo: string;
-  esfera?: number;
-  cilindro?: number;
-  eje?: number;
-  adicion?: number;
-}
-
-export interface HistorialReceta {
-  idReceta: number;
-  fecha: string;
-  observaciones?: string;
-  imagenPath?: string;
-  graduaciones: HistorialGraduacion[];
-}
-
-export interface HistorialPedido {
-  idPedido: number;
-  idReceta?: number;
-  fecha: string;
-  estado: string;
-  total: number;
-  anotaciones?: string;
-}
-
-export interface HistorialCliente {
-  idCliente: number;
-  rut: string;
-  nombreCompleto: string;
-  telefono?: string;
-  correo?: string;
-  estado: string;
-  recetas: HistorialReceta[];
-  pedidos: HistorialPedido[];
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -73,12 +37,7 @@ export class ClienteService {
   actualizar(id: number, cliente: Partial<Cliente>): Observable<Cliente> {
     return this.http.put<Cliente>(`${this.apiUrl}/${id}`, cliente);
   }
-
   cambiarEstado(id: number, nuevoEstado: 'Activo' | 'Inactivo'): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/${id}/estado`, { nuevoEstado });
-  }
-
-  obtenerHistorial(id: number): Observable<HistorialCliente> {
-    return this.http.get<HistorialCliente>(`${this.apiUrl}/${id}/historial`);
   }
 }

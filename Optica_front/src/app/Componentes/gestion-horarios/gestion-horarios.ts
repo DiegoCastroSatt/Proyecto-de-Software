@@ -35,7 +35,7 @@ export class GestionHorariosComponent implements OnInit {
     fecha: ['', Validators.required],
     horaInicio: ['09:00', Validators.required],
     horaFin: ['18:00', Validators.required],
-    duracionMinutos: [20, [Validators.required, Validators.min(1)]]
+    duracionMinutos: [30, [Validators.required, Validators.min(1)]]
   });
 
   ngOnInit(): void {

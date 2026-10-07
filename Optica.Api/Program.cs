@@ -15,9 +15,6 @@ using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Autenticacion.Interfaces;
 using Optica.Api.Modules.Autenticacion.Repositories;
 using Optica.Api.Modules.Autenticacion.Services;
-using Optica.Api.Modules.Clientes.Interfaces;
-using Optica.Api.Modules.Clientes.Repositories;
-using Optica.Api.Modules.Clientes.Services;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
 
@@ -72,8 +69,6 @@ builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Admini
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
 
-builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-builder.Services.AddScoped<IClienteService, ClienteService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
