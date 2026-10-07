@@ -18,6 +18,8 @@ using Optica.Api.Modules.Autenticacion.Services;
 using Optica.Api.Modules.Clientes.Interfaces;
 using Optica.Api.Modules.Clientes.Repositories;
 using Optica.Api.Modules.Clientes.Services;
+using Optica.Api.Modules.AgendaReservas.Interfaces;
+using Optica.Api.Modules.AgendaReservas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +46,14 @@ builder.Services.AddCors(options =>
 
 // Implementación temporal hasta configurar la base de datos.
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
-builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IReservaCorreoService, ReservaCorreoService>();
+builder.Services.AddScoped<IReservaService>(proveedor => new ReservaService(
+    proveedor.GetRequiredService<IReservaRepository>(),
+    proveedor.GetRequiredService<IReservaCorreoService>(),
+    proveedor.GetRequiredService<TimeProvider>(),
+    proveedor.GetRequiredService<ILogger<ReservaService>>()));
+builder.Services.AddScoped<IRecordatorioReservasService, RecordatorioReservasService>();
+builder.Services.AddHostedService<RecordatorioReservasBackgroundService>();
 builder.Services.AddScoped<IRecetaRepository, RecetaRepository>();
 builder.Services.AddScoped<IRecetaService, RecetaService>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();

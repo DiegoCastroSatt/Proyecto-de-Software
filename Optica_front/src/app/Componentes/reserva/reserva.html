@@ -23,8 +23,13 @@
 
       @if (confirmedName()) {
         <div class="success-message" role="status">
-          <strong>Solicitud recibida, {{ confirmedName() }}.</strong>
-          <span>Revisaremos tu solicitud y te confirmaremos la hora por contacto.</span>
+          @if (confirmationEmailSent()) {
+            <strong>Reserva registrada, {{ confirmedName() }}.</strong>
+            <span>Te enviamos un correo para confirmar o cancelar tu hora.</span>
+          } @else {
+            <strong>Reserva registrada, {{ confirmedName() }}.</strong>
+            <span>No pudimos enviar el correo de confirmación. Contacta al centro óptico para confirmar tu hora.</span>
+          }
         </div>
       }
 

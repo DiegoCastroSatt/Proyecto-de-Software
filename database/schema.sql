@@ -49,22 +49,6 @@ nombre VARCHAR(60) NOT NULL,
 CONSTRAINT uq_catalogo_tipo_nombre UNIQUE (tipo, nombre)
 );
 
-INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
-('Marca', 'Ray-Ban'),
-('Marca', 'Oakley'),
-('Marca', 'Vogue'),
-('Marca', 'Polaroid'),
-('Color', 'Negro'),
-('Color', 'Café'),
-('Color', 'Dorado'),
-('Color', 'Plateado'),
-('Color', 'Transparente'),
-('Categoria', 'Lentes ópticos'),
-('Categoria', 'Lentes de sol'),
-('Categoria', 'Armazones'),
-('Categoria', 'Lentes de contacto'),
-('Categoria', 'Accesorios');
-
 CREATE TABLE productos (
 id_producto INT AUTO_INCREMENT PRIMARY KEY,
 codigo VARCHAR(30) NOT NULL UNIQUE,
@@ -154,6 +138,11 @@ CREATE TABLE reservas (
 
     motivo VARCHAR(150),
 
+    token_confirmacion_hash CHAR(64) NULL UNIQUE,
+    token_cancelacion_hash CHAR(64) NULL UNIQUE,
+    token_accion_expira_utc DATETIME NULL,
+    recordatorio_enviado_utc DATETIME NULL,
+
     estado ENUM('Pendiente', 'Confirmada', 'Cancelada', 'Realizada')
         NOT NULL DEFAULT 'Pendiente',
 
@@ -175,5 +164,6 @@ CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
 CREATE INDEX idx_pedidos_cliente ON pedidos(rut);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX idx_reservas_horario ON reservas(id_horario);
+CREATE INDEX idx_reservas_recordatorio ON reservas(estado, recordatorio_enviado_utc);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);

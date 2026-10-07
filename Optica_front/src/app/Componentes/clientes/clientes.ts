@@ -3,7 +3,7 @@ import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/au
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { ClienteService, Cliente } from './cliente.service';
+import { ClienteService, Cliente, HistorialCliente } from './cliente.service';
 import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
 
 function requireContactValidator(group: AbstractControl): ValidationErrors | null {
@@ -17,7 +17,207 @@ function requireContactValidator(group: AbstractControl): ValidationErrors | nul
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, AutocompletadoRut],
   templateUrl: './clientes.html',
-  styleUrls: ['./clientes.css']
+  styles: [`
+    .clientes-contenedor {
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 16px;
+      position: relative;
+    }
+
+    .titulo-vista {
+      color: var(--color-principal);
+      border-bottom: 2px solid var(--color-principal);
+      padding-bottom: 8px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-modulo {
+      background: var(--color-superficie);
+      border: 1px solid var(--color-borde-panel);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px var(--sombra-principal-08);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .panel-encabezado {
+      background-color: var(--color-principal);
+      color: var(--color-superficie);
+      padding: 12px 20px;
+      font-weight: bold;
+    }
+
+    .panel-cuerpo {
+      padding: 20px;
+    }
+
+    .modal-backdrop-glass {
+      position: fixed !important;
+      inset: 0 !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background-color: var(--capa-modal, rgba(18, 39, 37, 0.6)) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      z-index: 10000 !important;
+    }
+
+    .modal-ventana-glass {
+      background: color-mix(in srgb, var(--color-superficie-calida, #fffdf9) 94%, transparent) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid color-mix(in srgb, var(--color-texto, #1d3434) 14%, transparent) !important;
+      box-shadow: 0 24px 70px var(--sombra-principal-15, rgba(0, 0, 0, 0.25)) !important;
+      border-radius: 8px !important;
+      width: 90% !important;
+      max-width: 820px !important;
+      max-height: 88vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+    }
+
+    .modal-encabezado {
+      background-color: var(--color-principal) !important;
+      color: var(--color-superficie) !important;
+      padding: 14px 20px !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      border-bottom: 3px solid var(--color-acento) !important;
+    }
+
+    .modal-btn-cerrar {
+      background: transparent !important;
+      border: none !important;
+      color: var(--color-superficie) !important;
+      font-size: 24px !important;
+      cursor: pointer !important;
+      line-height: 1 !important;
+    }
+
+    .modal-cuerpo {
+      padding: 20px !important;
+      overflow-y: auto !important;
+    }
+
+    .modal-pie {
+      display: flex !important;
+      justify-content: flex-end !important;
+      padding: 12px 20px !important;
+      border-top: 1px solid var(--color-borde-panel) !important;
+      background-color: var(--color-fondo-panel) !important;
+    }
+
+    .ficha-resumen {
+      background-color: var(--color-fondo-panel) !important;
+      border: 1px solid var(--color-borde-panel) !important;
+      border-left: 4px solid var(--color-principal) !important;
+      border-radius: 6px !important;
+      padding: 10px 16px !important;
+      margin-bottom: 18px !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 16px !important;
+      font-size: 13px !important;
+    }
+
+    .tabs-navegacion {
+      display: flex !important;
+      gap: 8px !important;
+      border-bottom: 2px solid var(--color-borde-panel) !important;
+      margin-bottom: 16px !important;
+    }
+
+    .tab-boton {
+      background: transparent !important;
+      border: none !important;
+      padding: 8px 16px !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      cursor: pointer !important;
+      border-bottom: 3px solid transparent !important;
+      color: var(--color-texto-tabla) !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .tab-boton.activa {
+      border-bottom: 3px solid var(--color-acento) !important;
+      color: var(--color-acento) !important;
+    }
+
+    .tarjeta-receta {
+      border: 1px solid var(--color-borde-panel) !important;
+      border-radius: 6px !important;
+      padding: 14px !important;
+      margin-bottom: 14px !important;
+      background-color: var(--color-superficie) !important;
+      box-shadow: 0 2px 5px var(--sombra-principal-minima) !important;
+    }
+
+    .tarjeta-receta-cabecera {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 8px !important;
+      border-bottom: 1px solid var(--color-borde-panel) !important;
+      padding-bottom: 6px !important;
+      font-weight: bold !important;
+      color: var(--color-principal) !important;
+      font-size: 14px !important;
+    }
+
+    .tabla-datos {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 13px !important;
+    }
+
+    .tabla-datos th {
+      background-color: var(--color-fondo-panel) !important;
+      border-bottom: 1px solid var(--color-borde-tabla) !important;
+      padding: 6px !important;
+      color: var(--color-texto) !important;
+    }
+
+    .tabla-datos td {
+      padding: 6px !important;
+      border-bottom: 1px solid var(--color-borde-panel) !important;
+    }
+
+    .btn-historial {
+      background-color: var(--color-acento) !important;
+      color: var(--color-superficie-calida) !important;
+      border: none !important;
+      padding: 6px 12px !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+
+    .btn-cerrar-modal {
+      background-color: var(--color-principal) !important;
+      color: var(--color-superficie) !important;
+      border: none !important;
+      padding: 8px 20px !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      font-weight: 600 !important;
+      font-size: 13.5px !important;
+    }
+  `]
 })
 export class ClientesComponent implements OnInit {
   clienteForm!: FormGroup;
@@ -31,11 +231,16 @@ export class ClientesComponent implements OnInit {
   clienteSeleccionado: Cliente | null = null;
   guardandoEdicion: boolean = false;
 
-  // Estado y control para Modal de Desactivación / Reactivación
   modalEstadoAbierto: boolean = false;
   clienteEstadoSeleccionado: Cliente | null = null;
   nuevoEstadoObjetivo: 'Activo' | 'Inactivo' = 'Inactivo';
   procesandoEstado: boolean = false;
+
+  modalHistorialAbierto: boolean = false;
+  cargandoHistorial: boolean = false;
+  errorHistorial: string | null = null;
+  historialSeleccionado: HistorialCliente | null = null;
+  pestanaActiva: 'recetas' | 'pedidos' = 'recetas';
 
   toast: { tipo: 'success' | 'error' | 'warning', titulo: string, mensaje: string } | null = null;
   private toastTimeout: any;
@@ -145,7 +350,6 @@ export class ClientesComponent implements OnInit {
     });
   }
 
-  // MÉTODOS DEL MODAL DE EDICIÓN
   abrirModalEdicion(cliente: Cliente): void {
     this.clienteSeleccionado = { ...cliente };
     this.editarForm.reset({
@@ -164,7 +368,7 @@ export class ClientesComponent implements OnInit {
     this.editarForm.reset();
   }
 
-  guardarEdicion(): void {
+  guardandoEdicionSubmit(): void {
     if (this.editarForm.invalid) {
       this.editarForm.markAllAsTouched();
       if (this.editarForm.hasError('requireContact')) {
@@ -236,16 +440,12 @@ export class ClientesComponent implements OnInit {
 
     this.clienteService.cambiarEstado(id, nuevoEstado).subscribe({
       next: () => {
-        // 1. Actualizar el estado en el arreglo local de clientes inmediatamente
         const clienteEnLista = this.clientes.find(c => c.idCliente === id || c.rut === rutCliente);
         if (clienteEnLista) {
           clienteEnLista.estado = nuevoEstado;
         }
 
-        // 2. Cerrar y desmontar el modal de inmediato
         this.cerrarModalEstado();
-
-        // 3. Mostrar la notificación flotante
         const accion = nuevoEstado === 'Inactivo' ? 'desactivado' : 'activado';
         this.mostrarAviso('success', 'Estado Actualizado', `El cliente fue ${accion} exitosamente.`);
       },
@@ -255,5 +455,45 @@ export class ClientesComponent implements OnInit {
         this.mostrarAviso('error', 'Error al cambiar estado', detalle);
       }
     });
+  }
+
+  abrirModalHistorial(cliente: Cliente): void {
+    const id = cliente.idCliente ?? (cliente as any).id ?? (cliente as any).IdCliente;
+    if (!id) {
+      this.mostrarAviso('error', 'Error', 'No se pudo identificar el identificador del cliente.');
+      return;
+    }
+
+    this.modalHistorialAbierto = true;
+    this.cargandoHistorial = true;
+    this.errorHistorial = null;
+    this.historialSeleccionado = null;
+    this.pestanaActiva = 'recetas';
+    this.cd.detectChanges();
+
+    this.clienteService.obtenerHistorial(id).subscribe({
+      next: (data) => {
+        this.historialSeleccionado = data;
+        this.cargandoHistorial = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorHistorial = err.error?.mensaje || 'No fue posible cargar el historial del cliente.';
+        this.cargandoHistorial = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  cerrarModalHistorial(): void {
+    this.modalHistorialAbierto = false;
+    this.historialSeleccionado = null;
+    this.errorHistorial = null;
+    this.cd.detectChanges();
+  }
+
+  cambiarPestana(pestana: 'recetas' | 'pedidos'): void {
+  this.pestanaActiva = pestana;
+  this.cd.detectChanges();
   }
 }

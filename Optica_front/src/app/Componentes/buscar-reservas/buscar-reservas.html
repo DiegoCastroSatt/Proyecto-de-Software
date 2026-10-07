@@ -67,6 +67,9 @@
       <p class="eyebrow">{{ mostrarHistorial() ? 'Atención realizada' : 'Próxima atención' }}</p>
       <h2 id="detalle-titulo">{{ reserva.nombreCliente }}</h2>
       <p class="detalle-fecha">{{ reserva.fecha | date:'EEEE d MMMM yyyy' }} · {{ reserva.horaInicio.slice(0, 5) }} a {{ reserva.horaFin.slice(0, 5) }}</p>
+      @if (mensajeExitoReprogramacion()) {
+        <p class="mensaje-exito" role="status">{{ mensajeExitoReprogramacion() }}</p>
+      }
 
       <dl class="datos-cliente">
         <div><dt>RUT</dt><dd>{{ reserva.rutCliente }}</dd></div>
@@ -83,9 +86,42 @@
         <button class="boton-cancelar" type="button" [disabled]="cancelando() || reserva.estado === 'Realizada' || reserva.estado === 'Cancelada'" (click)="cancelarReserva(reserva)">
           {{ cancelando() ? 'Cancelando...' : 'Cancelar hora' }}
         </button>
-        <button type="button" disabled title="Esta acción estará disponible próximamente">Reprogramar hora</button>
+        <button class="boton-reprogramar" type="button" [disabled]="reserva.estado === 'Realizada' || reserva.estado === 'Cancelada'" (click)="abrirReprogramacion(reserva)">Reprogramar hora</button>
       </footer>
       <p class="acciones-pendientes">La cancelación conserva el registro y libera el horario para una nueva reserva.</p>
+    </section>
+  </div>
+}
+
+@if (mostrarReprogramacion() && reservaSeleccionada(); as reserva) {
+  <div class="modal-fondo modal-reprogramacion-fondo" role="presentation" (click)="cerrarReprogramacion()" (keydown.escape)="cerrarReprogramacion()">
+    <section class="modal-detalle modal-reprogramacion" role="dialog" aria-modal="true" aria-labelledby="reprogramar-titulo" (click)="$event.stopPropagation()">
+      <button class="cerrar-modal" type="button" aria-label="Cerrar reprogramación" [disabled]="reprogramando()" (click)="cerrarReprogramacion()">×</button>
+      <p class="eyebrow">Agenda de atención</p>
+      <h2 id="reprogramar-titulo">Reprogramar reserva</h2>
+      <p class="reserva-actual"><strong>Fecha actual:</strong> {{ reserva.fecha | date:'dd/MM/yyyy' }}<br><strong>Hora actual:</strong> {{ reserva.horaInicio.slice(0, 5) }} - {{ reserva.horaFin.slice(0, 5) }}</p>
+      <label class="selector-fecha">Nueva fecha
+        <input type="date" [min]="fechaMinima()" [value]="fechaNueva()" [disabled]="reprogramando()" (change)="cambiarFecha($any($event.target).value, reserva.id)">
+      </label>
+      <h3>Horarios disponibles</h3>
+      @if (cargandoHorarios()) {
+        <p role="status">Cargando horarios disponibles...</p>
+      } @else if (horariosDisponibles().length === 0) {
+        <p class="sin-horarios">No hay horarios disponibles para esta fecha.</p>
+      } @else {
+        <div class="horarios-disponibles" role="group" aria-label="Seleccionar horario disponible">
+          @for (horario of horariosDisponibles(); track horario.idHorario) {
+            <button type="button" [class.seleccionado]="horarioSeleccionado() === horario.idHorario" [attr.aria-pressed]="horarioSeleccionado() === horario.idHorario" [disabled]="reprogramando()" (click)="horarioSeleccionado.set(horario.idHorario)">{{ horario.hora.slice(0, 5) }} - {{ horario.horaFin.slice(0, 5) }}</button>
+          }
+        </div>
+      }
+      @if (mensajeReprogramacion()) {
+        <p class="mensaje-cancelacion" role="alert">{{ mensajeReprogramacion() }}</p>
+      }
+      <footer class="acciones-modal-reprogramar">
+        <button type="button" [disabled]="reprogramando()" (click)="cerrarReprogramacion()">Cancelar</button>
+        <button type="button" class="boton-confirmar" [disabled]="!horarioSeleccionado() || cargandoHorarios() || reprogramando()" (click)="confirmarReprogramacion(reserva)">{{ reprogramando() ? 'Reprogramando...' : 'Confirmar reprogramación' }}</button>
+      </footer>
     </section>
   </div>
 }
