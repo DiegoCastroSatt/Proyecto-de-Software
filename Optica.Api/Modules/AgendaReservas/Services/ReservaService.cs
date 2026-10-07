@@ -46,8 +46,8 @@ public class ReservaService : IReservaService
         };
     }
 
-    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
-        _reservaRepository.ObtenerHorariosDisponibles();
+    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles(DateTime? fecha = null, int? excluirReservaId = null) =>
+        _reservaRepository.ObtenerHorariosDisponibles(fecha, excluirReservaId);
 
     public Task<IReadOnlyList<Optica.Api.Modules.AgendaReservas.DTOs.ReservaAgendaResponseDto>> ObtenerAgenda(
         bool historialAtendidas,
@@ -59,6 +59,19 @@ public class ReservaService : IReservaService
         if (!await _reservaRepository.CancelarReserva(id, cancellationToken))
         {
             throw new KeyNotFoundException("No se encontró la reserva seleccionada.");
+        }
+    }
+
+    public async Task ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken)
+    {
+        if (id <= 0 || idHorario <= 0)
+        {
+            throw new ArgumentException("La reserva y el horario seleccionado deben ser válidos.");
+        }
+
+        if (!await _reservaRepository.ReprogramarReserva(id, idHorario, cancellationToken))
+        {
+            throw new KeyNotFoundException("La reserva no existe.");
         }
     }
 }
