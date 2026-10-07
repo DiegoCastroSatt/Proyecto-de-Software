@@ -94,6 +94,7 @@ public class TestPedidos
         public Task ActualizarPedidoAsync(Pedido pedido) { Actualizaciones++; return Task.CompletedTask; }
         public Task<IEnumerable<Pedido>> ObtenerPedidosAsync() => Task.FromResult<IEnumerable<Pedido>>([]);
         public Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync() => Task.FromResult<IEnumerable<PedidoResponseDto>>([]);
+        public Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id) => Task.FromResult<PedidoResponseDto?>(null);
         public Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync() => Task.FromResult<IEnumerable<Cliente>>([]);
     }
 }
