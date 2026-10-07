@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using Optica.Api.Modules.AgendaReservas.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,14 +17,27 @@ public class ReservasController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("disponibles")]
-    public async Task<IActionResult> ObtenerDisponibles()
+    public async Task<IActionResult> ObtenerDisponibles(
+        [FromQuery] string? fecha,
+        [FromQuery] int? excluirReservaId,
+        CancellationToken cancellationToken)
     {
-        var horarios = await _reservaService.ObtenerHorariosDisponibles();
+        DateTime? fechaFiltro = null;
+        if (!string.IsNullOrWhiteSpace(fecha))
+        {
+            if (!DateTime.TryParseExact(fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var fechaParseada))
+            {
+                return BadRequest(new { mensaje = "La fecha no tiene un formato válido." });
+            }
+            fechaFiltro = fechaParseada.Date;
+        }
+        var horarios = await _reservaService.ObtenerHorariosDisponibles(fechaFiltro, excluirReservaId);
         return Ok(horarios.Select(h => new HorarioDisponibleResponseDto
         {
             IdHorario = h.Id,
             Fecha = h.Fecha,
-            Hora = h.HoraInicio
+            Hora = h.HoraInicio,
+            HoraFin = h.HoraFin
         }));
     }
 
@@ -34,6 +49,29 @@ public class ReservasController : ControllerBase
     {
         var reservas = await _reservaService.ObtenerAgenda(historialAtendidas, cancellationToken);
         return Ok(reservas);
+    }
+
+    [Authorize]
+    [HttpPut("{id:int}/reprogramar")]
+    public async Task<IActionResult> ReprogramarReserva(int id, ReprogramarReservaDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _reservaService.ReprogramarReserva(id, dto.IdHorario, cancellationToken);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { mensaje = ex.Message });
+        }
     }
 
     [AllowAnonymous]

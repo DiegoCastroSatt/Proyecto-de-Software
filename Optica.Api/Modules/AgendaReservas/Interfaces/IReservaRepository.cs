@@ -2,7 +2,7 @@ using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.AgendaReservas.DTOs;
 public interface IReservaRepository
 {
-    Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles();
+    Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles(DateTime? fecha = null, int? excluirReservaId = null);
 
     Task<IReadOnlyList<ReservaAgendaResponseDto>> ObtenerAgenda(bool historialAtendidas, CancellationToken cancellationToken);
 
@@ -20,4 +20,6 @@ public interface IReservaRepository
     Task<Reserva?> ObtenerPorId(int id);
 
     Task<bool> CancelarReserva(int id, CancellationToken cancellationToken);
+
+    Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken);
 }

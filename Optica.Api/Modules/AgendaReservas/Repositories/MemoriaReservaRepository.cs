@@ -5,7 +5,7 @@ public class MemoriaReservaRepository : IReservaRepository
     private readonly List<Reserva> _reservas = [];
     private int _siguienteId;
 
-    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles() =>
+    public Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles(DateTime? fecha = null, int? excluirReservaId = null) =>
         Task.FromResult<IReadOnlyList<Horario>>([]);
 
     public Task<IReadOnlyList<ReservaAgendaResponseDto>> ObtenerAgenda(bool historialAtendidas, CancellationToken cancellationToken) =>
@@ -54,4 +54,7 @@ public class MemoriaReservaRepository : IReservaRepository
         reserva.Estado = "Cancelada";
         return Task.FromResult(true);
     }
+
+    public Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken) =>
+        throw new NotSupportedException("La reprogramación requiere el repositorio persistente de reservas.");
 }
