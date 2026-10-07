@@ -62,7 +62,6 @@
 
 app-autocompletado-rut { display: block; }
 
-/* El buscador compartido conserva estos estilos dentro de esta pantalla. */
 :host ::ng-deep .historial-page .autocompletado-rut__input {
   min-height: 48px;
   padding: 12px 14px;
