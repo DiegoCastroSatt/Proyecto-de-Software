@@ -50,6 +50,23 @@ INSERT INTO graduaciones
 -- PRODUCTOS
 -- ==========================================
 
+INSERT IGNORE INTO catalogos (tipo, nombre) VALUES
+('Marca', 'Ray-Ban'),
+('Marca', 'Oakley'),
+('Marca', 'Vogue'),
+('Marca', 'Polaroid'),
+('Color', 'Negro'),
+('Color', 'Café'),
+('Color', 'Dorado'),
+('Color', 'Plateado'),
+('Color', 'Transparente'),
+('Categoria', 'Lentes ópticos'),
+('Categoria', 'Lentes de sol'),
+('Categoria', 'Armazones'),
+('Categoria', 'Lentes de contacto'),
+('Categoria', 'Accesorios');
+
+
 INSERT INTO productos
 (codigo, nombre, marca, modelo, color, categoria, precio, stock, stock_minimo, estado, ruta_imagen)
 VALUES

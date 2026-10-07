@@ -89,4 +89,22 @@ public class ClientesController : ControllerBase
             return StatusCode(500, new { mensaje = "Error al actualizar el estado en la base de datos.", detalle = ex.Message });
         }
     }
+
+    [HttpGet("{id}/historial")]
+public async Task<ActionResult<HistorialClienteDto>> ObtenerHistorial(int id)
+{
+    try
+    {
+        var historial = await _clienteService.ObtenerHistorialAsync(id);
+        return Ok(historial);
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return NotFound(new { mensaje = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { mensaje = "Error al consultar el historial del cliente.", detalle = ex.Message });
+    }
+}
 }

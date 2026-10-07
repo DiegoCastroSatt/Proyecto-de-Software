@@ -1,4 +1,5 @@
 using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Clientes.DTOs;
 
 namespace Optica.Api.Modules.Clientes.Interfaces;
 
@@ -10,4 +11,5 @@ public interface IClienteRepository
     Task<bool> ExisteRutAsync(string rut);
     Task<Cliente> CrearAsync(Cliente cliente);
     Task ActualizarAsync(Cliente cliente);
+    Task<HistorialClienteDto?> ObtenerHistorialAsync(int idCliente);
 }

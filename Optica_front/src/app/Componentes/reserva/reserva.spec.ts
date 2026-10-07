@@ -15,7 +15,7 @@ describe('Reservas', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     servicio.obtenerDisponibles.mockReturnValue(of(horarios));
-    servicio.crearReserva.mockReturnValue(of({ id: 1, fecha: '2026-09-22', hora: '09:00', estado: 'Pendiente' }));
+    servicio.crearReserva.mockReturnValue(of({ id: 1, fecha: '2026-09-22', hora: '09:00', estado: 'Pendiente', correoEnviado: true }));
     await TestBed.configureTestingModule({
       imports: [ReservaComponent],
       providers: [{ provide: ReservaService, useValue: servicio }]
@@ -109,6 +109,7 @@ describe('Reservas', () => {
       correo: 'ana@example.com',
       idHorario: 10
     });
-    expect(dom.textContent).toContain('Solicitud recibida, Ana Pérez');
+    expect(dom.textContent).toContain('Reserva registrada, Ana Pérez');
+    expect(dom.textContent).toContain('Te enviamos un correo para confirmar o cancelar tu hora.');
   });
 });

@@ -7,6 +7,8 @@ using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.Clientes.Repositories;
 using Optica.Api.Modules.Clientes.Services;
 using Xunit;
+using Optica.Api.Modules.Pedidos.Models;
+using Optica.Api.Modules.RegistroRecetas.Models;
 
 namespace Optica.Ventas.Tests;
 
@@ -166,4 +168,58 @@ public class TestClientes : IDisposable
     [InlineData("123", false)]
     [InlineData(null, false)]
     public void Telefono_ValidaFormato(string? telefono, bool valido) => Assert.Equal(valido, TelefonoChilenoValidator.EsValido(telefono));
+
+    [Fact]
+    public async Task ObtenerHistorial_ClienteExistente_RetornaOkConHistorialCompleto()
+    {
+        // 1. Arrange: Crear cliente, receta con graduaciones y un pedido
+        var cliente = new Cliente { Rut = "12345678-7", Nombre = "Juan", Apellido = "Pérez", Correo = "juan@test.cl", Estado = "Activo" };
+        db.Clientes.Add(cliente);
+        await db.SaveChangesAsync();
+
+        var receta = new Receta
+        {
+            ClienteId = cliente.IdCliente,
+            Fecha = DateTime.Today,
+            Observaciones = "Control anual",
+            Graduaciones = new List<Graduacion>
+            {
+                new() { Ojo = "OD", Esfera = -1.25m, Cilindro = -0.50m, Eje = 90 },
+                new() { Ojo = "OI", Esfera = -1.00m, Cilindro = -0.25m, Eje = 85 }
+            }
+        };
+        db.Recetas.Add(receta);
+
+        var pedido = new Pedido
+        {
+            Rut = "12.345.678-7", // Formato con puntos para comprobar que normaliza
+            Fecha = DateTime.Today,
+            Estado = "Entregado",
+            Total = 99980m,
+            Anotaciones = "Lentes listos"
+        };
+        db.Pedidos.Add(pedido);
+        await db.SaveChangesAsync();
+
+        // 2. Act
+        var respuesta = await Controlador().ObtenerHistorial(cliente.IdCliente);
+
+        // 3. Assert
+        var okResult = Assert.IsType<OkObjectResult>(respuesta.Result);
+        var historial = Assert.IsType<HistorialClienteDto>(okResult.Value);
+
+        Assert.Equal(cliente.IdCliente, historial.IdCliente);
+        Assert.Equal("Juan Pérez", historial.NombreCompleto);
+        Assert.Single(historial.Recetas);
+        Assert.Equal(2, historial.Recetas[0].Graduaciones.Count);
+        Assert.Single(historial.Pedidos);
+        Assert.Equal(99980m, historial.Pedidos[0].Total);
+    }
+
+    [Fact]
+    public async Task ObtenerHistorial_ClienteInexistente_Retorna404()
+    {
+        var respuesta = await Controlador().ObtenerHistorial(9999);
+        Assert.IsType<NotFoundObjectResult>(respuesta.Result);
+    }
 }
