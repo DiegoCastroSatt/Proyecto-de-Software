@@ -17,6 +17,7 @@ export class ReservaComponent implements OnInit {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly minDate = this.obtenerFechaChile();
   protected readonly confirmedName = signal('');
+  protected readonly confirmationEmailSent = signal(false);
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly availableDates = signal<string[]>([]);
@@ -94,8 +95,9 @@ export class ReservaComponent implements OnInit {
       correo: formValue.email ?? '',
       idHorario: Number(formValue.time ?? 0)
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.confirmedName.set(formValue.name ?? '');
+        this.confirmationEmailSent.set(response.correoEnviado);
         this.isSubmitting.set(false);
         this.reservationForm.reset();
         this.cargarHorariosDisponibles();

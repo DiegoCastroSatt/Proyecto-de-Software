@@ -8,4 +8,8 @@ public class Reserva
     public TimeSpan Hora { get; set; }
     public string Estado { get; set; } = "Pendiente";
     public string? Motivo { get; set; }
+    public string? TokenConfirmacionHash { get; set; }
+    public string? TokenCancelacionHash { get; set; }
+    public DateTime? TokenAccionExpiraUtc { get; set; }
+    public DateTime? RecordatorioEnviadoUtc { get; set; }
 }

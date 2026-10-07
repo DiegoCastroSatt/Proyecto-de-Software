@@ -14,8 +14,20 @@ public class MemoriaReservaRepository : IReservaRepository
     public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado) =>
         Task.FromResult(false);
 
-    public Task<Reserva> CrearReserva(CrearReservaDto dto) =>
+    public Task<Reserva> CrearReserva(CrearReservaDto dto, string tokenConfirmacionHash, string tokenCancelacionHash) =>
         throw new NotSupportedException();
+
+    public Task<ReservaCorreoDto?> ObtenerDatosCorreoReserva(int id, CancellationToken cancellationToken) => Task.FromResult<ReservaCorreoDto?>(null);
+
+    public Task<ResultadoAccionReserva> EjecutarAccionPorToken(string tokenHash, bool confirmar, DateTime ahoraUtc, CancellationToken cancellationToken) =>
+        Task.FromResult(new ResultadoAccionReserva { Tipo = TipoResultadoAccionReserva.TokenInvalido });
+
+    public Task<IReadOnlyList<ReservaCorreoDto>> ObtenerReservasParaRecordatorio(DateTimeOffset ahoraChile, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<ReservaCorreoDto>>([]);
+
+    public Task<bool> MarcarRecordatorioEnviado(int id, DateTime enviadoUtc, CancellationToken cancellationToken) => Task.FromResult(false);
+
+    public Task DesmarcarRecordatorio(int id, DateTime enviadoUtc, CancellationToken cancellationToken) => Task.CompletedTask;
 
     public Task<bool> ExisteReserva(DateTime fecha, TimeSpan hora)
     {

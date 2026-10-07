@@ -9,4 +9,6 @@ public class ReservaResponseDto
     public TimeSpan Hora { get; set; }
 
     public string Estado { get; set; } = string.Empty;
+
+    public bool CorreoEnviado { get; set; }
 }
