@@ -1,19 +1,51 @@
 <div class="historial-page">
   <div class="page-header">
     <p class="eyebrow">Recetas</p>
-    <h1>Historial de graduaciones</h1>
-    <p class="page-subtitle">Consulta las recetas anteriores de un cliente para ver cómo ha cambiado su graduación.</p>
+    <h1>{{ verRecetas ? 'Editar receta' : 'Historial de graduaciones' }}</h1>
+    <p class="page-subtitle">{{ verRecetas ? 'Busca un cliente por RUT o nombre y selecciona su última receta para editarla.' : 'Consulta las recetas anteriores de un cliente para ver cómo ha cambiado su graduación.' }}</p>
   </div>
 
+  @if (verRecetas) {
+    <div class="busqueda-card">
+      <div class="field">
+        <label>Buscar cliente por RUT o nombre</label>
+        <app-autocompletado-rut [value]="terminoCliente()" (valueChange)="actualizarBusquedaCliente($event)" />
+      </div>
+    </div>
+    @if (cargandoClientes()) {
+      <p role="status">Cargando clientes...</p>
+    } @else if (errorClientes()) {
+      <div class="error-message" role="alert">{{ errorClientes() }}</div>
+      <button type="button" (click)="cargarClientes()">Reintentar</button>
+    } @else {
+      <section class="clientes-lista" aria-label="Lista de clientes">
+        @for (cliente of clientesFiltrados(); track cliente.idCliente) {
+          <button type="button" class="cliente-opcion" [class.is-active]="rut() === cliente.rut" [disabled]="isLoading()" (click)="seleccionarCliente(cliente)">
+            <strong>{{ cliente.nombre }} {{ cliente.apellido }}</strong>
+            <span>{{ cliente.rut }}</span>
+            <span class="cliente-accion">Ver recetas</span>
+          </button>
+        } @empty {
+          <p class="sin-resultados">No se encontraron clientes.</p>
+        }
+      </section>
+    }
+    @if (yaBusco()) {
+      <h2>Última receta de {{ clienteSeleccionado() ? clienteSeleccionado()?.nombre + ' ' + clienteSeleccionado()?.apellido : rut() }}</h2>
+    }
+    @if (isLoading()) { <p role="status">Cargando recetas...</p> }
+  } @else {
   <div class="busqueda-card">
     <div class="field">
       <label for="rut">RUT del cliente</label>
       <app-autocompletado-rut [(value)]="rut" />
     </div>
     <button type="button" (click)="buscarHistorial()" [disabled]="isLoading()">
-      {{ isLoading() ? 'Buscando...' : 'Buscar historial' }}
+      {{ isLoading() ? 'Buscando...' : verRecetas ? 'Buscar recetas' : 'Buscar historial' }}
     </button>
   </div>
+
+  }
 
   @if (errorMessage()) {
     <div class="error-message" role="alert">{{ errorMessage() }}</div>
@@ -66,23 +98,37 @@
       @for (receta of recetas(); track receta.id) {
         <article class="receta-card" [class.receta-card--seleccionada]="estaSeleccionada(receta)">
           <header class="receta-card__header">
-            <div>
-              <h2>{{ receta.fecha | date: 'dd-MM-yyyy' }}</h2>
-              @if (receta.observaciones) {
-                <p class="receta-card__observaciones">{{ receta.observaciones }}</p>
-              }
-            </div>
-            <label class="receta-card__seleccion">
-              <input
-                type="checkbox"
-                [checked]="estaSeleccionada(receta)"
-                [disabled]="!estaSeleccionada(receta) && seleccionadas().length >= 2"
-                (change)="toggleSeleccion(receta)"
-              />
-              Comparar
-            </label>
-        </header>
-        
+            <h2>{{ receta.fecha | date: 'dd-MM-yyyy' }}</h2>
+            @if (receta.observaciones) {
+              <p class="receta-card__observaciones">{{ receta.observaciones }}</p>
+            }
+            @if (!verRecetas) {
+              <label class="receta-card__seleccion">
+                <input
+                  type="checkbox"
+                  [checked]="estaSeleccionada(receta)"
+                  [disabled]="!estaSeleccionada(receta) && (seleccionadas().length >= 2 || receta.graduaciones.length === 0)"
+                  (change)="toggleSeleccion(receta)"
+                />
+                Comparar
+              </label>
+            }
+            @if (verRecetas) {
+              <a [routerLink]="['/admin/panel/recetas', receta.id, 'editar']">Editar receta</a>
+            }
+          </header>
+
+          @if (receta.imagenUrl) {
+            <a [href]="apiBase + receta.imagenUrl" target="_blank" rel="noopener">
+              <img [src]="apiBase + receta.imagenUrl" alt="Imagen de la receta" style="max-width: 100%; max-height: 320px" />
+            </a>
+          }
+
+          @if (receta.graduaciones.length === 0) {
+            <p class="receta-card__sin-graduaciones">Esta receta fue registrada por imagen, no tiene datos de graduación numéricos.</p>
+          }
+
+          @if (receta.graduaciones.length > 0) {
           <div class="graduaciones-grid">
             @for (graduacion of receta.graduaciones; track graduacion.ojo) {
               <div class="graduacion-item">
@@ -100,6 +146,7 @@
               </div>
             }
           </div>
+          }
         </article>
       }
     </div>
