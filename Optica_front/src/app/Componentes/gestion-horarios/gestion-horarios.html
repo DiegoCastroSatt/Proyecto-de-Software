@@ -44,7 +44,14 @@
 
                 @if (periodo() !== 'dia' && diasCalendario().length) {
                     <div class="calendar-panel">
-                        <p>Marca los días de atención. Desmarca los días que no se trabajan.</p>
+                        <div class="calendar-title-row">
+                            <div>
+                                <p class="eyebrow">Tu disponibilidad</p>
+                                <h3>{{ periodo() === 'semana' ? 'Agenda semanal' : 'Agenda mensual' }} · {{ scheduleForm.controls.fecha.value | date:'MM/yyyy' }}</h3>
+                            </div>
+                            <span class="calendar-count">{{ diasSeleccionados().length }} días activos</span>
+                        </div>
+                        <p class="calendar-description">Selecciona los días en los que recibirás clientes.</p>
                         <div class="calendar-actions">
                             <button type="button" class="button button-secondary" (click)="seleccionarDias(true)">Marcar todos</button>
                             <button type="button" class="button button-secondary" (click)="seleccionarDias(false)">Desmarcar todos</button>
@@ -53,15 +60,21 @@
                             @for (nombre of nombresDias; track nombre) { <span class="calendar-heading">{{ nombre }}</span> }
                             @for (dia of diasCalendario(); track $index) {
                                 @if (dia) {
-                                    <button type="button" class="calendar-day" [class.selected]="diasSeleccionados().includes(dia)"
+                                    <button type="button" class="calendar-day" [class.selected]="diasSeleccionados().includes(dia)" [class.today]="dia === fechaMinima()"
                                         [attr.aria-pressed]="diasSeleccionados().includes(dia)" [attr.aria-label]="dia + (diasSeleccionados().includes(dia) ? ': se trabaja' : ': sin atención')"
                                         [disabled]="dia < fechaMinima()" (click)="alternarDia(dia)">
-                                        {{ dia.slice(8) }}
+                                        <span class="day-number">{{ dia.slice(8) }}</span>
+                                        <span class="day-indicator" aria-hidden="true">{{ diasSeleccionados().includes(dia) ? '✓' : '−' }}</span>
                                     </button>
                                 } @else { <span></span> }
                             }
                         </div>
-                        <small>{{ diasSeleccionados().length }} día(s) seleccionados. Los días pasados no están disponibles. Los días desmarcados no generan nuevos bloques; los horarios existentes se administran abajo.</small>
+                        <div class="calendar-legend" aria-hidden="true">
+                            <span><i class="legend-active"></i>Con atención</span>
+                            <span><i class="legend-off"></i>Sin atención</span>
+                            <span><i class="legend-today"></i>Hoy</span>
+                        </div>
+                        <small>Los días pasados no están disponibles. Desmarcar un día evita generar nuevos bloques; administra los horarios existentes en el listado.</small>
                     </div>
                 }
                 </fieldset>
