@@ -25,14 +25,47 @@
             </div>
 
             <form class="schedule-form" [formGroup]="scheduleForm" (ngSubmit)="crearBloques()" novalidate>
+                <fieldset class="field-wide" [disabled]="isSaving()">
+                <div class="field">
+                    <label for="periodo">Generar horario por</label>
+                    <select id="periodo" [value]="periodo()" (change)="cambiarPeriodo($any($event.target).value)">
+                        <option value="dia">Día</option>
+                        <option value="semana">Semana</option>
+                        <option value="mes">Mes</option>
+                    </select>
+                </div>
                 <div class="field field-wide">
-                    <label for="fecha">Día de atención</label>
+                    <label for="fecha">{{ periodo() === 'dia' ? 'Día de atención' : 'Fecha de la semana o mes' }}</label>
                     <input id="fecha" type="date" formControlName="fecha" [min]="fechaMinima()" />
                     @if (formHasError('fecha')) {
                         <small>Selecciona un día.</small>
                     }
                 </div>
 
+                @if (periodo() !== 'dia' && diasCalendario().length) {
+                    <div class="calendar-panel">
+                        <p>Marca los días de atención. Desmarca los días que no se trabajan.</p>
+                        <div class="calendar-actions">
+                            <button type="button" class="button button-secondary" (click)="seleccionarDias(true)">Marcar todos</button>
+                            <button type="button" class="button button-secondary" (click)="seleccionarDias(false)">Desmarcar todos</button>
+                        </div>
+                        <div class="calendar-grid" aria-label="Días de atención">
+                            @for (nombre of nombresDias; track nombre) { <span class="calendar-heading">{{ nombre }}</span> }
+                            @for (dia of diasCalendario(); track $index) {
+                                @if (dia) {
+                                    <button type="button" class="calendar-day" [class.selected]="diasSeleccionados().includes(dia)"
+                                        [attr.aria-pressed]="diasSeleccionados().includes(dia)" [attr.aria-label]="dia + (diasSeleccionados().includes(dia) ? ': se trabaja' : ': sin atención')"
+                                        [disabled]="dia < fechaMinima()" (click)="alternarDia(dia)">
+                                        {{ dia.slice(8) }}
+                                    </button>
+                                } @else { <span></span> }
+                            }
+                        </div>
+                        <small>{{ diasSeleccionados().length }} día(s) seleccionados. Los días pasados no están disponibles. Los días desmarcados no generan nuevos bloques; los horarios existentes se administran abajo.</small>
+                    </div>
+                }
+                </fieldset>
+                <fieldset class="time-fields field-wide" [disabled]="isSaving()">
                 <div class="field">
                     <label for="horaInicio">Hora de inicio</label>
                     <input id="horaInicio" type="time" formControlName="horaInicio" [attr.min]="horaMinima()" />
@@ -54,8 +87,9 @@
                     <small>Se crearán automáticamente los bloques dentro del rango indicado.</small>
                 </div>
 
+                </fieldset>
                 <div class="form-actions">
-                    <button type="reset" class="button button-secondary">Limpiar</button>
+                    <button type="button" class="button button-secondary" [disabled]="isSaving()" (click)="limpiar()">Limpiar</button>
                     <button type="submit" class="button button-primary" [disabled]="isSaving()">
                         {{ isSaving() ? 'Creando...' : 'Crear bloques' }}
                     </button>
@@ -67,7 +101,7 @@
             <span class="help-icon" aria-hidden="true">i</span>
             <div>
                 <h2>¿Cómo funciona?</h2>
-                <p>Elige un día, define el rango de atención y crea bloques para que tus clientes puedan reservar.</p>
+                <p>Elige día, semana o mes, desmarca los días sin atención y define un rango común de horas. Se crearán bloques en todos los días seleccionados para que tus clientes puedan reservar.</p>
             </div>
         </aside>
     </section>
