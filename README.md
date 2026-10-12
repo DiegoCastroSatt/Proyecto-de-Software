@@ -46,6 +46,8 @@ docker compose up --build -d
 
 La API quedara disponible en `http://localhost:8080` y MySQL en `localhost:3307`.
 
+Para el uso local, `EMAIL_API_BASE_URL=http://localhost:8080` permite enviar los correos; sus enlaces funcionan al abrirlos en el mismo equipo donde corre Docker. Si el cliente abre el mensaje desde otro dispositivo, configura `EMAIL_API_BASE_URL` en `.env` con la URL HTTPS pública de la API, porque `localhost` apunta al dispositivo que abre el enlace.
+
 Para ver los logs:
 
 ```powershell
