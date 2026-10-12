@@ -1,6 +1,12 @@
 <div class="app-shell">
 
   <main class="order-page">
+    @if (mensajeTemporal(); as mensaje) {
+      <div class="pedido-toast" [class]="'pedido-toast pedido-toast--' + mensaje.tipo" [attr.role]="mensaje.tipo === 'error' ? 'alert' : 'status'" aria-live="polite">
+        <span>{{ mensaje.texto }}</span>
+        <button type="button" aria-label="Cerrar mensaje" (click)="cerrarMensaje()">×</button>
+      </div>
+    }
     <section class="order-shell">
 
       <div class="order-form-area">
@@ -27,14 +33,26 @@
               <span class="pedido-fecha">{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
               <span class="pedido-total">Total: ${{ pedido.total }}</span>
             </div>
-            <select class="pedido-estado" [attr.data-estado]="pedido.estado" [value]="pedido.estado" (change)="cambiarEstado(pedido, $event)">
+            <select class="pedido-estado" [attr.data-estado]="pedido.estado" [value]="pedido.estado" [disabled]="enProceso().has(pedido.idPedido)" (change)="cambiarEstado(pedido, $event)">
               <option value="Pendiente">Pendiente</option>
               <option value="En proceso">En proceso</option>
-              <option value="Listo">Listo</option>
+              <option value="Listo">Listo para retirar</option>
               <option value="Entregado">Entregado</option>
               <option value="Cancelado">Cancelado</option>
             </select>
           </div>
+          @if (pedidoPendienteConfirmacion() === pedido.idPedido) {
+            <div class="pedido-confirmacion-fondo">
+              <section class="pedido-confirmacion" role="dialog" aria-modal="true" aria-labelledby="pedido-confirmacion-titulo">
+                <h2 id="pedido-confirmacion-titulo">Confirmar pedido listo</h2>
+                <p>¿Estás seguro de que este pedido está listo para ser retirado por el cliente? Al confirmar, el pedido cambiará a Listo para retirar y se enviará un correo electrónico al cliente.</p>
+                <div class="pedido-confirmacion-acciones">
+                  <button type="button" class="pedido-confirmacion-cancelar" (click)="cancelarConfirmacionListo()">Cancelar</button>
+                  <button type="button" class="btn-primary" [disabled]="enProceso().has(pedido.idPedido)" (click)="confirmarPedidoListo()">Confirmar que está listo</button>
+                </div>
+              </section>
+            </div>
+          }
           }
         </div>
         }

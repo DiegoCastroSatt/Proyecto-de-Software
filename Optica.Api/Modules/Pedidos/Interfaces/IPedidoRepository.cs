@@ -10,6 +10,7 @@ public interface IPedidoRepository
     Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync();
     Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync();
     Task<Cliente?> ObtenerClienteActivoPorRutAsync(string rut);
+    Task<Cliente?> ObtenerClientePorRutAsync(string rut);
     Task<Pedido> CrearPedidoAsync(Pedido pedido);
     Task<Pedido?> ObtenerPedidoPorIdAsync(int id);
     Task ActualizarPedidoAsync(Pedido pedido);

@@ -2,16 +2,19 @@ using Optica.Api.Modules.Pedidos.DTOs;
 using Optica.Api.Modules.Pedidos.Interfaces;
 using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Clientes.Services;
+using System.Net.Mail;
 
 namespace Optica.Api.Modules.Pedidos.Services;
 
 public class PedidoService : IPedidoService
 {
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly IPedidoCorreoService _correoService;
 
-    public PedidoService(IPedidoRepository pedidoRepository)
+    public PedidoService(IPedidoRepository pedidoRepository, IPedidoCorreoService correoService)
     {
         _pedidoRepository = pedidoRepository;
+        _correoService = correoService;
     }
 
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosAsync()
@@ -79,8 +82,13 @@ public class PedidoService : IPedidoService
             throw new ArgumentException("Estado no válido.");
         }
 
+        var estabaListo = pedido.Estado == "Listo";
         pedido.Estado = dto.Estado;
         await _pedidoRepository.ActualizarPedidoAsync(pedido);
+
+        string? estadoNotificacion = null;
+        if (dto.Estado == "Listo" && !estabaListo)
+            estadoNotificacion = await EnviarNotificacionAsync(pedido);
 
         // Fetch client to return full DTO, or just return basic info. 
         // Returning full DTO is better.
@@ -93,7 +101,27 @@ public class PedidoService : IPedidoService
             Fecha = pedido.Fecha,
             Estado = pedido.Estado,
             Total = pedido.Total,
-            Anotaciones = pedido.Anotaciones
+            Anotaciones = pedido.Anotaciones,
+            EstadoNotificacion = estadoNotificacion
         };
+    }
+
+    private async Task<string> EnviarNotificacionAsync(Pedido pedido)
+    {
+        try
+        {
+            var cliente = await _pedidoRepository.ObtenerClientePorRutAsync(pedido.Rut);
+            if (cliente?.Correo is null || !MailAddress.TryCreate(cliente.Correo, out _))
+                return "Fallida";
+
+            return await _correoService.EnviarPedidoListoAsync(cliente.Correo, $"{cliente.Nombre} {cliente.Apellido}".Trim(), pedido.IdPedido, CancellationToken.None)
+                ? "Enviada"
+                : "Fallida";
+        }
+        catch (Exception)
+        {
+            // El pedido ya quedó actualizado; un fallo de notificación no revierte su estado.
+            return "Fallida";
+        }
     }
 }

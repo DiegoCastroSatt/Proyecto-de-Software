@@ -1,14 +1,13 @@
 using System.Globalization;
-using System.Net;
-using System.Net.Mail;
 using System.Text;
 using System.Text.Encodings.Web;
 using Optica.Api.Modules.AgendaReservas.DTOs;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
+using Optica.Api.Modules.Notificaciones.Interfaces;
 
 namespace Optica.Api.Modules.AgendaReservas.Services;
 
-public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<ReservaCorreoService> logger, TimeProvider proveedorTiempo) : IReservaCorreoService
+public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<ReservaCorreoService> logger, TimeProvider proveedorTiempo, IEmailService emailService) : IReservaCorreoService
 {
     private const string NombreCentro = "Centro Óptico San Francisco";
 
@@ -93,53 +92,8 @@ public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<R
 
     private async Task<bool> Enviar(string? destinatario, string asunto, string html, byte[] calendario, CancellationToken cancellationToken)
     {
-        var host = configuracion["Correo:SmtpHost"];
-        var remitente = configuracion["Correo:Remitente"];
-        if (string.IsNullOrWhiteSpace(destinatario) || string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(remitente))
-        {
-            logger.LogWarning("No se envió un correo de reservas: falta destinatario o configuración SMTP.");
-            return false;
-        }
-
-        try
-        {
-            using var mensaje = new MailMessage
-            {
-                From = new MailAddress(remitente, configuracion["Correo:NombreRemitente"] ?? NombreCentro),
-                Subject = asunto,
-                Body = html,
-                IsBodyHtml = true,
-                SubjectEncoding = Encoding.UTF8,
-                BodyEncoding = Encoding.UTF8
-            };
-            mensaje.To.Add(destinatario);
-            mensaje.Attachments.Add(new Attachment(new MemoryStream(calendario), "reserva.ics", "text/calendar"));
-
-            using var smtp = new SmtpClient(host, int.TryParse(configuracion["Correo:Puerto"], out var puerto) ? puerto : 587)
-            {
-                EnableSsl = !bool.TryParse(configuracion["Correo:UsarTls"], out var usarTls) || usarTls,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                Timeout = 15000
-            };
-            var usuario = configuracion["Correo:Usuario"];
-            var clave = configuracion["Correo:Clave"];
-            if (!string.IsNullOrWhiteSpace(usuario))
-            {
-                smtp.Credentials = new NetworkCredential(usuario, clave ?? string.Empty);
-            }
-
-            await smtp.SendMailAsync(mensaje, cancellationToken);
-            return true;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception)
-        {
-            logger.LogError("Falló el envío SMTP de un correo de reservas.");
-            return false;
-        }
+        return await emailService.EnviarAsync(destinatario, asunto, html, cancellationToken,
+            adjunto: calendario, nombreAdjunto: "reserva.ics", tipoAdjunto: "text/calendar");
     }
 
     private string CrearUrlGoogleCalendar(ReservaCorreoDto reserva)

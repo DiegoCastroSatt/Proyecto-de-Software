@@ -59,6 +59,9 @@ public class PedidoRepository : IPedidoRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<Cliente?> ObtenerClientePorRutAsync(string rut)
+        => await _context.Clientes.FirstOrDefaultAsync(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut);
+
     public async Task<Pedido> CrearPedidoAsync(Pedido pedido)
     {
         _context.Pedidos.Add(pedido);
@@ -76,4 +79,5 @@ public class PedidoRepository : IPedidoRepository
         _context.Pedidos.Update(pedido);
         await _context.SaveChangesAsync();
     }
+
 }
