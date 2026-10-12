@@ -140,6 +140,25 @@ button {
   transition: background 160ms ease, transform 160ms ease;
 }
 
+.refresh-slots {
+  min-height: 42px;
+  margin: 14px 0 -13px;
+  border: 1px solid var(--color-borde-control);
+  background: transparent;
+  color: var(--color-principal);
+  font-size: 0.78rem;
+}
+
+.refresh-slots:hover {
+  background: color-mix(in srgb, var(--color-principal) 7%, var(--color-superficie));
+  transform: none;
+}
+
+.refresh-slots:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .form-footnote {
   margin: 13px 0 0;
   color: var(--color-texto-nota);

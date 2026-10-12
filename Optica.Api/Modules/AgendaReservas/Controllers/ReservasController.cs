@@ -59,7 +59,15 @@ public class ReservasController : ControllerBase
     {
         try
         {
-            await _reservaService.ReprogramarReserva(id, dto.IdHorario, cancellationToken);
+            var correoEnviado = await _reservaService.ReprogramarReserva(id, dto.IdHorario, cancellationToken);
+            if (!correoEnviado)
+            {
+                return Accepted(new
+                {
+                    correoEnviado = false,
+                    mensaje = "La reserva fue reprogramada, pero el correo quedó pendiente y se reintentará automáticamente."
+                });
+            }
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -89,6 +97,10 @@ public class ReservasController : ControllerBase
 
             return Ok(reserva);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { mensaje = ex.Message });
+        }
         catch (Exception ex)
         {
             return BadRequest(new
@@ -100,13 +112,43 @@ public class ReservasController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("acciones/confirmar/{token}")]
-    public Task<IActionResult> ConfirmarDesdeCorreo(string token, CancellationToken cancellationToken) =>
-        MostrarResultadoAccion(token, confirmar: true, cancellationToken);
+    public IActionResult ConfirmarDesdeCorreo(string token) => MostrarFormularioAccion(token, confirmar: true);
 
     [AllowAnonymous]
     [HttpGet("acciones/cancelar/{token}")]
-    public Task<IActionResult> CancelarDesdeCorreo(string token, CancellationToken cancellationToken) =>
+    public IActionResult CancelarDesdeCorreo(string token) => MostrarFormularioAccion(token, confirmar: false);
+
+    [AllowAnonymous]
+    [HttpPost("acciones/confirmar/{token}")]
+    public Task<IActionResult> EjecutarConfirmacionDesdeCorreo(string token, CancellationToken cancellationToken) =>
+        MostrarResultadoAccion(token, confirmar: true, cancellationToken);
+
+    [AllowAnonymous]
+    [HttpPost("acciones/cancelar/{token}")]
+    public Task<IActionResult> EjecutarCancelacionDesdeCorreo(string token, CancellationToken cancellationToken) =>
         MostrarResultadoAccion(token, confirmar: false, cancellationToken);
+
+    private IActionResult MostrarFormularioAccion(string token, bool confirmar)
+    {
+        Response.Headers.CacheControl = "no-store, no-cache";
+        Response.Headers.Pragma = "no-cache";
+        Response.Headers["Referrer-Policy"] = "no-referrer";
+        Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        var titulo = confirmar ? "Confirmar hora" : "Cancelar hora";
+        var accion = confirmar ? "confirmar" : "cancelar";
+        var boton = confirmar ? "CONFIRMAR MI HORA" : "CONFIRMAR CANCELACIÓN";
+        var tokenSeguro = HtmlEncoder.Default.Encode(token);
+        var color = confirmar ? "#176b6c" : "#a83a32";
+        var html = $"""
+            <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{titulo}</title></head>
+            <body style="margin:0;background:#f3f7f6;font-family:Arial,sans-serif;color:#18333c"><main style="box-sizing:border-box;width:min(100% - 32px,560px);margin:10vh auto;padding:36px;background:#fff;border-radius:16px;box-shadow:0 12px 40px #18333c1a;text-align:center">
+            <p style="color:#176b6c;font-weight:bold">Centro Óptico San Francisco</p><h1 style="font-size:25px">{titulo}</h1>
+            <p style="font-size:17px;line-height:1.5">{(confirmar ? "Confirma que asistirás a tu hora de atención." : "Confirma que deseas cancelar tu hora de atención.")}</p>
+            <form method="post" action="/api/Reservas/acciones/{accion}/{tokenSeguro}"><button type="submit" style="border:0;border-radius:7px;padding:14px 20px;background:{color};color:#fff;font-weight:bold;cursor:pointer">{boton}</button></form>
+            </main></body></html>
+            """;
+        return Content(html, "text/html; charset=utf-8");
+    }
 
     private async Task<IActionResult> MostrarResultadoAccion(string token, bool confirmar, CancellationToken cancellationToken)
     {

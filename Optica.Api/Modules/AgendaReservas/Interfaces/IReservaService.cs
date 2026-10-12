@@ -15,5 +15,5 @@ public interface IReservaService
 
     Task CancelarReserva(int id, CancellationToken cancellationToken);
 
-    Task ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken);
+    Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken);
 }

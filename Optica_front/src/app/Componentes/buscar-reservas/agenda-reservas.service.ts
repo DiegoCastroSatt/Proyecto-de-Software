@@ -22,6 +22,11 @@ export interface HorarioDisponible {
   horaFin: string;
 }
 
+export interface RespuestaReprogramacion {
+  correoEnviado: boolean;
+  mensaje: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AgendaReservasService {
   private readonly http = inject(HttpClient);
@@ -37,8 +42,8 @@ export class AgendaReservasService {
     return this.http.get<HorarioDisponible[]>('http://localhost:8080/api/Reservas/disponibles', { params });
   }
 
-  reprogramar(id: number, idHorario: number): Observable<void> {
-    return this.http.put<void>(`http://localhost:8080/api/Reservas/${id}/reprogramar`, { idHorario });
+  reprogramar(id: number, idHorario: number): Observable<RespuestaReprogramacion | null> {
+    return this.http.put<RespuestaReprogramacion | null>(`http://localhost:8080/api/Reservas/${id}/reprogramar`, { idHorario });
   }
 
   cancelar(id: number): Observable<void> {

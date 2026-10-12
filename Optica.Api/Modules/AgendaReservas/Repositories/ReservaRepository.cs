@@ -34,7 +34,12 @@ public class ReservaRepository : IReservaRepository
             .ToListAsync();
     }
 
-    public async Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken)
+    public async Task<bool> ReprogramarReserva(
+        int id,
+        int idHorario,
+        string tokenConfirmacionHash,
+        string tokenCancelacionHash,
+        CancellationToken cancellationToken)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -51,8 +56,17 @@ public class ReservaRepository : IReservaRepository
         await _context.Horarios
             .FromSqlInterpolated($"SELECT id_horario, id_administrador, fecha, hora_inicio, hora_fin, estado FROM horarios_atencion WHERE id_horario = {horarioAnteriorId.Value} OR id_horario = {idHorario} ORDER BY id_horario FOR UPDATE")
             .ToListAsync(cancellationToken);
+        var clienteId = await _context.Reservas
+            .Where(r => r.Id == id)
+            .Select(r => (int?)r.ClienteId)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (clienteId is null)
+        {
+            return false;
+        }
+        await BloquearCliente(clienteId.Value, cancellationToken);
         await _context.Reservas
-            .FromSqlInterpolated($"SELECT id_reserva, id_cliente, id_horario, motivo, estado FROM reservas WHERE id_reserva = {id} FOR UPDATE")
+            .FromSqlInterpolated($"SELECT id_reserva, id_cliente, id_horario, motivo, estado, token_confirmacion_hash, token_cancelacion_hash, token_accion_expira_utc, recordatorio_enviado_utc FROM reservas WHERE id_reserva = {id} FOR UPDATE")
             .ToListAsync(cancellationToken);
         var reserva = await _context.Reservas.SingleOrDefaultAsync(r => r.Id == id, cancellationToken);
         if (reserva is null || reserva.HorarioId != horarioAnteriorId.Value)
@@ -87,6 +101,11 @@ public class ReservaRepository : IReservaRepository
                 : "El horario seleccionado ya no está disponible.");
         }
 
+        if (await ExisteReservaActivaElDia(reserva.ClienteId, horarioNuevo.Fecha, id, cancellationToken))
+        {
+            throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
+        }
+
         var horarioAnterior = await _context.Horarios.SingleOrDefaultAsync(h => h.Id == reserva.HorarioId, cancellationToken);
         if (horarioAnterior is null)
         {
@@ -96,6 +115,9 @@ public class ReservaRepository : IReservaRepository
         horarioAnterior.Estado = "Habilitada";
         horarioNuevo.Estado = "Inhabilitada";
         reserva.HorarioId = horarioNuevo.Id;
+        reserva.Estado = "Pendiente";
+        reserva.TokenConfirmacionHash = tokenConfirmacionHash;
+        reserva.TokenCancelacionHash = tokenCancelacionHash;
         reserva.TokenAccionExpiraUtc = ObtenerExpiracionAccionUtc(horarioNuevo.Fecha, horarioNuevo.HoraInicio);
         reserva.RecordatorioEnviadoUtc = null;
         await _context.SaveChangesAsync(cancellationToken);
@@ -107,9 +129,6 @@ public class ReservaRepository : IReservaRepository
         bool historialAtendidas,
         CancellationToken cancellationToken)
     {
-        var ahoraChile = HoraChile.ObtenerAhora(_proveedorTiempo);
-        var fechaHoy = ahoraChile.Date;
-        var horaActual = ahoraChile.TimeOfDay;
         var consulta =
             from reserva in _context.Reservas.AsNoTracking()
             join horario in _context.Horarios.AsNoTracking() on reserva.HorarioId equals horario.Id
@@ -117,14 +136,8 @@ public class ReservaRepository : IReservaRepository
             select new { reserva, horario, cliente };
 
         consulta = historialAtendidas
-            ? consulta.Where(item => item.reserva.Estado == "Realizada"
-                || (item.reserva.Estado != "Cancelada"
-                    && (item.horario.Fecha.Date < fechaHoy
-                        || (item.horario.Fecha.Date == fechaHoy && item.horario.HoraInicio <= horaActual))))
-            : consulta.Where(item => item.reserva.Estado != "Realizada"
-                && item.reserva.Estado != "Cancelada"
-                && (item.horario.Fecha.Date > fechaHoy
-                    || (item.horario.Fecha.Date == fechaHoy && item.horario.HoraInicio > horaActual)));
+            ? consulta.Where(item => item.reserva.Estado == "Realizada")
+            : consulta.Where(item => item.reserva.Estado == "Pendiente" || item.reserva.Estado == "Confirmada");
 
         var ordenada = historialAtendidas
             ? consulta.OrderByDescending(item => item.horario.Fecha).ThenByDescending(item => item.horario.HoraInicio)
@@ -137,11 +150,7 @@ public class ReservaRepository : IReservaRepository
                 Fecha = item.horario.Fecha,
                 HoraInicio = item.horario.HoraInicio,
                 HoraFin = item.horario.HoraFin,
-                Estado = item.reserva.Estado != "Realizada"
-                    && (item.horario.Fecha.Date < fechaHoy
-                        || (item.horario.Fecha.Date == fechaHoy && item.horario.HoraInicio <= horaActual))
-                    ? "Realizada"
-                    : item.reserva.Estado,
+                Estado = item.reserva.Estado,
                 Motivo = item.reserva.Motivo,
                 NombreCliente = item.cliente.Nombre + " " + item.cliente.Apellido,
                 RutCliente = item.cliente.Rut,
@@ -149,6 +158,19 @@ public class ReservaRepository : IReservaRepository
                 CorreoCliente = item.cliente.Correo
             })
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> MarcarReservasVencidasComoRealizadas(DateTimeOffset ahoraChile, CancellationToken cancellationToken)
+    {
+        var fechaChile = ahoraChile.Date;
+        var horaChile = ahoraChile.TimeOfDay;
+        return _context.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE reservas AS r
+            INNER JOIN horarios_atencion AS h ON h.id_horario = r.id_horario
+            SET r.estado = 'Realizada'
+            WHERE r.estado IN ('Pendiente', 'Confirmada')
+              AND (h.fecha < {fechaChile} OR (h.fecha = {fechaChile} AND h.hora_fin <= {horaChile}))
+            """, cancellationToken);
     }
 
     public Task<bool> ExisteCorreoEnOtroCliente(string correo, string rutNormalizado)
@@ -199,6 +221,14 @@ public class ReservaRepository : IReservaRepository
             await _context.SaveChangesAsync();
         }
 
+        // El bloqueo serializa las operaciones del mismo cliente. La consulta bloqueante posterior
+        // usa una lectura actual de MySQL para incluir reservas confirmadas por una solicitud concurrente.
+        await BloquearCliente(cliente.IdCliente, CancellationToken.None);
+        if (await ExisteReservaActivaElDia(cliente.IdCliente, horario.Fecha, null, CancellationToken.None))
+        {
+            throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
+        }
+
         var reserva = new Reserva
         {
             ClienteId = cliente.IdCliente,
@@ -218,6 +248,33 @@ public class ReservaRepository : IReservaRepository
         return reserva;
     }
 
+    private async Task BloquearCliente(int clienteId, CancellationToken cancellationToken)
+    {
+        await _context.Clientes
+            .FromSqlInterpolated($"SELECT * FROM clientes WHERE id_cliente = {clienteId} FOR UPDATE")
+            .ToListAsync(cancellationToken);
+    }
+
+    private async Task<bool> ExisteReservaActivaElDia(
+        int clienteId,
+        DateTime fecha,
+        int? excluirReservaId,
+        CancellationToken cancellationToken)
+    {
+        var reservas = await _context.Database.SqlQuery<int>($"""
+            SELECT r.id_reserva AS Value
+            FROM reservas r
+            INNER JOIN horarios_atencion h ON h.id_horario = r.id_horario
+            WHERE r.id_cliente = {clienteId}
+              AND h.fecha = {fecha.Date}
+              AND r.estado IN ('Pendiente', 'Confirmada')
+              AND r.id_reserva <> {excluirReservaId ?? 0}
+            LIMIT 1
+            FOR UPDATE
+            """).ToListAsync(cancellationToken);
+        return reservas.Count != 0;
+    }
+
     public async Task<ReservaCorreoDto?> ObtenerDatosCorreoReserva(int id, CancellationToken cancellationToken)
     {
         return await (
@@ -228,6 +285,7 @@ public class ReservaRepository : IReservaRepository
             select new ReservaCorreoDto
             {
                 Id = reserva.Id,
+                HorarioId = reserva.HorarioId,
                 NombreCliente = cliente.Nombre + " " + cliente.Apellido,
                 CorreoCliente = cliente.Correo,
                 Fecha = horario.Fecha,
@@ -349,6 +407,7 @@ public class ReservaRepository : IReservaRepository
             select new ReservaCorreoDto
             {
                 Id = reserva.Id,
+                HorarioId = reserva.HorarioId,
                 NombreCliente = cliente.Nombre + " " + cliente.Apellido,
                 CorreoCliente = cliente.Correo,
                 Fecha = horario.Fecha,
@@ -358,19 +417,42 @@ public class ReservaRepository : IReservaRepository
             }).ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> MarcarRecordatorioEnviado(int id, DateTime enviadoUtc, CancellationToken cancellationToken)
+    public async Task<bool> MarcarRecordatorioEnviado(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken)
     {
         var afectados = await _context.Reservas
-            .Where(r => r.Id == id && (r.Estado == "Pendiente" || r.Estado == "Confirmada") && r.RecordatorioEnviadoUtc == null)
+            .Where(r => r.Id == id && r.HorarioId == horarioId
+                && (r.Estado == "Pendiente" || r.Estado == "Confirmada") && r.RecordatorioEnviadoUtc == null)
             .ExecuteUpdateAsync(actualizacion => actualizacion.SetProperty(r => r.RecordatorioEnviadoUtc, enviadoUtc), cancellationToken);
         return afectados == 1;
     }
 
-    public async Task DesmarcarRecordatorio(int id, DateTime enviadoUtc, CancellationToken cancellationToken)
+    public async Task DesmarcarRecordatorio(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken)
     {
         await _context.Reservas
-            .Where(r => r.Id == id && r.RecordatorioEnviadoUtc == enviadoUtc && (r.Estado == "Pendiente" || r.Estado == "Confirmada"))
+            .Where(r => r.Id == id && r.HorarioId == horarioId && r.RecordatorioEnviadoUtc == enviadoUtc
+                && (r.Estado == "Pendiente" || r.Estado == "Confirmada"))
             .ExecuteUpdateAsync(actualizacion => actualizacion.SetProperty(r => r.RecordatorioEnviadoUtc, (DateTime?)null), cancellationToken);
+    }
+
+    public Task<bool> SonTokensReprogramacionVigentes(
+        int id,
+        string tokenConfirmacionHash,
+        string tokenCancelacionHash,
+        DateTime ahoraUtc,
+        CancellationToken cancellationToken)
+    {
+        var ahoraChile = HoraChile.ObtenerAhora(_proveedorTiempo);
+        return (
+            from reserva in _context.Reservas
+            join horario in _context.Horarios on reserva.HorarioId equals horario.Id
+            where reserva.Id == id
+                && reserva.TokenConfirmacionHash == tokenConfirmacionHash
+                && reserva.TokenCancelacionHash == tokenCancelacionHash
+                && reserva.TokenAccionExpiraUtc > ahoraUtc
+                && (reserva.Estado == "Pendiente" || reserva.Estado == "Confirmada")
+                && (horario.Fecha.Date > ahoraChile.Date
+                    || (horario.Fecha.Date == ahoraChile.Date && horario.HoraInicio > ahoraChile.TimeOfDay))
+            select reserva.Id).AnyAsync(cancellationToken);
     }
 
     private static DateTime ObtenerExpiracionAccionUtc(DateTime fecha, TimeSpan hora)

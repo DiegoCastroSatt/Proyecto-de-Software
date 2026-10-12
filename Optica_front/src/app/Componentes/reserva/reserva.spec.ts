@@ -35,6 +35,21 @@ describe('Reservas', () => {
     expect(dom.querySelectorAll('#date option').length).toBe(3);
   });
 
+  it('permite actualizar al instante los horarios liberados por una cancelación', () => {
+    const { fixture, component, dom } = preparar();
+    const horarioLiberado = { idHorario: 13, fecha: '2026-09-22T00:00:00', hora: '10:00:00' };
+    component['reservationForm'].controls.date.setValue('2026-09-22');
+    servicio.obtenerDisponibles.mockReturnValueOnce(of([...horarios, horarioLiberado]));
+
+    component['actualizarHorariosDisponibles']();
+    fixture.detectChanges();
+
+    expect(servicio.obtenerDisponibles).toHaveBeenCalledTimes(2);
+    expect(Array.from(dom.querySelectorAll<HTMLSelectElement>('#time option')).map(opcion => opcion.value))
+      .toEqual(['', '10', '11', '13']);
+    expect(component['isRefreshingSlots']()).toBe(false);
+  });
+
   it('actualiza las horas cuando cambia el día', () => {
     const { fixture, component, dom } = preparar();
     component['reservationForm'].controls.date.setValue('2026-09-22');
@@ -111,5 +126,22 @@ describe('Reservas', () => {
     });
     expect(dom.textContent).toContain('Reserva registrada, Ana Pérez');
     expect(dom.textContent).toContain('Te enviamos un correo para confirmar o cancelar tu hora.');
+  });
+
+  it('muestra el mensaje de la API y no deja un éxito cuando la reserva es rechazada', () => {
+    const { fixture, component, dom } = preparar();
+    component['reservationForm'].setValue({
+      name: 'Ana Pérez', rut: '12.345.678-5', phone: '+56 9 1234 5678',
+      email: 'ana@example.com', date: '2026-09-22', time: '10'
+    });
+    servicio.crearReserva.mockReturnValue(throwError(() => ({
+      error: { mensaje: 'Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.' }
+    })));
+
+    component['submitReservation']();
+    fixture.detectChanges();
+
+    expect(dom.textContent).toContain('Ya tienes una reserva activa para esta fecha');
+    expect(dom.textContent).not.toContain('Reserva registrada, Ana Pérez');
   });
 });

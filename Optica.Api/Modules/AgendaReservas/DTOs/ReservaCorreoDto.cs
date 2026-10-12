@@ -3,6 +3,7 @@ namespace Optica.Api.Modules.AgendaReservas.DTOs;
 public class ReservaCorreoDto
 {
     public int Id { get; set; }
+    public int HorarioId { get; set; }
     public string NombreCliente { get; set; } = string.Empty;
     public string? CorreoCliente { get; set; }
     public DateTime Fecha { get; set; }
