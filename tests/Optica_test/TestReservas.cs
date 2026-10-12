@@ -278,6 +278,22 @@ public class TestReservas
     }
 
     [Fact]
+    public async Task ReprogramarReserva_RechazaFechaConOtraReservaActivaDelCliente()
+    {
+        var repositorio = new ReservaRepositorioPrueba
+        {
+            ReservaId = 25, ClienteId = 8, HorarioId = 15, ReservaActivaEseDia = true,
+            Horarios = [new() { Id = 15, Estado = "Inhabilitada" }, new() { Id = 27, Estado = "Habilitada" }]
+        };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => CrearServicio(repositorio).ReprogramarReserva(25, 27, CancellationToken.None));
+
+        Assert.Contains("reserva activa para esta fecha", error.Message);
+        Assert.Equal(15, repositorio.HorarioId);
+        Assert.Equal(8, repositorio.ClienteId);
+    }
+
+    [Fact]
     public async Task ReprogramarReserva_RechazaHorarioInexistenteSinModificarReserva()
     {
         var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15 };
@@ -368,6 +384,20 @@ public class TestReservas
     }
 
     [Fact]
+    public async Task CrearReserva_RechazaClienteConReservaActivaEseDia()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaActivaEseDia = true };
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => CrearServicio(repositorio).CrearReserva(new CrearReservaDto
+        {
+            NombreCompleto = "Ana Pérez", Rut = "12.345.678-5", Telefono = "9 1234 5678",
+            Correo = "ana@example.com", IdHorario = 12
+        }));
+
+        Assert.Contains("reserva activa para esta fecha", error.Message);
+        Assert.Null(repositorio.UltimaSolicitud);
+    }
+
+    [Fact]
     public async Task CrearReserva_RechazaTelefonoConDigitosInsuficientes()
     {
         var repositorio = new ReservaRepositorioPrueba();
@@ -408,6 +438,7 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public IReadOnlyList<ReservaCorreoDto> Recordatorios { get; set; } = [];
     public HashSet<int> RecordatoriosMarcados { get; } = [];
     public bool CorreoUsadoPorOtroCliente { get; set; }
+    public bool ReservaActivaEseDia { get; set; }
     public int ReservaId { get; set; }
     public int ClienteId { get; set; }
     public int HorarioId { get; set; }
@@ -428,6 +459,7 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
 
     public Task<Reserva> CrearReserva(CrearReservaDto dto, string tokenConfirmacionHash, string tokenCancelacionHash)
     {
+        if (ReservaActivaEseDia) throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
         UltimaSolicitud = dto;
         TokenConfirmacionHash = tokenConfirmacionHash;
         TokenCancelacionHash = tokenCancelacionHash;
@@ -483,6 +515,8 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
         if (idHorario == HorarioId) throw new InvalidOperationException("El nuevo horario debe ser distinto al horario actual.");
         if (horario.Estado != "Habilitada" || HorarioOcupado)
             throw new InvalidOperationException(horario.Estado != "Habilitada" ? "El horario seleccionado no está disponible." : "El horario seleccionado ya no está disponible.");
+        if (ReservaActivaEseDia)
+            throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
         var anterior = Horarios.Single(h => h.Id == HorarioId);
         anterior.Estado = "Habilitada";
         horario.Estado = "Inhabilitada";

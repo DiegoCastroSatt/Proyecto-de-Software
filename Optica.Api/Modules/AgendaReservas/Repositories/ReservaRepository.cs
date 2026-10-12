@@ -51,6 +51,15 @@ public class ReservaRepository : IReservaRepository
         await _context.Horarios
             .FromSqlInterpolated($"SELECT id_horario, id_administrador, fecha, hora_inicio, hora_fin, estado FROM horarios_atencion WHERE id_horario = {horarioAnteriorId.Value} OR id_horario = {idHorario} ORDER BY id_horario FOR UPDATE")
             .ToListAsync(cancellationToken);
+        var clienteId = await _context.Reservas
+            .Where(r => r.Id == id)
+            .Select(r => (int?)r.ClienteId)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (clienteId is null)
+        {
+            return false;
+        }
+        await BloquearCliente(clienteId.Value, cancellationToken);
         await _context.Reservas
             .FromSqlInterpolated($"SELECT id_reserva, id_cliente, id_horario, motivo, estado FROM reservas WHERE id_reserva = {id} FOR UPDATE")
             .ToListAsync(cancellationToken);
@@ -85,6 +94,11 @@ public class ReservaRepository : IReservaRepository
             throw new InvalidOperationException(horarioNuevo.Estado != "Habilitada"
                 ? "El horario seleccionado no está disponible."
                 : "El horario seleccionado ya no está disponible.");
+        }
+
+        if (await ExisteReservaActivaElDia(reserva.ClienteId, horarioNuevo.Fecha, id, cancellationToken))
+        {
+            throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
         }
 
         var horarioAnterior = await _context.Horarios.SingleOrDefaultAsync(h => h.Id == reserva.HorarioId, cancellationToken);
@@ -199,6 +213,14 @@ public class ReservaRepository : IReservaRepository
             await _context.SaveChangesAsync();
         }
 
+        // El bloqueo serializa las operaciones del mismo cliente. La consulta bloqueante posterior
+        // usa una lectura actual de MySQL para incluir reservas confirmadas por una solicitud concurrente.
+        await BloquearCliente(cliente.IdCliente, CancellationToken.None);
+        if (await ExisteReservaActivaElDia(cliente.IdCliente, horario.Fecha, null, CancellationToken.None))
+        {
+            throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
+        }
+
         var reserva = new Reserva
         {
             ClienteId = cliente.IdCliente,
@@ -216,6 +238,33 @@ public class ReservaRepository : IReservaRepository
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
         return reserva;
+    }
+
+    private async Task BloquearCliente(int clienteId, CancellationToken cancellationToken)
+    {
+        await _context.Clientes
+            .FromSqlInterpolated($"SELECT * FROM clientes WHERE id_cliente = {clienteId} FOR UPDATE")
+            .ToListAsync(cancellationToken);
+    }
+
+    private async Task<bool> ExisteReservaActivaElDia(
+        int clienteId,
+        DateTime fecha,
+        int? excluirReservaId,
+        CancellationToken cancellationToken)
+    {
+        var reservas = await _context.Database.SqlQuery<int>($"""
+            SELECT r.id_reserva AS Value
+            FROM reservas r
+            INNER JOIN horarios_atencion h ON h.id_horario = r.id_horario
+            WHERE r.id_cliente = {clienteId}
+              AND h.fecha = {fecha.Date}
+              AND r.estado IN ('Pendiente', 'Confirmada')
+              AND r.id_reserva <> {excluirReservaId ?? 0}
+            LIMIT 1
+            FOR UPDATE
+            """).ToListAsync(cancellationToken);
+        return reservas.Count != 0;
     }
 
     public async Task<ReservaCorreoDto?> ObtenerDatosCorreoReserva(int id, CancellationToken cancellationToken)

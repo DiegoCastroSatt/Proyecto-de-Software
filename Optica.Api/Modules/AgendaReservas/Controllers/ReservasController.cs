@@ -89,6 +89,10 @@ public class ReservasController : ControllerBase
 
             return Ok(reserva);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { mensaje = ex.Message });
+        }
         catch (Exception ex)
         {
             return BadRequest(new

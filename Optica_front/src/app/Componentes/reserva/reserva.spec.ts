@@ -112,4 +112,21 @@ describe('Reservas', () => {
     expect(dom.textContent).toContain('Reserva registrada, Ana Pérez');
     expect(dom.textContent).toContain('Te enviamos un correo para confirmar o cancelar tu hora.');
   });
+
+  it('muestra el mensaje de la API y no deja un éxito cuando la reserva es rechazada', () => {
+    const { fixture, component, dom } = preparar();
+    component['reservationForm'].setValue({
+      name: 'Ana Pérez', rut: '12.345.678-5', phone: '+56 9 1234 5678',
+      email: 'ana@example.com', date: '2026-09-22', time: '10'
+    });
+    servicio.crearReserva.mockReturnValue(throwError(() => ({
+      error: { mensaje: 'Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.' }
+    })));
+
+    component['submitReservation']();
+    fixture.detectChanges();
+
+    expect(dom.textContent).toContain('Ya tienes una reserva activa para esta fecha');
+    expect(dom.textContent).not.toContain('Reserva registrada, Ana Pérez');
+  });
 });

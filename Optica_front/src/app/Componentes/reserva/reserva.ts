@@ -87,6 +87,7 @@ export class ReservaComponent implements OnInit {
     const formValue = this.reservationForm.getRawValue();
     this.isSubmitting.set(true);
     this.errorMessage.set('');
+    this.confirmedName.set('');
 
     this.reservaService.crearReserva({
       nombreCompleto: formValue.name ?? '',
