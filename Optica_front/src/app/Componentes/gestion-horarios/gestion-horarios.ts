@@ -89,7 +89,7 @@ export class GestionHorariosComponent implements OnInit {
   }
 
   protected limpiar(): void {
-    this.scheduleForm.reset({ fecha: '', horaInicio: '09:00', horaFin: '18:00', duracionMinutos: 30 });
+    this.scheduleForm.reset({ fecha: '', horaInicio: '13:00', horaFin: '18:00', duracionMinutos: 30 });
     this.actualizarCalendario();
     this.errorMessage.set('');
     this.successMessage.set('');
@@ -97,7 +97,7 @@ export class GestionHorariosComponent implements OnInit {
 
   protected readonly scheduleForm = this.formBuilder.group({
     fecha: ['', Validators.required],
-    horaInicio: ['09:00', Validators.required],
+    horaInicio: ['13:00', Validators.required],
     horaFin: ['18:00', Validators.required],
     duracionMinutos: [30, [Validators.required, Validators.min(1)]]
   });
