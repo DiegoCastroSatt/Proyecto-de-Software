@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Clientes.Services;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
+using Optica.Api.Modules.Notificaciones.Interfaces;
 using Xunit;
 
 namespace Optica.Ventas.Tests;
@@ -180,6 +181,76 @@ public class TestReservas
         Assert.Contains("method=\"post\"", pagina.Content);
         Assert.Equal("Pendiente", repositorio.EstadoReserva);
         Assert.Equal("Inhabilitada", repositorio.Horarios.Single(h => h.Id == 12).Estado);
+    }
+
+    [Fact]
+    public async Task ConfirmarDesdeCorreo_ActualizaLaReservaYDevuelveResultado()
+    {
+        var repositorio = CrearRepositorioAccion("confirmar-seguro", "cancelar-seguro");
+        var controlador = new ReservasController(CrearServicio(repositorio))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var respuesta = Assert.IsType<ContentResult>(await controlador.EjecutarConfirmacionDesdeCorreo("confirmar-seguro", CancellationToken.None));
+
+        Assert.Equal("Confirmada", repositorio.EstadoReserva);
+        Assert.Contains("Tu hora quedó confirmada correctamente", System.Net.WebUtility.HtmlDecode(respuesta.Content));
+    }
+
+    [Fact]
+    public async Task CancelarDesdeCorreo_ActualizaLaReservaYLiberarHorario()
+    {
+        var repositorio = CrearRepositorioAccion("confirmar-seguro", "cancelar-seguro");
+        var controlador = new ReservasController(CrearServicio(repositorio))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var respuesta = Assert.IsType<ContentResult>(await controlador.EjecutarCancelacionDesdeCorreo("cancelar-seguro", CancellationToken.None));
+
+        Assert.Equal("Cancelada", repositorio.EstadoReserva);
+        Assert.Equal("Habilitada", repositorio.Horarios.Single(h => h.Id == 12).Estado);
+        Assert.Contains("hora quedó liberada", System.Net.WebUtility.HtmlDecode(respuesta.Content));
+    }
+
+    [Fact]
+    public async Task CorreoReserva_ConservaLosBotonesConUrlLocalYPublica()
+    {
+        var clienteCorreo = new ServicioEmailPrueba();
+        var configuracion = new Microsoft.Extensions.Configuration.ConfigurationManager
+        {
+            ["Correo:SmtpHost"] = "smtp.example.test",
+            ["Correo:Remitente"] = "optica@example.test",
+            ["Correo:UrlBaseApi"] = "http://localhost:8080"
+        };
+        var servicio = new ReservaCorreoService(configuracion,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaCorreoService>.Instance,
+            TimeProvider.System,
+            clienteCorreo);
+        var reserva = new ReservaCorreoDto
+        {
+            Id = 31,
+            CorreoCliente = "cliente@example.test",
+            NombreCliente = "Cliente",
+            Fecha = DateTime.Today.AddDays(1),
+            HoraInicio = new TimeSpan(9, 0, 0),
+            HoraFin = new TimeSpan(9, 30, 0)
+        };
+
+        var envioLocal = await servicio.EnviarReservaCreada(reserva, "token-confirmar", "token-cancelar", CancellationToken.None);
+        Assert.True(envioLocal);
+        Assert.Equal(1, clienteCorreo.Envios);
+        Assert.Contains("http://localhost:8080/api/Reservas/acciones/confirmar/token-confirmar", clienteCorreo.UltimoHtml);
+        Assert.Contains("http://localhost:8080/api/Reservas/acciones/cancelar/token-cancelar", clienteCorreo.UltimoHtml);
+
+        configuracion["Correo:UrlBaseApi"] = "https://api.optica.example.test";
+        var envioPublico = await servicio.EnviarReservaCreada(reserva, "token-confirmar", "token-cancelar", CancellationToken.None);
+
+        Assert.True(envioPublico);
+        Assert.Equal(2, clienteCorreo.Envios);
+        Assert.Contains("https://api.optica.example.test/api/Reservas/acciones/confirmar/token-confirmar", clienteCorreo.UltimoHtml);
+        Assert.Contains("https://api.optica.example.test/api/Reservas/acciones/cancelar/token-cancelar", clienteCorreo.UltimoHtml);
     }
 
     [Fact]
@@ -595,6 +666,20 @@ public class TestReservas
 
         Assert.Contains("correo electrónico es obligatorio", error.Message);
         Assert.Null(repositorio.UltimaSolicitud);
+    }
+}
+
+internal sealed class ServicioEmailPrueba : IEmailService
+{
+    public int Envios { get; private set; }
+    public string? UltimoHtml { get; private set; }
+
+    public Task<bool> EnviarAsync(string? destinatario, string asunto, string cuerpoHtml, CancellationToken cancellationToken,
+        bool importante = false, byte[]? adjunto = null, string? nombreAdjunto = null, string? tipoAdjunto = null)
+    {
+        Envios++;
+        UltimoHtml = cuerpoHtml;
+        return Task.FromResult(true);
     }
 }
 

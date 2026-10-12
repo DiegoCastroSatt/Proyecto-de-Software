@@ -55,7 +55,10 @@ public class PedidosController : ControllerBase
         try
         {
             var result = await _pedidoService.ActualizarEstadoAsync(id, dto);
-            return Ok(new { mensaje = "Estado actualizado exitosamente.", estado = result.Estado });
+            var mensaje = result.EstadoNotificacion == "Fallida"
+                ? "El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente."
+                : "Estado actualizado exitosamente.";
+            return Ok(new { mensaje, estado = result.Estado, estadoNotificacion = result.EstadoNotificacion });
         }
         catch (KeyNotFoundException ex)
         {
@@ -66,4 +69,5 @@ public class PedidosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+
 }

@@ -17,6 +17,7 @@ export interface PedidoResponse {
   estado: string;
   total: number;
   anotaciones?: string;
+  estadoNotificacion?: string;
 }
 
 export interface ClienteOption {
@@ -41,7 +42,8 @@ export class PedidoService {
     return this.http.post<PedidoResponse>(this.apiUrl, pedido);
   }
 
-  actualizarEstado(idPedido: number, estado: string): Observable<{ mensaje: string, estado: string }> {
-    return this.http.patch<{ mensaje: string, estado: string }>(`${this.apiUrl}/${idPedido}/estado`, { estado });
+  actualizarEstado(idPedido: number, estado: string): Observable<{ mensaje: string, estado: string, estadoNotificacion?: string }> {
+    return this.http.patch<{ mensaje: string, estado: string, estadoNotificacion?: string }>(`${this.apiUrl}/${idPedido}/estado`, { estado });
   }
+
 }

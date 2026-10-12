@@ -10,4 +10,5 @@ public class PedidoResponseDto
     public string Estado { get; set; } = string.Empty;
     public decimal Total { get; set; }
     public string? Anotaciones { get; set; }
+    public string? EstadoNotificacion { get; set; }
 }

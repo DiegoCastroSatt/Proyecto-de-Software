@@ -36,6 +36,7 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Pedido> Pedidos => Set<Pedido>();
 
+
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -276,5 +277,6 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.Total).HasColumnName("total").HasPrecision(10, 2);
             entity.Property(p => p.Anotaciones).HasColumnName("anotaciones");
         });
+
     }
 }
