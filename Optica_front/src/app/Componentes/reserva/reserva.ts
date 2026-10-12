@@ -19,6 +19,7 @@ export class ReservaComponent implements OnInit {
   protected readonly confirmedName = signal('');
   protected readonly confirmationEmailSent = signal(false);
   protected readonly isSubmitting = signal(false);
+  protected readonly isRefreshingSlots = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly availableDates = signal<string[]>([]);
   protected readonly availableTimes = signal<{ idHorario: number; hora: string }[]>([]);
@@ -48,14 +49,16 @@ export class ReservaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarHorariosDisponibles();
+    this.actualizarHorariosDisponibles();
     if (this.isBrowser) {
-      const refreshId = setInterval(() => this.cargarHorariosDisponibles(), 60_000);
+      const refreshId = setInterval(() => this.actualizarHorariosDisponibles(), 60_000);
       this.destroyRef.onDestroy(() => clearInterval(refreshId));
     }
   }
 
-  private cargarHorariosDisponibles(): void {
+  protected actualizarHorariosDisponibles(): void {
+    if (this.isRefreshingSlots()) return;
+    this.isRefreshingSlots.set(true);
     this.reservaService.obtenerDisponibles().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (slots) => {
         const normalizedSlots = slots.map((slot) => ({
@@ -73,8 +76,13 @@ export class ReservaComponent implements OnInit {
         if (idHorarioSeleccionado && !normalizedSlots.some((slot) => slot.idHorario === idHorarioSeleccionado)) {
           this.reservationForm.controls.time.reset('');
         }
+        this.errorMessage.set('');
+        this.isRefreshingSlots.set(false);
       },
-      error: () => this.errorMessage.set('No hay horarios disponibles en este momento.')
+      error: () => {
+        this.errorMessage.set('No se pudo actualizar la disponibilidad. Inténtalo nuevamente.');
+        this.isRefreshingSlots.set(false);
+      }
     });
   }
 
@@ -101,7 +109,7 @@ export class ReservaComponent implements OnInit {
         this.confirmationEmailSent.set(response.correoEnviado);
         this.isSubmitting.set(false);
         this.reservationForm.reset();
-        this.cargarHorariosDisponibles();
+        this.actualizarHorariosDisponibles();
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(

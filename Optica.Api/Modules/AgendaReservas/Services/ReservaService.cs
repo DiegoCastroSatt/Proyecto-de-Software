@@ -10,17 +10,20 @@ public class ReservaService : IReservaService
     private readonly IReservaCorreoService _correoService;
     private readonly TimeProvider _proveedorTiempo;
     private readonly ILogger<ReservaService> _logger;
+    private readonly ColaCorreosReprogramacion _correosPendientes;
 
     public ReservaService(
         IReservaRepository reservaRepository,
         IReservaCorreoService correoService,
         TimeProvider proveedorTiempo,
-        ILogger<ReservaService> logger)
+        ILogger<ReservaService> logger,
+        ColaCorreosReprogramacion correosPendientes)
     {
         _reservaRepository = reservaRepository;
         _correoService = correoService;
         _proveedorTiempo = proveedorTiempo;
         _logger = logger;
+        _correosPendientes = correosPendientes;
     }
 
     public async Task<ReservaResponseDto> CrearReserva(
@@ -112,16 +115,50 @@ public class ReservaService : IReservaService
         }
     }
 
-    public async Task ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken)
+    public async Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken)
     {
         if (id <= 0 || idHorario <= 0)
         {
             throw new ArgumentException("La reserva y el horario seleccionado deben ser válidos.");
         }
 
-        if (!await _reservaRepository.ReprogramarReserva(id, idHorario, cancellationToken))
+        var tokenConfirmacion = TokenAccionReserva.Crear();
+        var tokenCancelacion = TokenAccionReserva.Crear();
+        var tokenConfirmacionHash = TokenAccionReserva.ObtenerHash(tokenConfirmacion);
+        var tokenCancelacionHash = TokenAccionReserva.ObtenerHash(tokenCancelacion);
+        if (!await _reservaRepository.ReprogramarReserva(
+                id, idHorario, tokenConfirmacionHash, tokenCancelacionHash, cancellationToken))
         {
             throw new KeyNotFoundException("La reserva no existe.");
+        }
+
+        var correoPendiente = new CorreoReprogramacionPendiente(
+            id, tokenConfirmacion, tokenCancelacion, tokenConfirmacionHash, tokenCancelacionHash);
+        var correoEnviado = await EnviarCorreoReprogramacion(correoPendiente);
+        if (!correoEnviado)
+        {
+            _correosPendientes.Encolar(correoPendiente);
+            _logger.LogWarning("La reserva {ReservaId} se reprogramó, pero el correo quedó pendiente y se reintentará en segundo plano.", id);
+        }
+        return correoEnviado;
+    }
+
+    private async Task<bool> EnviarCorreoReprogramacion(CorreoReprogramacionPendiente pendiente)
+    {
+        try
+        {
+            var detalleCorreo = await _reservaRepository.ObtenerDatosCorreoReserva(pendiente.ReservaId, CancellationToken.None);
+            return detalleCorreo is not null
+                && await _correoService.EnviarReservaReprogramada(
+                    detalleCorreo,
+                    pendiente.TokenConfirmacion,
+                    pendiente.TokenCancelacion,
+                    CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            _logger.LogError("Falló la preparación o el envío del correo de reprogramación para la reserva {ReservaId}.", pendiente.ReservaId);
+            return false;
         }
     }
 

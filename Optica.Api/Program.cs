@@ -47,11 +47,13 @@ builder.Services.AddCors(options =>
 // Implementación temporal hasta configurar la base de datos.
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<IReservaCorreoService, ReservaCorreoService>();
+builder.Services.AddSingleton<ColaCorreosReprogramacion>();
 builder.Services.AddScoped<IReservaService>(proveedor => new ReservaService(
     proveedor.GetRequiredService<IReservaRepository>(),
     proveedor.GetRequiredService<IReservaCorreoService>(),
     proveedor.GetRequiredService<TimeProvider>(),
-    proveedor.GetRequiredService<ILogger<ReservaService>>()));
+    proveedor.GetRequiredService<ILogger<ReservaService>>(),
+    proveedor.GetRequiredService<ColaCorreosReprogramacion>()));
 builder.Services.AddScoped<IRecordatorioReservasService, RecordatorioReservasService>();
 builder.Services.AddHostedService<RecordatorioReservasBackgroundService>();
 builder.Services.AddScoped<IRecetaRepository, RecetaRepository>();

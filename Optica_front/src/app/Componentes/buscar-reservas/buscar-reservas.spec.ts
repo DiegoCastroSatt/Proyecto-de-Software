@@ -30,6 +30,28 @@ describe('Agenda de reservas', () => {
     expect(component.cargando()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('Ana Pérez');
   });
+  it('usa el estado real del backend para distinguir una reserva confirmada', () => {
+    const confirmada = { ...reserva, estado: 'Confirmada' };
+    servicio.listar.mockReturnValueOnce(of([confirmada]));
+
+    component.mostrarPorAtender();
+    fixture.detectChanges();
+
+    const insignia = fixture.nativeElement.querySelector('.reserva-estado') as HTMLElement;
+    expect(insignia.textContent).toBe('Confirmada');
+    expect(insignia.classList.contains('confirmada')).toBe(true);
+  });
+  it('refleja en la lista el estado nuevo recibido del backend al actualizarla', () => {
+    const realizada = { ...reserva, estado: 'Realizada' };
+    servicio.listar.mockReturnValueOnce(of([realizada]));
+
+    component['cargarReservas'](true, true);
+    fixture.detectChanges();
+
+    const insignia = fixture.nativeElement.querySelector('.reserva-estado') as HTMLElement;
+    expect(insignia.textContent).toBe('Realizada');
+    expect(insignia.classList.contains('atendida')).toBe(true);
+  });
   it('cambia entre historial y pendientes y cierra el detalle', () => {
     component.abrirDetalle(reserva);
     component.mostrarAtendidas();
@@ -56,6 +78,18 @@ describe('Agenda de reservas', () => {
     expect(servicio.disponibles).toHaveBeenLastCalledWith('2099-10-14', 1);
     expect(component.horarioSeleccionado()).toBeNull();
     expect(component.horariosDisponibles()).toEqual([horario]);
+  });
+  it('ignora una respuesta antigua si cambia la fecha durante la carga', () => {
+    const solicitudAntigua = new Subject<typeof horario[]>();
+    const horarioNuevo = { ...horario, fecha: '2099-10-15', idHorario: 10 };
+    servicio.disponibles.mockReturnValueOnce(solicitudAntigua).mockReturnValueOnce(of([horarioNuevo]));
+
+    component.abrirReprogramacion(reserva);
+    component.cambiarFecha('2099-10-15', reserva.id);
+    solicitudAntigua.next([horario]);
+    solicitudAntigua.complete();
+
+    expect(component.horariosDisponibles()).toEqual([horarioNuevo]);
   });
   it.each(['Cancelada', 'Realizada'])('impide reprogramar una reserva %s', estado => {
     component.abrirReprogramacion({ ...reserva, estado });
@@ -88,7 +122,18 @@ describe('Agenda de reservas', () => {
     expect(component.reservaSeleccionada()).toEqual(component.reservas()[0]);
     expect(component.mostrarReprogramacion()).toBe(false);
     expect(component.reprogramando()).toBe(false);
-    expect(component.mensajeExitoReprogramacion()).toContain('correctamente');
+    expect(component.mensajeExitoReprogramacion()).toContain('nuevo correo de confirmación');
+  });
+  it('informa que el correo quedó pendiente de reintento sin afirmar que se envió', () => {
+    servicio.reprogramar.mockReturnValueOnce(of({ correoEnviado: false, mensaje: 'Reserva guardada; correo pendiente.' }));
+    component.abrirDetalle(reserva);
+    component.abrirReprogramacion(reserva);
+    component.horarioSeleccionado.set(9);
+
+    component.confirmarReprogramacion(reserva);
+
+    expect(component.mensajeExitoReprogramacion()).toBe('Reserva guardada; correo pendiente.');
+    expect(component.reservas()[0].fecha).toBe(horario.fecha);
   });
   it('evita envíos duplicados y cerrar el detalle mientras reprograma', () => {
     const pendiente = new Subject<void>();

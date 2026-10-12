@@ -86,6 +86,7 @@ h1 { margin-bottom: .5rem; font-size: clamp(1.8rem, 4vw, 2.5rem); }
 .reserva-resumen strong { font-size: 1.05rem; }
 .reserva-resumen span { color: #64777b; font-size: .9rem; }
 .reserva-estado { padding: .35rem .65rem; border-radius: 999px; color: #79530a; background: #fff1cc; font-size: .78rem; font-weight: 800; }
+.reserva-estado.confirmada { color: #176b6c; background: #dff2ef; }
 .reserva-estado.atendida { color: #28644e; background: #e0f3e9; }
 .indicador-detalle { color: #719096; font-size: 1.6rem; }
 
@@ -153,6 +154,7 @@ h1 { margin-bottom: .5rem; font-size: clamp(1.8rem, 4vw, 2.5rem); }
 .acciones-pendientes { margin: .7rem 0 0; color: #879699; font-size: .82rem; text-align: center; }
 .boton-reprogramar { color: #176b6c !important; border-color: #9fc7c0 !important; cursor: pointer; }
 .mensaje-exito { padding: .75rem; border-radius: .65rem; color: #28644e; background: #e0f3e9; }
+.mensaje-pendiente { color: #795519; background: #fff3d6; }
 .modal-reprogramacion-fondo { z-index: 1001; }
 .modal-reprogramacion { width: min(100%, 620px); }
 .reserva-actual { padding: .85rem; border-radius: .7rem; color: #415b60; background: #f3f8f6; line-height: 1.8; }

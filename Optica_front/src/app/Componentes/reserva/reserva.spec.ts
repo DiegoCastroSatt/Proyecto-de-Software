@@ -35,6 +35,21 @@ describe('Reservas', () => {
     expect(dom.querySelectorAll('#date option').length).toBe(3);
   });
 
+  it('permite actualizar al instante los horarios liberados por una cancelación', () => {
+    const { fixture, component, dom } = preparar();
+    const horarioLiberado = { idHorario: 13, fecha: '2026-09-22T00:00:00', hora: '10:00:00' };
+    component['reservationForm'].controls.date.setValue('2026-09-22');
+    servicio.obtenerDisponibles.mockReturnValueOnce(of([...horarios, horarioLiberado]));
+
+    component['actualizarHorariosDisponibles']();
+    fixture.detectChanges();
+
+    expect(servicio.obtenerDisponibles).toHaveBeenCalledTimes(2);
+    expect(Array.from(dom.querySelectorAll<HTMLSelectElement>('#time option')).map(opcion => opcion.value))
+      .toEqual(['', '10', '11', '13']);
+    expect(component['isRefreshingSlots']()).toBe(false);
+  });
+
   it('actualiza las horas cuando cambia el día', () => {
     const { fixture, component, dom } = preparar();
     component['reservationForm'].controls.date.setValue('2026-09-22');

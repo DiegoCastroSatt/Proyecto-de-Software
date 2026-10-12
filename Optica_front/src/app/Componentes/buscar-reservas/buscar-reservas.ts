@@ -24,6 +24,7 @@ export class BuscarReservas implements OnInit {
   readonly cancelando = signal(false);
   readonly mensajeCancelacion = signal<string | null>(null);
   readonly mensajeExitoReprogramacion = signal<string | null>(null);
+  readonly correoReprogramacionPendiente = signal(false);
   readonly mostrarReprogramacion = signal(false);
   readonly fechaNueva = signal('');
   readonly horariosDisponibles = signal<HorarioDisponible[]>([]);
@@ -31,11 +32,12 @@ export class BuscarReservas implements OnInit {
   readonly cargandoHorarios = signal(false);
   readonly reprogramando = signal(false);
   readonly mensajeReprogramacion = signal<string | null>(null);
+  private solicitudDisponibilidad = 0;
 
   ngOnInit(): void {
     this.cargarReservas(false);
     if (this.isBrowser) {
-      const refreshId = setInterval(() => this.cargarReservas(this.mostrarHistorial()), 60_000);
+      const refreshId = setInterval(() => this.cargarReservas(this.mostrarHistorial(), true), 60_000);
       this.destroyRef.onDestroy(() => clearInterval(refreshId));
     }
   }
@@ -54,6 +56,7 @@ export class BuscarReservas implements OnInit {
 
   abrirDetalle(reserva: ReservaAgenda): void {
     this.mensajeExitoReprogramacion.set(null);
+    this.correoReprogramacionPendiente.set(false);
     this.reservaSeleccionada.set(reserva);
   }
 
@@ -92,7 +95,7 @@ export class BuscarReservas implements OnInit {
     this.reprogramando.set(true);
     this.mensajeReprogramacion.set(null);
     this.agendaService.reprogramar(reserva.id, idHorario).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
+      next: (respuesta) => {
         this.reprogramando.set(false);
         this.mostrarReprogramacion.set(false);
         const horario = this.horariosDisponibles().find(item => item.idHorario === idHorario);
@@ -101,7 +104,10 @@ export class BuscarReservas implements OnInit {
           this.reservaSeleccionada.set(actualizada);
           this.reservas.update(items => items.map(item => item.id === reserva.id ? actualizada : item));
         }
-        this.mensajeExitoReprogramacion.set('La reserva fue reprogramada correctamente.');
+        this.mensajeExitoReprogramacion.set(respuesta?.correoEnviado === false
+          ? respuesta.mensaje
+          : 'La reserva fue reprogramada y se envió un nuevo correo de confirmación.');
+        this.correoReprogramacionPendiente.set(respuesta?.correoEnviado === false);
       },
       error: (error: HttpErrorResponse) => {
         this.reprogramando.set(false);
@@ -113,6 +119,7 @@ export class BuscarReservas implements OnInit {
   }
 
   private cargarDisponibilidad(idReserva: number, conservarMensaje = false): void {
+    const solicitudActual = ++this.solicitudDisponibilidad;
     const fecha = this.fechaNueva();
     if (!fecha) {
       this.horariosDisponibles.set([]);
@@ -122,10 +129,12 @@ export class BuscarReservas implements OnInit {
     if (!conservarMensaje) this.mensajeReprogramacion.set(null);
     this.agendaService.disponibles(fecha, idReserva).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (horarios) => {
+        if (solicitudActual !== this.solicitudDisponibilidad || fecha !== this.fechaNueva()) return;
         this.horariosDisponibles.set(horarios);
         this.cargandoHorarios.set(false);
       },
       error: (error: HttpErrorResponse) => {
+        if (solicitudActual !== this.solicitudDisponibilidad || fecha !== this.fechaNueva()) return;
         this.horariosDisponibles.set([]);
         this.cargandoHorarios.set(false);
         this.mensajeReprogramacion.set(error.error?.mensaje ?? 'No se pudo cargar la disponibilidad.');
@@ -164,17 +173,20 @@ export class BuscarReservas implements OnInit {
     });
   }
 
-  private cargarReservas(historialAtendidas: boolean): void {
-    this.cargando.set(true);
-    this.error.set(null);
+  private cargarReservas(historialAtendidas: boolean, silenciosa = false): void {
+    if (!silenciosa) {
+      this.cargando.set(true);
+      this.error.set(null);
+    }
 
     this.agendaService.listar(historialAtendidas).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (reservas) => {
         this.reservas.set(reservas);
         this.cargando.set(false);
+        this.error.set(null);
       },
       error: () => {
-        this.error.set('No se pudieron cargar las reservas. Inténtalo nuevamente.');
+        if (!silenciosa) this.error.set('No se pudieron cargar las reservas. Inténtalo nuevamente.');
         this.cargando.set(false);
       },
     });

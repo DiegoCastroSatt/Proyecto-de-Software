@@ -25,9 +25,17 @@ public class MemoriaReservaRepository : IReservaRepository
     public Task<IReadOnlyList<ReservaCorreoDto>> ObtenerReservasParaRecordatorio(DateTimeOffset ahoraChile, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<ReservaCorreoDto>>([]);
 
-    public Task<bool> MarcarRecordatorioEnviado(int id, DateTime enviadoUtc, CancellationToken cancellationToken) => Task.FromResult(false);
+    public Task<bool> MarcarRecordatorioEnviado(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken) => Task.FromResult(false);
 
-    public Task DesmarcarRecordatorio(int id, DateTime enviadoUtc, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task DesmarcarRecordatorio(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public Task<bool> SonTokensReprogramacionVigentes(int id, string tokenConfirmacionHash, string tokenCancelacionHash, DateTime ahoraUtc, CancellationToken cancellationToken) => Task.FromResult(false);
+
+    public Task<int> MarcarReservasVencidasComoRealizadas(DateTimeOffset ahoraChile, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(0);
+    }
 
     public Task<bool> ExisteReserva(DateTime fecha, TimeSpan hora)
     {
@@ -67,6 +75,6 @@ public class MemoriaReservaRepository : IReservaRepository
         return Task.FromResult(true);
     }
 
-    public Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken) =>
+    public Task<bool> ReprogramarReserva(int id, int idHorario, string tokenConfirmacionHash, string tokenCancelacionHash, CancellationToken cancellationToken) =>
         throw new NotSupportedException("La reprogramación requiere el repositorio persistente de reservas.");
 }
