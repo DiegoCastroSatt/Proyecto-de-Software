@@ -145,12 +145,10 @@
     </div>
     <div class="panel-cuerpo">
       <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-        <input 
-          type="text" 
-          [(ngModel)]="terminoBusqueda" 
-          (keyup.enter)="consultar()" 
-          placeholder="Buscar por Nombre, Apellido o RUT..."
-          style="flex: 1; padding: 8px 12px; border: 1px solid var(--color-borde-neutro); border-radius: 4px;"
+        <app-autocompletado-rut
+          [(value)]="terminoBusqueda"
+          (keyup.enter)="consultar()"
+          style="flex: 1; min-width: 0"
         />
         <button 
           (click)="consultar()" 

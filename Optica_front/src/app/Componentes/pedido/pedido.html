@@ -6,6 +6,7 @@
       <div class="order-form-area">
         <div class="form-heading">
           <h2>Lista de Pedidos</h2>
+          <button type="button" class="btn-primary" routerLink="/admin/panel/crear-pedido">Crear Pedido</button>
         </div>
 
         <div class="search-bar-container">
@@ -16,7 +17,7 @@
         @if (pedidosFiltrados().length === 0) {
         <div class="empty-state">
           <p class="empty-title">Sin pedidos</p>
-          <p class="empty-subtitle">No hay pedidos para mostrar.</p>
+          <p class="empty-subtitle">No hay pedidos registrados en el sistema.</p>
         </div>
         } @else {
         <div class="pedidos-list">

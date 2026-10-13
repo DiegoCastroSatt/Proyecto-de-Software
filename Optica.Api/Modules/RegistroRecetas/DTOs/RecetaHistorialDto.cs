@@ -9,6 +9,7 @@ public class GraduacionHistorialDto
 
 public class RecetaHistorialDto
 {
+    public string? ImagenUrl { get; set; }
     public int Id { get; set; }
     public DateTime Fecha { get; set; }
     public string? Observaciones { get; set; }

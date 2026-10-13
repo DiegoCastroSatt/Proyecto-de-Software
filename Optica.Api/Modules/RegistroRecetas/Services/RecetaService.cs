@@ -15,8 +15,24 @@ public class RecetaService : IRecetaService
         _webHostEnvironment = webHostEnvironment;
     }
 
-    public async Task<RecetaResponseDto> CrearReceta(CrearRecetaDto dto)
+    public Task<RecetaResponseDto> CrearReceta(CrearRecetaDto dto) => GuardarReceta(dto, null);
+
+    public Task<RecetaResponseDto> ActualizarReceta(int id, CrearRecetaDto dto) => GuardarReceta(dto, id);
+
+    public async Task<RecetaResponseDto> ObtenerReceta(int id)
     {
+        var receta = await _recetaRepository.ObtenerPorId(id)
+            ?? throw new KeyNotFoundException("La receta seleccionada no existe.");
+        var cliente = await _recetaRepository.ObtenerClientePorId(receta.ClienteId);
+        return MapearReceta(receta, cliente?.Rut ?? string.Empty);
+    }
+
+    private async Task<RecetaResponseDto> GuardarReceta(CrearRecetaDto dto, int? id)
+    {
+        var existente = id.HasValue
+            ? await _recetaRepository.ObtenerPorId(id.Value)
+                ?? throw new KeyNotFoundException("La receta seleccionada no existe.")
+            : null;
         var cliente = await _recetaRepository.BuscarClientePorRut(dto.Rut);
         if (cliente == null)
         {
@@ -26,7 +42,7 @@ public class RecetaService : IRecetaService
         var tieneGraduaciones = !string.IsNullOrWhiteSpace(dto.GraduacionesJson);
         var tieneImagen = dto.Imagen != null;
 
-        if (!tieneGraduaciones && !tieneImagen)
+        if (!tieneGraduaciones && !tieneImagen && string.IsNullOrEmpty(existente?.ImagenPath) && !(existente?.Graduaciones.Any() ?? false))
         {
             throw new ArgumentException("Debe registrar la receta escrita o mediante una imagen.");
         }
@@ -35,7 +51,8 @@ public class RecetaService : IRecetaService
         {
             ClienteId = cliente.IdCliente,
             Fecha = dto.Fecha,
-            Observaciones = dto.Observaciones
+            Observaciones = dto.Observaciones,
+            ImagenPath = existente?.ImagenPath
         };
 
         if (tieneGraduaciones)
@@ -108,10 +125,41 @@ public class RecetaService : IRecetaService
             receta.ImagenPath = $"/uploads/recetas/{nombreArchivo}";
         }
 
-        var recetaCreada = await _recetaRepository.Crear(receta);
+        Receta recetaGuardada;
+        try
+        {
+            if (existente is null)
+            {
+                recetaGuardada = await _recetaRepository.Crear(receta);
+            }
+            else
+            {
+                existente.ClienteId = receta.ClienteId;
+                existente.Fecha = receta.Fecha;
+                existente.Observaciones = receta.Observaciones;
+                existente.ImagenPath = receta.ImagenPath;
+                if (tieneGraduaciones)
+                {
+                    existente.Graduaciones.Clear();
+                    existente.Graduaciones.AddRange(receta.Graduaciones);
+                }
+                recetaGuardada = await _recetaRepository.Actualizar(existente);
+            }
+        }
+        catch
+        {
+            if (tieneImagen && receta.ImagenPath is not null)
+                File.Delete(Path.Combine(_webHostEnvironment.WebRootPath, receta.ImagenPath.TrimStart('/')));
+            throw;
+        }
+        return MapearReceta(recetaGuardada, cliente.Rut);
+    }
 
+    private static RecetaResponseDto MapearReceta(Receta recetaCreada, string rut)
+    {
         return new RecetaResponseDto
         {
+            Rut = rut,
             Id = recetaCreada.Id,
             ClienteId = recetaCreada.ClienteId,
             Fecha = recetaCreada.Fecha,
@@ -156,6 +204,7 @@ public class RecetaService : IRecetaService
 
         return recetas.Select(r => new RecetaHistorialDto
         {
+            ImagenUrl = r.ImagenPath,
             Id = r.Id,
             Fecha = r.Fecha,
             Observaciones = r.Observaciones,

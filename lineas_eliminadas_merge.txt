@@ -1,0 +1,90 @@
+==============================================================================
+  LINEAS ELIMINADAS POR MERGE - Backup de lo que estaba en HEAD (tu rama)
+  Fecha: 2026-10-13
+==============================================================================
+
+------------------------------------------------------------------------------
+ARCHIVO: Optica.Api/Modules/Pedidos/Repositories/PedidoRepository.cs
+  Conflicto en lineas 83-104
+  Descripcion: Metodo ObtenerPedidoDetalleAsync (query individual por id)
+------------------------------------------------------------------------------
+
+    public async Task ObtenerPedidoDetalleAsync(int id)
+    {
+        return await _context.Pedidos
+            .Where(p => p.IdPedido == id)
+            .Join(
+                _context.Clientes,
+                p => p.Rut,
+                c => c.Rut,
+                (p, c) => new PedidoResponseDto
+                {
+                    IdPedido = p.IdPedido,
+                    NombreCliente = c.Nombre + " " + c.Apellido,
+                    Fecha = p.Fecha,
+                    Estado = p.Estado,
+                    Total = p.Total,
+                    Anotaciones = p.Anotaciones
+                })
+            .FirstOrDefaultAsync();
+    }
+
+------------------------------------------------------------------------------
+ARCHIVO: Optica_front/src/app/Componentes/pedido/pedido.html
+  Conflicto en lineas 37-50
+  Descripcion: Se reemplaza div con span de estado + link "Detalle"
+               por un select de cambio de estado
+------------------------------------------------------------------------------
+
+            <div class="pedido-actions">
+              <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
+              <a class="btn-detalle" [routerLink]="['/admin/panel/pedido', pedido.idPedido]">Detalle</a>
+           </div>
+
+------------------------------------------------------------------------------
+ARCHIVO: Optica_front/src/app/Componentes/pedido/pedido.service.ts
+  Conflicto en lineas 49-54
+  Descripcion: Metodo obtenerPedidoPorId (GET individual)
+------------------------------------------------------------------------------
+
+  obtenerPedidoPorId(id: number): Observable<PedidoResponse> {
+    return this.http.get<PedidoResponse>(`${this.apiUrl}/${id}`);
+  }
+
+------------------------------------------------------------------------------
+ARCHIVO: Optica_front/src/app/Componentes/pedido/pedido.ts
+  Conflicto 1: lineas 1-5
+  Descripcion: Import con 'computed' se reemplaza por import con 'OnDestroy'
+------------------------------------------------------------------------------
+
+import { Component, OnInit, signal, computed } from '@angular/core';
+
+------------------------------------------------------------------------------
+ARCHIVO: Optica_front/src/app/Componentes/pedido/pedido.ts
+  Conflicto 2: lineas 19-34
+  Descripcion: terminoBusqueda + pedidosFiltrados (computed) se reemplaza
+               por enProceso, pedidoPendienteConfirmacion, mensajeTemporal,
+               temporizadorMensaje
+------------------------------------------------------------------------------
+
+  protected readonly terminoBusqueda = signal<string>('');
+
+  protected readonly pedidosFiltrados = computed(() => {
+    const termino = this.terminoBusqueda().toLowerCase().trim();
+    if (!termino) {
+      return this.pedidos();
+    }
+    return this.pedidos().filter(p => p.nombreCliente.toLowerCase().includes(termino));
+  });
+
+------------------------------------------------------------------------------
+ARCHIVO: Optica_front/src/app/Componentes/pedido/pedido.ts
+  Conflicto 3: lineas 43-122
+  Descripcion: Bloque vacio en HEAD; origin/main agrega ngOnDestroy,
+               cambiarEstado, cancelarConfirmacionListo, confirmarPedidoListo,
+               actualizarEstado, cerrarMensaje, mostrarMensaje,
+               obtenerMensajeError. (HEAD no tenia nada aqui, no se pierde
+               codigo propio, pero se documenta igualmente.)
+------------------------------------------------------------------------------
+
+  (Sin contenido propio en HEAD - bloque vacio)

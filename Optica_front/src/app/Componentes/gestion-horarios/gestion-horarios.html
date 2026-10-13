@@ -5,7 +5,6 @@
             <h1>Gestionar horarios</h1>
             <p class="intro">Define los bloques en los que la óptica recibirá clientes y controla su disponibilidad.</p>
         </div>
-        <span class="duration-badge">Bloques de 20 min</span>
     </header>
 
     @if (errorMessage()) {
@@ -26,14 +25,60 @@
             </div>
 
             <form class="schedule-form" [formGroup]="scheduleForm" (ngSubmit)="crearBloques()" novalidate>
+                <fieldset class="field-wide" [disabled]="isSaving()">
+                <div class="field">
+                    <label for="periodo">Generar horario por</label>
+                    <select id="periodo" [value]="periodo()" (change)="cambiarPeriodo($any($event.target).value)">
+                        <option value="dia">Día</option>
+                        <option value="semana">Semana</option>
+                        <option value="mes">Mes</option>
+                    </select>
+                </div>
                 <div class="field field-wide">
-                    <label for="fecha">Día de atención</label>
+                    <label for="fecha">{{ periodo() === 'dia' ? 'Día de atención' : 'Fecha de la semana o mes' }}</label>
                     <input id="fecha" type="date" formControlName="fecha" [min]="fechaMinima()" />
                     @if (formHasError('fecha')) {
                         <small>Selecciona un día.</small>
                     }
                 </div>
 
+                @if (periodo() !== 'dia' && diasCalendario().length) {
+                    <div class="calendar-panel">
+                        <div class="calendar-title-row">
+                            <div>
+                                <p class="eyebrow">Tu disponibilidad</p>
+                                <h3>{{ periodo() === 'semana' ? 'Agenda semanal' : 'Agenda mensual' }} · {{ scheduleForm.controls.fecha.value | date:'MM/yyyy' }}</h3>
+                            </div>
+                            <span class="calendar-count">{{ diasSeleccionados().length }} días activos</span>
+                        </div>
+                        <p class="calendar-description">Selecciona los días en los que recibirás clientes.</p>
+                        <div class="calendar-actions">
+                            <button type="button" class="button button-secondary" (click)="seleccionarDias(true)">Marcar todos</button>
+                            <button type="button" class="button button-secondary" (click)="seleccionarDias(false)">Desmarcar todos</button>
+                        </div>
+                        <div class="calendar-grid" aria-label="Días de atención">
+                            @for (nombre of nombresDias; track nombre) { <span class="calendar-heading">{{ nombre }}</span> }
+                            @for (dia of diasCalendario(); track $index) {
+                                @if (dia) {
+                                    <button type="button" class="calendar-day" [class.selected]="diasSeleccionados().includes(dia)" [class.today]="dia === fechaMinima()"
+                                        [attr.aria-pressed]="diasSeleccionados().includes(dia)" [attr.aria-label]="dia + (diasSeleccionados().includes(dia) ? ': se trabaja' : ': sin atención')"
+                                        [disabled]="dia < fechaMinima()" (click)="alternarDia(dia)">
+                                        <span class="day-number">{{ dia.slice(8) }}</span>
+                                        <span class="day-indicator" aria-hidden="true">{{ diasSeleccionados().includes(dia) ? '✓' : '−' }}</span>
+                                    </button>
+                                } @else { <span></span> }
+                            }
+                        </div>
+                        <div class="calendar-legend" aria-hidden="true">
+                            <span><i class="legend-active"></i>Con atención</span>
+                            <span><i class="legend-off"></i>Sin atención</span>
+                            <span><i class="legend-today"></i>Hoy</span>
+                        </div>
+                        <small>Los días pasados no están disponibles. Desmarcar un día evita generar nuevos bloques; administra los horarios existentes en el listado.</small>
+                    </div>
+                }
+                </fieldset>
+                <fieldset class="time-fields field-wide" [disabled]="isSaving()">
                 <div class="field">
                     <label for="horaInicio">Hora de inicio</label>
                     <input id="horaInicio" type="time" formControlName="horaInicio" [attr.min]="horaMinima()" />
@@ -55,8 +100,9 @@
                     <small>Se crearán automáticamente los bloques dentro del rango indicado.</small>
                 </div>
 
+                </fieldset>
                 <div class="form-actions">
-                    <button type="reset" class="button button-secondary">Limpiar</button>
+                    <button type="button" class="button button-secondary" [disabled]="isSaving()" (click)="limpiar()">Limpiar</button>
                     <button type="submit" class="button button-primary" [disabled]="isSaving()">
                         {{ isSaving() ? 'Creando...' : 'Crear bloques' }}
                     </button>
@@ -68,7 +114,7 @@
             <span class="help-icon" aria-hidden="true">i</span>
             <div>
                 <h2>¿Cómo funciona?</h2>
-                <p>Elige un día, define el rango de atención y crea bloques para que tus clientes puedan reservar.</p>
+                <p>Elige día, semana o mes, desmarca los días sin atención y define un rango común de horas. Se crearán bloques en todos los días seleccionados para que tus clientes puedan reservar.</p>
             </div>
         </aside>
     </section>

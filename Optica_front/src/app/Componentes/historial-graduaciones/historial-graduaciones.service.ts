@@ -11,6 +11,7 @@ export interface GraduacionHistorial {
 }
 
 export interface RecetaHistorial {
+  imagenUrl?: string;
   id: number;
   fecha: string;
   observaciones?: string;

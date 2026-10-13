@@ -54,22 +54,21 @@ describe('Gestión de horarios', () => {
 
   it('crea bloques y los agrega al listado', () => {
     const { fixture, component, dom } = preparar();
-    const nuevos = [{ idHorario: 3, fecha: '2026-12-25', horaInicio: '10:00', horaFin: '10:20', estado: 'Habilitada' as const }];
+    const nuevos = [{ idHorario: 3, fecha: '2026-12-25', horaInicio: '10:00', horaFin: '10:30', estado: 'Habilitada' as const }];
     servicio.crearBloques.mockReturnValue(of(nuevos));
-    component['scheduleForm'].setValue({
+    component['scheduleForm'].patchValue({
       fecha: '2026-12-25',
       horaInicio: '10:00',
-      horaFin: '11:00',
-      duracionMinutos: 20
+      horaFin: '11:00'
     });
 
     component['crearBloques']();
     fixture.detectChanges();
 
     expect(servicio.crearBloques).toHaveBeenCalledWith({
-      fecha: '2026-12-25', horaInicio: '10:00', horaFin: '11:00', duracionMinutos: 20
+      fecha: '2026-12-25', horaInicio: '10:00', horaFin: '11:00', duracionMinutos: 30
     });
-    expect(dom.textContent).toContain('10:00 - 10:20');
+    expect(dom.textContent).toContain('10:00 - 10:30');
     expect(component['successMessage']()).toContain('fueron creados');
   });
 
@@ -81,4 +80,41 @@ describe('Gestión de horarios', () => {
     expect(servicio.cambiarEstado).toHaveBeenCalledWith(1, 'Inhabilitada');
     expect(dom.textContent).toContain('Inhabilitada');
   });
+  it('genera una semana excluyendo los días desmarcados', () => {
+    const { component } = preparar();
+    component['scheduleForm'].controls.fecha.setValue('2099-12-15');
+    component['cambiarPeriodo']('semana');
+    const dias = [...component['diasSeleccionados']()];
+    expect(dias).toHaveLength(7);
+    component['alternarDia'](dias[2]);
+    component['crearBloques']();
+    expect(servicio.crearBloques).toHaveBeenCalledTimes(6);
+    expect(servicio.crearBloques.mock.calls.map(llamada => llamada[0].fecha)).not.toContain(dias[2]);
+  });
+
+  it('muestra todos los días del mes y exige al menos uno seleccionado', () => {
+    const { component } = preparar();
+    component['scheduleForm'].controls.fecha.setValue('2099-02-15');
+    component['cambiarPeriodo']('mes');
+    expect(component['diasSeleccionados']()).toHaveLength(28);
+    component['seleccionarDias'](false);
+    component['crearBloques']();
+    expect(servicio.crearBloques).not.toHaveBeenCalled();
+    expect(component['errorMessage']()).toContain('al menos un día');
+  });
+
+  it('conserva solo los días fallidos para reintentar una creación parcial', () => {
+    const { component } = preparar();
+    component['scheduleForm'].controls.fecha.setValue('2099-12-15');
+    component['cambiarPeriodo']('semana');
+    const fallido = component['diasSeleccionados']()[1];
+    servicio.crearBloques.mockImplementation(request => request.fecha === fallido
+      ? throwError(() => ({ error: { mensaje: 'No disponible' } })) : of([]));
+    component['crearBloques']();
+    expect(servicio.crearBloques).toHaveBeenCalledTimes(7);
+    expect(component['diasSeleccionados']()).toEqual([fallido]);
+    expect(component['errorMessage']()).toContain(fallido);
+    expect(component['isSaving']()).toBe(false);
+  });
+
 });

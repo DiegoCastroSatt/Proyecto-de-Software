@@ -16,9 +16,13 @@ public interface IReservaRepository
 
     Task<IReadOnlyList<ReservaCorreoDto>> ObtenerReservasParaRecordatorio(DateTimeOffset ahoraChile, CancellationToken cancellationToken);
 
-    Task<bool> MarcarRecordatorioEnviado(int id, DateTime enviadoUtc, CancellationToken cancellationToken);
+    Task<bool> MarcarRecordatorioEnviado(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken);
 
-    Task DesmarcarRecordatorio(int id, DateTime enviadoUtc, CancellationToken cancellationToken);
+    Task DesmarcarRecordatorio(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken);
+
+    Task<bool> SonTokensReprogramacionVigentes(int id, string tokenConfirmacionHash, string tokenCancelacionHash, DateTime ahoraUtc, CancellationToken cancellationToken);
+
+    Task<int> MarcarReservasVencidasComoRealizadas(DateTimeOffset ahoraChile, CancellationToken cancellationToken);
 
 
     Task<bool> ExisteReserva(
@@ -32,5 +36,5 @@ public interface IReservaRepository
 
     Task<bool> CancelarReserva(int id, CancellationToken cancellationToken);
 
-    Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken);
+    Task<bool> ReprogramarReserva(int id, int idHorario, string tokenConfirmacionHash, string tokenCancelacionHash, CancellationToken cancellationToken);
 }

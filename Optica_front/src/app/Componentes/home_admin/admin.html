@@ -24,7 +24,14 @@
 
       <a routerLink="/admin/panel/ventas" routerLinkActive="is-active"> Ventas </a>
 
-      <a routerLink="/admin/panel/recetas" routerLinkActive="is-active"> Recetas </a>
+      <div class="inventory-menu" routerLinkActive="is-active">
+        <button type="button" aria-haspopup="true">Recetas <span aria-hidden="true">▾</span></button>
+        <div class="inventory-submenu">
+          <a routerLink="/admin/panel/recetas" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Crear</a>
+          <a routerLink="/admin/panel/recetas/cliente" routerLinkActive="is-active">Editar</a>
+          <a routerLink="/admin/panel/historial-graduaciones" routerLinkActive="is-active">Historial</a>
+        </div>
+      </div>
 
       <a routerLink="/admin/panel/pedido" routerLinkActive="is-active"> Pedidos </a>
 

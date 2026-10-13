@@ -1,8 +1,13 @@
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.AgendaReservas.DTOs;
+using Optica.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Clientes.Services;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
+using Optica.Api.Modules.Notificaciones.Interfaces;
 using Xunit;
 
 namespace Optica.Ventas.Tests;
@@ -10,7 +15,7 @@ namespace Optica.Ventas.Tests;
 public class TestReservas
 {
     private static ReservaService CrearServicio(ReservaRepositorioPrueba repositorio) =>
-        new(repositorio, new ReservaCorreoPrueba(), TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance);
+        new(repositorio, new ReservaCorreoPrueba(), TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance, new ColaCorreosReprogramacion());
 
     [Theory]
     [InlineData("12.345.678-5")]
@@ -86,7 +91,7 @@ public class TestReservas
             DatosCorreo = new ReservaCorreoDto { Id = 18, NombreCliente = "Ana Pérez", CorreoCliente = "ana@example.com", Fecha = DateTime.Today.AddDays(3), HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(9, 30, 0), Estado = "Pendiente" }
         };
         var correo = new ReservaCorreoPrueba();
-        var servicio = new ReservaService(repositorio, correo, TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance);
+        var servicio = new ReservaService(repositorio, correo, TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance, new ColaCorreosReprogramacion());
 
         var respuesta = await servicio.CrearReserva(new CrearReservaDto { NombreCompleto = "Ana Pérez", Rut = "12.345.678-5", Telefono = "9 1234 5678", Correo = "ana@example.com", IdHorario = 12 });
 
@@ -109,13 +114,143 @@ public class TestReservas
             DatosCorreo = new ReservaCorreoDto { Id = 19, CorreoCliente = "ana@example.com", Fecha = DateTime.Today.AddDays(2) }
         };
         var correo = new ReservaCorreoPrueba { EnvioCorrecto = false };
-        var servicio = new ReservaService(repositorio, correo, TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance);
+        var servicio = new ReservaService(repositorio, correo, TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance, new ColaCorreosReprogramacion());
 
         var respuesta = await servicio.CrearReserva(new CrearReservaDto { NombreCompleto = "Ana Pérez", Rut = "12.345.678-5", Telefono = "9 1234 5678", Correo = "ana@example.com", IdHorario = 12 });
 
         Assert.Equal(19, respuesta.Id);
         Assert.False(respuesta.CorreoEnviado);
         Assert.NotNull(repositorio.ReservaCreada);
+    }
+
+    [Fact]
+    public void PlantillaCorreoReprogramada_ContieneDatosActualesYAcciones()
+    {
+        var html = ReservaCorreoService.CrearHtmlReserva(
+            new ReservaCorreoDto
+            {
+                Id = 25,
+                NombreCliente = "Ana Pérez",
+                Fecha = new DateTime(2026, 11, 16),
+                HoraInicio = new TimeSpan(11, 0, 0),
+                HoraFin = new TimeSpan(11, 30, 0)
+            },
+            "https://optica.example/api/Reservas/acciones/confirmar/token-confirmacion",
+            "https://optica.example/api/Reservas/acciones/cancelar/token-cancelacion",
+            "https://calendar.example/evento",
+            reprogramada: true);
+
+        var contenido = System.Net.WebUtility.HtmlDecode(html);
+        Assert.Contains("Ana Pérez", contenido);
+        Assert.Contains("Reserva:</strong> #25", contenido);
+        var fechaNueva = new DateTime(2026, 11, 16).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-CL"));
+        var fechaAnterior = new DateTime(2026, 11, 14).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-CL"));
+        Assert.Contains(fechaNueva, contenido);
+        Assert.Contains("11:00 - 11:30", contenido);
+        Assert.Contains("Tu reserva fue reprogramada", contenido);
+        Assert.Contains("CONFIRMAR MI HORA", contenido);
+        Assert.Contains("CANCELAR MI HORA", contenido);
+        Assert.DoesNotContain(fechaAnterior, contenido);
+    }
+
+    [Fact]
+    public void ModeloReserva_MapeaColumnaRecordatorioExistente()
+    {
+        var opciones = new DbContextOptionsBuilder<OpticaDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var contexto = new OpticaDbContext(opciones);
+        var propiedad = contexto.Model.FindEntityType(typeof(Reserva))!
+            .FindProperty(nameof(Reserva.RecordatorioEnviadoUtc));
+
+        Assert.NotNull(propiedad);
+        Assert.Equal("recordatorio_enviado_utc", propiedad!.GetColumnName());
+    }
+
+    [Fact]
+    public void AbrirEnlaceDeCancelacion_NoCancelaHastaLaConfirmacionExplicita()
+    {
+        var repositorio = CrearRepositorioAccion("confirmar-seguro", "cancelar-seguro");
+        var controlador = new ReservasController(CrearServicio(repositorio))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var pagina = Assert.IsType<ContentResult>(controlador.CancelarDesdeCorreo("cancelar-seguro"));
+
+        Assert.Contains("method=\"post\"", pagina.Content);
+        Assert.Equal("Pendiente", repositorio.EstadoReserva);
+        Assert.Equal("Inhabilitada", repositorio.Horarios.Single(h => h.Id == 12).Estado);
+    }
+
+    [Fact]
+    public async Task ConfirmarDesdeCorreo_ActualizaLaReservaYDevuelveResultado()
+    {
+        var repositorio = CrearRepositorioAccion("confirmar-seguro", "cancelar-seguro");
+        var controlador = new ReservasController(CrearServicio(repositorio))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var respuesta = Assert.IsType<ContentResult>(await controlador.EjecutarConfirmacionDesdeCorreo("confirmar-seguro", CancellationToken.None));
+
+        Assert.Equal("Confirmada", repositorio.EstadoReserva);
+        Assert.Contains("Tu hora quedó confirmada correctamente", System.Net.WebUtility.HtmlDecode(respuesta.Content));
+    }
+
+    [Fact]
+    public async Task CancelarDesdeCorreo_ActualizaLaReservaYLiberarHorario()
+    {
+        var repositorio = CrearRepositorioAccion("confirmar-seguro", "cancelar-seguro");
+        var controlador = new ReservasController(CrearServicio(repositorio))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var respuesta = Assert.IsType<ContentResult>(await controlador.EjecutarCancelacionDesdeCorreo("cancelar-seguro", CancellationToken.None));
+
+        Assert.Equal("Cancelada", repositorio.EstadoReserva);
+        Assert.Equal("Habilitada", repositorio.Horarios.Single(h => h.Id == 12).Estado);
+        Assert.Contains("hora quedó liberada", System.Net.WebUtility.HtmlDecode(respuesta.Content));
+    }
+
+    [Fact]
+    public async Task CorreoReserva_ConservaLosBotonesConUrlLocalYPublica()
+    {
+        var clienteCorreo = new ServicioEmailPrueba();
+        var configuracion = new Microsoft.Extensions.Configuration.ConfigurationManager
+        {
+            ["Correo:SmtpHost"] = "smtp.example.test",
+            ["Correo:Remitente"] = "optica@example.test",
+            ["Correo:UrlBaseApi"] = "http://localhost:8080"
+        };
+        var servicio = new ReservaCorreoService(configuracion,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaCorreoService>.Instance,
+            TimeProvider.System,
+            clienteCorreo);
+        var reserva = new ReservaCorreoDto
+        {
+            Id = 31,
+            CorreoCliente = "cliente@example.test",
+            NombreCliente = "Cliente",
+            Fecha = DateTime.Today.AddDays(1),
+            HoraInicio = new TimeSpan(9, 0, 0),
+            HoraFin = new TimeSpan(9, 30, 0)
+        };
+
+        var envioLocal = await servicio.EnviarReservaCreada(reserva, "token-confirmar", "token-cancelar", CancellationToken.None);
+        Assert.True(envioLocal);
+        Assert.Equal(1, clienteCorreo.Envios);
+        Assert.Contains("http://localhost:8080/api/Reservas/acciones/confirmar/token-confirmar", clienteCorreo.UltimoHtml);
+        Assert.Contains("http://localhost:8080/api/Reservas/acciones/cancelar/token-cancelar", clienteCorreo.UltimoHtml);
+
+        configuracion["Correo:UrlBaseApi"] = "https://api.optica.example.test";
+        var envioPublico = await servicio.EnviarReservaCreada(reserva, "token-confirmar", "token-cancelar", CancellationToken.None);
+
+        Assert.True(envioPublico);
+        Assert.Equal(2, clienteCorreo.Envios);
+        Assert.Contains("https://api.optica.example.test/api/Reservas/acciones/confirmar/token-confirmar", clienteCorreo.UltimoHtml);
+        Assert.Contains("https://api.optica.example.test/api/Reservas/acciones/cancelar/token-cancelar", clienteCorreo.UltimoHtml);
     }
 
     [Fact]
@@ -206,7 +341,7 @@ public class TestReservas
             ]
         };
         var correo = new ReservaCorreoPrueba();
-        var servicio = new RecordatorioReservasService(repositorio, correo, TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<RecordatorioReservasService>.Instance);
+        var servicio = new RecordatorioReservasService(repositorio, correo, new ColaCorreosReprogramacion(), TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<RecordatorioReservasService>.Instance);
 
         await servicio.EnviarPendientes(CancellationToken.None);
         await servicio.EnviarPendientes(CancellationToken.None);
@@ -215,6 +350,27 @@ public class TestReservas
         Assert.Equal(1, correo.RecordatoriosEnviados[0].Id);
         Assert.Equal(new[] { 1, 3 }, correo.RecordatoriosEnviados.Select(r => r.Id).Order().ToArray());
         Assert.Equal(2, repositorio.RecordatoriosMarcados.Count);
+    }
+
+    [Fact]
+    public async Task CicloAutomatico_ActualizaVencidasConHoraChileAntesDeProcesarRecordatorios()
+    {
+        var ahoraUtc = new DateTimeOffset(2026, 1, 15, 13, 0, 0, TimeSpan.Zero);
+        var reloj = new RelojPrueba(ahoraUtc);
+        var repositorio = new ReservaRepositorioPrueba();
+        var servicio = new RecordatorioReservasService(
+            repositorio,
+            new ReservaCorreoPrueba(),
+            new ColaCorreosReprogramacion(),
+            reloj,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<RecordatorioReservasService>.Instance);
+
+        await servicio.EnviarPendientes(CancellationToken.None);
+
+        Assert.Equal(1, repositorio.ActualizacionesVencidas);
+        Assert.Equal(new DateTime(2026, 1, 15), repositorio.AhoraChileRecibida?.Date);
+        Assert.Equal(new TimeSpan(10, 0, 0), repositorio.AhoraChileRecibida?.TimeOfDay);
+        Assert.Equal(new[] { "actualizar", "recordatorios" }, repositorio.OrdenOperaciones);
     }
 
     private static ReservaRepositorioPrueba CrearRepositorioAccion(string tokenConfirmacion, string tokenCancelacion)
@@ -230,6 +386,11 @@ public class TestReservas
             TokenExpiraUtc = DateTime.UtcNow.AddDays(2),
             Horarios = [new() { Id = 12, Estado = "Inhabilitada", Fecha = DateTime.Today.AddDays(1), HoraInicio = new TimeSpan(9, 0, 0) }]
         };
+    }
+
+    private sealed class RelojPrueba(DateTimeOffset ahoraUtc) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => ahoraUtc;
     }
 
     [Fact]
@@ -265,6 +426,85 @@ public class TestReservas
     }
 
     [Fact]
+    public async Task ReprogramarReserva_EnviaCorreoConHorarioNuevoYNuevosTokens()
+    {
+        var repositorio = new ReservaRepositorioPrueba
+        {
+            ReservaId = 25,
+            ClienteId = 8,
+            HorarioId = 15,
+            EstadoReserva = "Confirmada",
+            TokenConfirmacionHash = TokenAccionReserva.ObtenerHash("token-confirmacion-anterior"),
+            TokenCancelacionHash = TokenAccionReserva.ObtenerHash("token-cancelacion-anterior"),
+            DatosCorreo = new ReservaCorreoDto
+            {
+                Id = 25,
+                NombreCliente = "Ana Pérez",
+                CorreoCliente = "ana@example.com",
+                Fecha = new DateTime(2026, 11, 14),
+                HoraInicio = new TimeSpan(9, 0, 0),
+                HoraFin = new TimeSpan(9, 30, 0)
+            },
+            Horarios =
+            [
+                new() { Id = 15, Estado = "Inhabilitada", Fecha = new DateTime(2026, 11, 14), HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(9, 30, 0) },
+                new() { Id = 27, Estado = "Habilitada", Fecha = new DateTime(2026, 11, 16), HoraInicio = new TimeSpan(11, 0, 0), HoraFin = new TimeSpan(11, 30, 0) }
+            ]
+        };
+        var correo = new ReservaCorreoPrueba();
+        var servicio = new ReservaService(repositorio, correo, TimeProvider.System,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance, new ColaCorreosReprogramacion());
+
+        var correoEnviado = await servicio.ReprogramarReserva(25, 27, CancellationToken.None);
+
+        Assert.True(correoEnviado);
+        Assert.Equal("Pendiente", repositorio.EstadoReserva);
+        Assert.Equal(25, correo.ReservaReprogramada?.Id);
+        Assert.Equal(new DateTime(2026, 11, 16), correo.ReservaReprogramada?.Fecha);
+        Assert.Equal(new TimeSpan(11, 0, 0), correo.ReservaReprogramada?.HoraInicio);
+        Assert.Equal(43, correo.TokenConfirmacion?.Length);
+        Assert.Equal(43, correo.TokenCancelacion?.Length);
+        Assert.Equal(TokenAccionReserva.ObtenerHash(correo.TokenConfirmacion!), repositorio.TokenConfirmacionHash);
+        Assert.Equal(TokenAccionReserva.ObtenerHash(correo.TokenCancelacion!), repositorio.TokenCancelacionHash);
+        Assert.False(await repositorio.SonTokensReprogramacionVigentes(25,
+            TokenAccionReserva.ObtenerHash("token-confirmacion-anterior"),
+            TokenAccionReserva.ObtenerHash("token-cancelacion-anterior"),
+            DateTime.UtcNow,
+            CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_CorreoFallidoQuedaEnColaYSeReintenta()
+    {
+        var fechaNueva = new DateTime(2026, 11, 16);
+        var repositorio = new ReservaRepositorioPrueba
+        {
+            ReservaId = 25,
+            ClienteId = 8,
+            HorarioId = 15,
+            DatosCorreo = new ReservaCorreoDto { Id = 25, CorreoCliente = "ana@example.com" },
+            Horarios = [new() { Id = 15, Estado = "Inhabilitada" }, new() { Id = 27, Estado = "Habilitada", Fecha = fechaNueva, HoraInicio = new TimeSpan(11, 0, 0), HoraFin = new TimeSpan(11, 30, 0) }]
+        };
+        var correo = new ReservaCorreoPrueba { EnvioCorrecto = false };
+        var cola = new ColaCorreosReprogramacion();
+        var servicio = new ReservaService(repositorio, correo, TimeProvider.System,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaService>.Instance, cola);
+
+        var enviadoAlPrimerIntento = await servicio.ReprogramarReserva(25, 27, CancellationToken.None);
+        Assert.False(enviadoAlPrimerIntento);
+        Assert.Equal(1, cola.Cantidad);
+        Assert.Equal(27, repositorio.HorarioId);
+
+        correo.EnvioCorrecto = true;
+        var recordatorios = new RecordatorioReservasService(repositorio, correo, cola, TimeProvider.System,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<RecordatorioReservasService>.Instance);
+        await recordatorios.EnviarPendientes(CancellationToken.None);
+
+        Assert.Equal(0, cola.Cantidad);
+        Assert.Equal(fechaNueva, correo.ReservaReprogramada?.Fecha);
+    }
+
+    [Fact]
     public async Task ReprogramarReserva_RechazaHorarioOcupadoSinModificarReserva()
     {
         var repositorio = new ReservaRepositorioPrueba { ReservaId = 25, ClienteId = 8, HorarioId = 15, HorarioOcupado = true,
@@ -273,6 +513,22 @@ public class TestReservas
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => CrearServicio(repositorio).ReprogramarReserva(25, 27, CancellationToken.None));
 
         Assert.Contains("ya no está disponible", error.Message);
+        Assert.Equal(15, repositorio.HorarioId);
+        Assert.Equal(8, repositorio.ClienteId);
+    }
+
+    [Fact]
+    public async Task ReprogramarReserva_RechazaFechaConOtraReservaActivaDelCliente()
+    {
+        var repositorio = new ReservaRepositorioPrueba
+        {
+            ReservaId = 25, ClienteId = 8, HorarioId = 15, ReservaActivaEseDia = true,
+            Horarios = [new() { Id = 15, Estado = "Inhabilitada" }, new() { Id = 27, Estado = "Habilitada" }]
+        };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => CrearServicio(repositorio).ReprogramarReserva(25, 27, CancellationToken.None));
+
+        Assert.Contains("reserva activa para esta fecha", error.Message);
         Assert.Equal(15, repositorio.HorarioId);
         Assert.Equal(8, repositorio.ClienteId);
     }
@@ -368,6 +624,20 @@ public class TestReservas
     }
 
     [Fact]
+    public async Task CrearReserva_RechazaClienteConReservaActivaEseDia()
+    {
+        var repositorio = new ReservaRepositorioPrueba { ReservaActivaEseDia = true };
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => CrearServicio(repositorio).CrearReserva(new CrearReservaDto
+        {
+            NombreCompleto = "Ana Pérez", Rut = "12.345.678-5", Telefono = "9 1234 5678",
+            Correo = "ana@example.com", IdHorario = 12
+        }));
+
+        Assert.Contains("reserva activa para esta fecha", error.Message);
+        Assert.Null(repositorio.UltimaSolicitud);
+    }
+
+    [Fact]
     public async Task CrearReserva_RechazaTelefonoConDigitosInsuficientes()
     {
         var repositorio = new ReservaRepositorioPrueba();
@@ -399,6 +669,20 @@ public class TestReservas
     }
 }
 
+internal sealed class ServicioEmailPrueba : IEmailService
+{
+    public int Envios { get; private set; }
+    public string? UltimoHtml { get; private set; }
+
+    public Task<bool> EnviarAsync(string? destinatario, string asunto, string cuerpoHtml, CancellationToken cancellationToken,
+        bool importante = false, byte[]? adjunto = null, string? nombreAdjunto = null, string? tipoAdjunto = null)
+    {
+        Envios++;
+        UltimoHtml = cuerpoHtml;
+        return Task.FromResult(true);
+    }
+}
+
 internal sealed class ReservaRepositorioPrueba : IReservaRepository
 {
     public CrearReservaDto? UltimaSolicitud { get; private set; }
@@ -408,6 +692,10 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public IReadOnlyList<ReservaCorreoDto> Recordatorios { get; set; } = [];
     public HashSet<int> RecordatoriosMarcados { get; } = [];
     public bool CorreoUsadoPorOtroCliente { get; set; }
+    public bool ReservaActivaEseDia { get; set; }
+    public int ActualizacionesVencidas { get; private set; }
+    public DateTimeOffset? AhoraChileRecibida { get; private set; }
+    public List<string> OrdenOperaciones { get; } = [];
     public int ReservaId { get; set; }
     public int ClienteId { get; set; }
     public int HorarioId { get; set; }
@@ -428,6 +716,7 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
 
     public Task<Reserva> CrearReserva(CrearReservaDto dto, string tokenConfirmacionHash, string tokenCancelacionHash)
     {
+        if (ReservaActivaEseDia) throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
         UltimaSolicitud = dto;
         TokenConfirmacionHash = tokenConfirmacionHash;
         TokenCancelacionHash = tokenCancelacionHash;
@@ -454,17 +743,28 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
         return Task.FromResult(new ResultadoAccionReserva { Tipo = confirmar ? TipoResultadoAccionReserva.Confirmada : TipoResultadoAccionReserva.Cancelada });
     }
 
-    public Task<IReadOnlyList<ReservaCorreoDto>> ObtenerReservasParaRecordatorio(DateTimeOffset ahoraChile, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<ReservaCorreoDto>>(Recordatorios.Where(r => r.Estado is "Pendiente" or "Confirmada" && !RecordatoriosMarcados.Contains(r.Id)).ToList());
-
-    public Task<bool> MarcarRecordatorioEnviado(int id, DateTime enviadoUtc, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<ReservaCorreoDto>> ObtenerReservasParaRecordatorio(DateTimeOffset ahoraChile, CancellationToken cancellationToken)
     {
-        if (RecordatoriosMarcados.Contains(id) || !Recordatorios.Any(r => r.Id == id && r.Estado is "Pendiente" or "Confirmada")) return Task.FromResult(false);
+        OrdenOperaciones.Add("recordatorios");
+        return Task.FromResult<IReadOnlyList<ReservaCorreoDto>>(Recordatorios.Where(r => r.Estado is "Pendiente" or "Confirmada" && !RecordatoriosMarcados.Contains(r.Id)).ToList());
+    }
+
+    public Task<int> MarcarReservasVencidasComoRealizadas(DateTimeOffset ahoraChile, CancellationToken cancellationToken)
+    {
+        AhoraChileRecibida = ahoraChile;
+        ActualizacionesVencidas++;
+        OrdenOperaciones.Add("actualizar");
+        return Task.FromResult(0);
+    }
+
+    public Task<bool> MarcarRecordatorioEnviado(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken)
+    {
+        if (RecordatoriosMarcados.Contains(id) || !Recordatorios.Any(r => r.Id == id && r.HorarioId == horarioId && r.Estado is "Pendiente" or "Confirmada")) return Task.FromResult(false);
         RecordatoriosMarcados.Add(id);
         return Task.FromResult(true);
     }
 
-    public Task DesmarcarRecordatorio(int id, DateTime enviadoUtc, CancellationToken cancellationToken)
+    public Task DesmarcarRecordatorio(int id, int horarioId, DateTime enviadoUtc, CancellationToken cancellationToken)
     {
         RecordatoriosMarcados.Remove(id);
         return Task.CompletedTask;
@@ -475,7 +775,12 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
     public Task<Reserva?> ObtenerPorId(int id) => Task.FromResult<Reserva?>(null);
     public Task<bool> CancelarReserva(int id, CancellationToken cancellationToken) => Task.FromResult(false);
 
-    public Task<bool> ReprogramarReserva(int id, int idHorario, CancellationToken cancellationToken)
+    public Task<bool> SonTokensReprogramacionVigentes(int id, string tokenConfirmacionHash, string tokenCancelacionHash, DateTime ahoraUtc, CancellationToken cancellationToken) =>
+        Task.FromResult(ReservaId == id && TokenConfirmacionHash == tokenConfirmacionHash
+            && TokenCancelacionHash == tokenCancelacionHash && TokenExpiraUtc > ahoraUtc
+            && EstadoReserva is "Pendiente" or "Confirmada");
+
+    public Task<bool> ReprogramarReserva(int id, int idHorario, string tokenConfirmacionHash, string tokenCancelacionHash, CancellationToken cancellationToken)
     {
         if (ReservaId != id) return Task.FromResult(false);
         var horario = Horarios.SingleOrDefault(h => h.Id == idHorario);
@@ -483,10 +788,22 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
         if (idHorario == HorarioId) throw new InvalidOperationException("El nuevo horario debe ser distinto al horario actual.");
         if (horario.Estado != "Habilitada" || HorarioOcupado)
             throw new InvalidOperationException(horario.Estado != "Habilitada" ? "El horario seleccionado no está disponible." : "El horario seleccionado ya no está disponible.");
+        if (ReservaActivaEseDia)
+            throw new InvalidOperationException("Ya tienes una reserva activa para esta fecha. No puedes reservar otra hora el mismo día.");
         var anterior = Horarios.Single(h => h.Id == HorarioId);
         anterior.Estado = "Habilitada";
         horario.Estado = "Inhabilitada";
         HorarioId = idHorario;
+        EstadoReserva = "Pendiente";
+        TokenConfirmacionHash = tokenConfirmacionHash;
+        TokenCancelacionHash = tokenCancelacionHash;
+        if (DatosCorreo is not null)
+        {
+            DatosCorreo.HorarioId = idHorario;
+            DatosCorreo.Fecha = horario.Fecha;
+            DatosCorreo.HoraInicio = horario.HoraInicio;
+            DatosCorreo.HoraFin = horario.HoraFin;
+        }
         return Task.FromResult(true);
     }
 }
@@ -494,6 +811,7 @@ internal sealed class ReservaRepositorioPrueba : IReservaRepository
 internal sealed class ReservaCorreoPrueba : IReservaCorreoService
 {
     public ReservaCorreoDto? ReservaCreada { get; private set; }
+    public ReservaCorreoDto? ReservaReprogramada { get; private set; }
     public string? TokenConfirmacion { get; private set; }
     public string? TokenCancelacion { get; private set; }
     public List<ReservaCorreoDto> RecordatoriosEnviados { get; } = [];
@@ -502,6 +820,14 @@ internal sealed class ReservaCorreoPrueba : IReservaCorreoService
     public Task<bool> EnviarReservaCreada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion, CancellationToken cancellationToken)
     {
         ReservaCreada = reserva;
+        TokenConfirmacion = tokenConfirmacion;
+        TokenCancelacion = tokenCancelacion;
+        return Task.FromResult(EnvioCorrecto);
+    }
+
+    public Task<bool> EnviarReservaReprogramada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion, CancellationToken cancellationToken)
+    {
+        ReservaReprogramada = reserva;
         TokenConfirmacion = tokenConfirmacion;
         TokenCancelacion = tokenCancelacion;
         return Task.FromResult(EnvioCorrecto);

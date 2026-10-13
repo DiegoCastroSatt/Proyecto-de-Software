@@ -1,6 +1,12 @@
 <div class="app-shell">
 
   <main class="detail-page">
+    @if (mensajeTemporal(); as mensaje) {
+      <div class="pedido-toast" [class]="'pedido-toast pedido-toast--' + mensaje.tipo" [attr.role]="mensaje.tipo === 'error' ? 'alert' : 'status'" aria-live="polite">
+        <span>{{ mensaje.texto }}</span>
+        <button type="button" aria-label="Cerrar mensaje" (click)="cerrarMensaje()">×</button>
+      </div>
+    }
     <section class="detail-shell">
 
       <div class="detail-content">
@@ -31,7 +37,7 @@
         } @else if (pedido(); as p) {
         <div class="pedido-detail-card">
 
-          <select class="detail-badge" [attr.data-estado]="p.estado" [value]="p.estado" (change)="cambiarEstado(p, $event)">
+          <select class="detail-badge" [attr.data-estado]="p.estado" [value]="p.estado" [disabled]="enProceso()" (change)="cambiarEstado(p, $event)">
             <option value="Pendiente">Pendiente</option>
             <option value="En proceso">En proceso</option>
             <option value="Listo">Listo</option>
@@ -94,6 +100,19 @@
           </div>
 
         </div>
+
+        @if (pedidoPendienteConfirmacion()) {
+          <div class="pedido-confirmacion-fondo">
+            <section class="pedido-confirmacion" role="dialog" aria-modal="true" aria-labelledby="pedido-confirmacion-titulo">
+              <h2 id="pedido-confirmacion-titulo">Confirmar pedido listo</h2>
+              <p>¿Estás seguro de que este pedido está listo para ser retirado por el cliente? Al confirmar, el pedido cambiará a Listo para retirar y se enviará un correo electrónico al cliente.</p>
+              <div class="pedido-confirmacion-acciones">
+                <button type="button" class="pedido-confirmacion-cancelar" (click)="cancelarConfirmacionListo()">Cancelar</button>
+                <button type="button" class="btn-primary" [disabled]="enProceso()" (click)="confirmarPedidoListo()">Confirmar que está listo</button>
+              </div>
+            </section>
+          </div>
+        }
         }
       </div>
 

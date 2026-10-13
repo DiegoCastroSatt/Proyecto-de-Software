@@ -123,6 +123,65 @@
   outline: none;
 }
 
+.detail-badge:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Notificaciones Toast ─── */
+.pedido-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: min(440px, calc(100vw - 40px));
+  padding: 14px 18px;
+  border-radius: 8px;
+  color: var(--color-superficie);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.pedido-toast--warning { background: var(--color-aviso-texto); }
+.pedido-toast--error { background: var(--color-error-oscuro); }
+.pedido-toast--success { background: var(--color-exito); }
+
+.pedido-toast button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+/* ─── Diálogo de Confirmación ─── */
+.pedido-confirmacion-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(24 51 60 / 48%);
+}
+
+.pedido-confirmacion {
+  width: min(100%, 500px);
+  padding: 28px;
+  border-radius: 12px;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 24%);
+}
+
+.pedido-confirmacion h2 { margin: 0 0 12px; font-size: 1.25rem; }
+.pedido-confirmacion p { margin: 0; line-height: 1.6; color: var(--color-texto-secundario); }
+.pedido-confirmacion-acciones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.pedido-confirmacion-cancelar { padding: 10px 16px; border: 1px solid var(--color-borde-control); border-radius: 5px; background: transparent; color: var(--color-texto); font: inherit; cursor: pointer; }
+
 .detail-badge[data-estado="Pendiente"] {
   background: var(--color-estado-pendiente-fondo);
   color: var(--color-estado-pendiente);

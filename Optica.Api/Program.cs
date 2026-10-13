@@ -20,6 +20,8 @@ using Optica.Api.Modules.Clientes.Repositories;
 using Optica.Api.Modules.Clientes.Services;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
+using Optica.Api.Modules.Notificaciones.Interfaces;
+using Optica.Api.Modules.Notificaciones.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,12 +48,15 @@ builder.Services.AddCors(options =>
 
 // Implementación temporal hasta configurar la base de datos.
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IReservaCorreoService, ReservaCorreoService>();
+builder.Services.AddSingleton<ColaCorreosReprogramacion>();
 builder.Services.AddScoped<IReservaService>(proveedor => new ReservaService(
     proveedor.GetRequiredService<IReservaRepository>(),
     proveedor.GetRequiredService<IReservaCorreoService>(),
     proveedor.GetRequiredService<TimeProvider>(),
-    proveedor.GetRequiredService<ILogger<ReservaService>>()));
+    proveedor.GetRequiredService<ILogger<ReservaService>>(),
+    proveedor.GetRequiredService<ColaCorreosReprogramacion>()));
 builder.Services.AddScoped<IRecordatorioReservasService, RecordatorioReservasService>();
 builder.Services.AddHostedService<RecordatorioReservasBackgroundService>();
 builder.Services.AddScoped<IRecetaRepository, RecetaRepository>();
@@ -67,6 +72,7 @@ builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
 
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();

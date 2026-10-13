@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { finalize } from 'rxjs';
 import { PedidoService, PedidoResponse } from '../pedido/pedido.service';
 
 @Component({
@@ -9,10 +10,14 @@ import { PedidoService, PedidoResponse } from '../pedido/pedido.service';
   templateUrl: './detalle-pedido.html',
   styleUrl: './detalle-pedido.css'
 })
-export class DetallePedidoComponent implements OnInit {
+export class DetallePedidoComponent implements OnInit, OnDestroy {
   protected readonly pedido = signal<PedidoResponse | null>(null);
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly enProceso = signal(false);
+  protected readonly pedidoPendienteConfirmacion = signal(false);
+  protected readonly mensajeTemporal = signal<{ tipo: 'success' | 'warning' | 'error'; texto: string } | null>(null);
+  private temporizadorMensaje: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -39,18 +44,78 @@ export class DetallePedidoComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.temporizadorMensaje) clearTimeout(this.temporizadorMensaje);
+  }
+
   protected cambiarEstado(pedido: PedidoResponse, event: Event): void {
     const select = event.target as HTMLSelectElement;
     const nuevoEstado = select.value;
-    
-    this.pedidoService.actualizarEstado(pedido.idPedido, nuevoEstado).subscribe({
+
+    if (this.enProceso()) {
+      select.value = pedido.estado;
+      return;
+    }
+
+    if (nuevoEstado === 'Listo') {
+      select.value = pedido.estado;
+      this.pedidoPendienteConfirmacion.set(true);
+      return;
+    }
+
+    this.actualizarEstado(pedido, nuevoEstado, select);
+  }
+
+  protected cancelarConfirmacionListo(): void {
+    this.pedidoPendienteConfirmacion.set(false);
+  }
+
+  protected confirmarPedidoListo(): void {
+    const pedido = this.pedido();
+    this.pedidoPendienteConfirmacion.set(false);
+    if (!pedido || this.enProceso()) return;
+    this.actualizarEstado(pedido, 'Listo');
+  }
+
+  private actualizarEstado(pedido: PedidoResponse, nuevoEstado: string, select?: HTMLSelectElement): void {
+    this.enProceso.set(true);
+
+    this.pedidoService.actualizarEstado(pedido.idPedido, nuevoEstado).pipe(finalize(() => {
+      this.enProceso.set(false);
+    })).subscribe({
       next: (res) => {
         this.pedido.set({ ...pedido, estado: res.estado });
+        if (nuevoEstado === 'Listo') {
+          if (res.estadoNotificacion === 'Enviada') {
+            this.mostrarMensaje('success', 'El pedido se actualizó y se envió el correo al cliente exitosamente.');
+          } else {
+            this.mostrarMensaje('warning', 'El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente.');
+          }
+        }
       },
-      error: () => {
-        select.value = pedido.estado;
-        alert('No se pudo actualizar el estado del pedido.');
+      error: (error: unknown) => {
+        if (select) select.value = pedido.estado;
+        this.mostrarMensaje('error', this.obtenerMensajeError(error, 'No se pudo actualizar el estado del pedido'));
       }
     });
+  }
+
+  protected cerrarMensaje(): void {
+    this.mensajeTemporal.set(null);
+    if (this.temporizadorMensaje) clearTimeout(this.temporizadorMensaje);
+    this.temporizadorMensaje = null;
+  }
+
+  private mostrarMensaje(tipo: 'success' | 'warning' | 'error', texto: string): void {
+    if (this.temporizadorMensaje) clearTimeout(this.temporizadorMensaje);
+    this.mensajeTemporal.set({ tipo, texto });
+    this.temporizadorMensaje = setTimeout(() => this.mensajeTemporal.set(null), 5000);
+  }
+
+  private obtenerMensajeError(error: unknown, mensajePredeterminado: string): string {
+    if (typeof error !== 'object' || error === null || !('error' in error)) return mensajePredeterminado;
+    const cuerpo = error.error;
+    if (typeof cuerpo !== 'object' || cuerpo === null || !('mensaje' in cuerpo)) return mensajePredeterminado;
+    return typeof cuerpo.mensaje === 'string' ? cuerpo.mensaje : mensajePredeterminado;
   }
 }

@@ -6,5 +6,7 @@ public interface IReservaCorreoService
 {
     Task<bool> EnviarReservaCreada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion, CancellationToken cancellationToken);
 
+    Task<bool> EnviarReservaReprogramada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion, CancellationToken cancellationToken);
+
     Task<bool> EnviarRecordatorio(ReservaCorreoDto reserva, CancellationToken cancellationToken);
 }

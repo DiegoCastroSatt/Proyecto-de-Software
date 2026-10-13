@@ -51,7 +51,7 @@
             <strong>{{ reserva.nombreCliente }}</strong>
             <span>{{ reserva.fecha | date:'dd/MM/yyyy' }} · RUT {{ reserva.rutCliente }}</span>
           </span>
-          <span class="reserva-estado" [class.atendida]="reserva.estado === 'Realizada'">{{ reserva.estado }}</span>
+          <span class="reserva-estado" [class.confirmada]="reserva.estado === 'Confirmada'" [class.atendida]="reserva.estado === 'Realizada'">{{ reserva.estado }}</span>
           <span class="indicador-detalle" aria-hidden="true">›</span>
         </button>
       }
@@ -68,7 +68,7 @@
       <h2 id="detalle-titulo">{{ reserva.nombreCliente }}</h2>
       <p class="detalle-fecha">{{ reserva.fecha | date:'EEEE d MMMM yyyy' }} · {{ reserva.horaInicio.slice(0, 5) }} a {{ reserva.horaFin.slice(0, 5) }}</p>
       @if (mensajeExitoReprogramacion()) {
-        <p class="mensaje-exito" role="status">{{ mensajeExitoReprogramacion() }}</p>
+        <p class="mensaje-exito" [class.mensaje-pendiente]="correoReprogramacionPendiente()" role="status">{{ mensajeExitoReprogramacion() }}</p>
       }
 
       <dl class="datos-cliente">
@@ -107,7 +107,7 @@
       @if (cargandoHorarios()) {
         <p role="status">Cargando horarios disponibles...</p>
       } @else if (horariosDisponibles().length === 0) {
-        <p class="sin-horarios">No hay horarios disponibles para esta fecha.</p>
+        <p class="sin-horarios">No hay horarios disponibles para esta fecha. Selecciona otro día en “Nueva fecha” para ver alternativas.</p>
       } @else {
         <div class="horarios-disponibles" role="group" aria-label="Seleccionar horario disponible">
           @for (horario of horariosDisponibles(); track horario.idHorario) {
