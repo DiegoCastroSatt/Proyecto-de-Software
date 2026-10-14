@@ -48,6 +48,76 @@ public class TestPedidos
         Assert.Null(repo.Guardado);
     }
 
+    [Fact]
+    public async Task Crear_AceptaTotalCeroYAnotacionesNulas()
+    {
+        var repo = new RepositorioPedidos();
+
+        var resultado = await CrearServicio(repo).CrearPedidoAsync(new CreatePedidoDto
+        {
+            Rut = "12345678-5",
+            Total = 0,
+            Anotaciones = null
+        });
+
+        Assert.Equal(0, resultado.Total);
+        Assert.Null(resultado.Anotaciones);
+        Assert.Equal(0, repo.Guardado!.Total);
+        Assert.Null(repo.Guardado.Anotaciones);
+    }
+
+    [Fact]
+    public async Task ObtenerPedidos_DevuelvePedidosDelRepositorio()
+    {
+        var pedidos = new[]
+        {
+            new PedidoResponseDto { IdPedido = 1, NombreCliente = "Ana Pérez", Estado = "Pendiente" },
+            new PedidoResponseDto { IdPedido = 2, NombreCliente = "Carlos Soto", Estado = "Listo" }
+        };
+        var repo = new RepositorioPedidos { PedidosDetalle = pedidos };
+
+        var resultado = await CrearServicio(repo).ObtenerPedidosAsync();
+
+        Assert.Equal(pedidos, resultado);
+    }
+
+    [Fact]
+    public async Task ObtenerPedidoPorId_DevuelveNullSiNoExiste()
+    {
+        var resultado = await CrearServicio(new RepositorioPedidos())
+            .ObtenerPedidoPorIdAsync(404);
+
+        Assert.Null(resultado);
+    }
+
+    [Fact]
+    public async Task ObtenerClientesActivos_CombinaNombreYApellido()
+    {
+        var repo = new RepositorioPedidos
+        {
+            ClientesActivos =
+            [
+                new Cliente { Rut = "123456785", Nombre = "Ana", Apellido = "Pérez" },
+                new Cliente { Rut = "987654321", Nombre = "Luis", Apellido = "Gómez" }
+            ]
+        };
+
+        var resultado = (await CrearServicio(repo).ObtenerClientesActivosAsync()).ToArray();
+
+        Assert.Collection(
+            resultado,
+            cliente =>
+            {
+                Assert.Equal("123456785", cliente.Rut);
+                Assert.Equal("Ana Pérez", cliente.NombreCompleto);
+            },
+            cliente =>
+            {
+                Assert.Equal("987654321", cliente.Rut);
+                Assert.Equal("Luis Gómez", cliente.NombreCompleto);
+            });
+    }
+
     [Theory]
     [InlineData("Pendiente")]
     [InlineData("En proceso")]
@@ -132,6 +202,72 @@ public class TestPedidos
         Assert.Equal(0, correo.Envios);
     }
 
+    [Fact]
+    public async Task CorreoInvalido_DevuelveFalloSinEnviarNotificacion()
+    {
+        var repo = new RepositorioPedidos
+        {
+            Pedido = new Pedido { IdPedido = 8, Rut = "123456785", Estado = "En proceso" },
+            Cliente = new Cliente
+            {
+                Rut = "123456785",
+                Nombre = "Ana",
+                Apellido = "Pérez",
+                Correo = "correo-invalido"
+            }
+        };
+        var correo = new CorreoFalso();
+
+        var resultado = await CrearServicio(repo, correo)
+            .ActualizarEstadoAsync(8, new UpdateEstadoPedidoDto { Estado = "Listo" });
+
+        Assert.Equal("Listo", repo.Pedido.Estado);
+        Assert.Equal("Fallida", resultado.EstadoNotificacion);
+        Assert.Equal(0, correo.Envios);
+    }
+
+    [Fact]
+    public async Task ExcepcionAlEnviarCorreo_MantieneEstadoListoEInformaFallo()
+    {
+        var repo = new RepositorioPedidos
+        {
+            Pedido = new Pedido { IdPedido = 8, Rut = "123456785", Estado = "En proceso" },
+            Cliente = new Cliente
+            {
+                Rut = "123456785",
+                Nombre = "Ana",
+                Apellido = "Pérez",
+                Correo = "ana@example.test"
+            }
+        };
+        var correo = new CorreoFalso { Error = new InvalidOperationException("Servicio de correo no disponible.") };
+
+        var resultado = await CrearServicio(repo, correo)
+            .ActualizarEstadoAsync(8, new UpdateEstadoPedidoDto { Estado = "Listo" });
+
+        Assert.Equal("Listo", repo.Pedido.Estado);
+        Assert.Equal("Fallida", resultado.EstadoNotificacion);
+        Assert.Equal(1, correo.Envios);
+    }
+
+    [Fact]
+    public async Task PedidoYaListo_NoReenviaCorreo()
+    {
+        var repo = new RepositorioPedidos
+        {
+            Pedido = new Pedido { IdPedido = 8, Rut = "123456785", Estado = "Listo" }
+        };
+        var correo = new CorreoFalso();
+
+        var resultado = await CrearServicio(repo, correo)
+            .ActualizarEstadoAsync(8, new UpdateEstadoPedidoDto { Estado = "Listo" });
+
+        Assert.Equal("Listo", resultado.Estado);
+        Assert.Null(resultado.EstadoNotificacion);
+        Assert.Equal(1, repo.Actualizaciones);
+        Assert.Equal(0, correo.Envios);
+    }
+
     private sealed class RepositorioPedidos : IPedidoRepository
     {
         public Cliente? Cliente { get; set; } = new() { Rut = "123456785", Nombre = "Ana", Apellido = "Pérez" };
@@ -139,22 +275,30 @@ public class TestPedidos
         public Pedido? Guardado { get; private set; }
         public string? RutConsultado { get; private set; }
         public int Actualizaciones { get; private set; }
+        public IEnumerable<PedidoResponseDto> PedidosDetalle { get; set; } = [];
+        public PedidoResponseDto? PedidoDetalle { get; set; }
+        public IEnumerable<Cliente> ClientesActivos { get; set; } = [];
         public Task<Cliente?> ObtenerClienteActivoPorRutAsync(string rut) { RutConsultado = rut; return Task.FromResult(Cliente); }
         public Task<Cliente?> ObtenerClientePorRutAsync(string rut) => Task.FromResult(Cliente);
         public Task<Pedido> CrearPedidoAsync(Pedido pedido) { Guardado = pedido; pedido.IdPedido = 42; return Task.FromResult(pedido); }
         public Task<Pedido?> ObtenerPedidoPorIdAsync(int id) => Task.FromResult(Pedido);
         public Task ActualizarPedidoAsync(Pedido pedido) { Actualizaciones++; return Task.CompletedTask; }
         public Task<IEnumerable<Pedido>> ObtenerPedidosAsync() => Task.FromResult<IEnumerable<Pedido>>([]);
-        public Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync() => Task.FromResult<IEnumerable<PedidoResponseDto>>([]);
-        public Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id) => Task.FromResult<PedidoResponseDto?>(null);
-        public Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync() => Task.FromResult<IEnumerable<Cliente>>([]);
+        public Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync() => Task.FromResult(PedidosDetalle);
+        public Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id) => Task.FromResult(PedidoDetalle);
+        public Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync() => Task.FromResult(ClientesActivos);
     }
 
     private sealed class CorreoFalso : IPedidoCorreoService
     {
         public int Envios { get; private set; }
         public bool Resultado { get; set; } = true;
+        public Exception? Error { get; set; }
         public Task<bool> EnviarPedidoListoAsync(string? destinatario, string nombreCliente, int idPedido, CancellationToken cancellationToken)
-        { Envios++; return Task.FromResult(Resultado); }
+        {
+            Envios++;
+            if (Error is not null) throw Error;
+            return Task.FromResult(Resultado);
+        }
     }
 }
