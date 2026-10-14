@@ -30,14 +30,14 @@ describe('DetallePedidoComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DetallePedidoComponent],
       providers: [
+        provideRouter([]),
         { provide: PedidoService, useValue: servicio },
         {
           provide: ActivatedRoute,
           useValue: {
             snapshot: { paramMap: { get: () => '5' } }
           }
-        },
-        provideRouter([])
+        }
       ]
     }).compileComponents();
 
