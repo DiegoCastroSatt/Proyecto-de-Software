@@ -80,4 +80,25 @@ public class PedidoRepository : IPedidoRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id)
+    {
+        return await _context.Pedidos
+            .Where(p => p.IdPedido == id)
+            .Join(
+                _context.Clientes,
+                p => p.Rut,
+                c => c.Rut,
+                (p, c) => new PedidoResponseDto
+                {
+                    IdPedido = p.IdPedido,
+                    NombreCliente = c.Nombre + " " + c.Apellido,
+                    Fecha = p.Fecha,
+                    Estado = p.Estado,
+                    Total = p.Total,
+                    Anotaciones = p.Anotaciones
+                }
+            )
+            .FirstOrDefaultAsync();
+    }
+
 }

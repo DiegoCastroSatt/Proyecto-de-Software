@@ -1,17 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PedidoComponent } from './pedido';
 import { PedidoService } from './pedido.service';
 
 describe('PedidoComponent', () => {
   let fixture: ComponentFixture<PedidoComponent>;
-  let servicio: { obtenerPedidos: ReturnType<typeof vi.fn>; actualizarEstado: ReturnType<typeof vi.fn> };
+  let servicio: { obtenerPedidos: ReturnType<typeof vi.fn> };
+
+  const mockPedidos = [
+    { idPedido: 1, nombreCliente: 'Ana Pérez', fecha: '2026-10-01', estado: 'En proceso', total: 12000 },
+    { idPedido: 2, nombreCliente: 'Carlos Soto', fecha: '2026-10-02', estado: 'Listo', total: 25000 }
+  ];
 
   beforeEach(async () => {
     servicio = {
-      obtenerPedidos: vi.fn(() => of([{ idPedido: 5, nombreCliente: 'Ana Pérez', fecha: '2026-10-01', estado: 'En proceso', total: 12000 }])),
-      actualizarEstado: vi.fn(() => of({ mensaje: 'Estado actualizado.', estado: 'Listo', estadoNotificacion: 'Enviada' }))
+      obtenerPedidos: vi.fn(() => of(mockPedidos))
     };
     await TestBed.configureTestingModule({
       imports: [PedidoComponent],
@@ -21,66 +26,40 @@ describe('PedidoComponent', () => {
     fixture.detectChanges();
   });
 
-  it('cancelar la confirmación no cambia el estado ni envía correo', () => {
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.value = 'Listo';
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(servicio.actualizarEstado).not.toHaveBeenCalled();
-    expect(select.value).toBe('En proceso');
-    const cancelar = fixture.nativeElement.querySelector('.pedido-confirmacion-cancelar') as HTMLButtonElement;
-    cancelar.click();
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
-    expect(servicio.actualizarEstado).not.toHaveBeenCalled();
+  it('carga y muestra la lista de pedidos al inicializar', () => {
+    expect(servicio.obtenerPedidos).toHaveBeenCalledTimes(1);
+    const tarjetas = fixture.nativeElement.querySelectorAll('.pedido-card');
+    expect(tarjetas.length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('Ana Pérez');
+    expect(fixture.nativeElement.textContent).toContain('Carlos Soto');
   });
 
-  it('confirma el pedido listo y muestra éxito solo cuando la API confirma el correo', () => {
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.value = 'Listo';
-    select.dispatchEvent(new Event('change'));
+  it('filtra los pedidos por nombre de cliente con el buscador', () => {
+    const input = fixture.nativeElement.querySelector('.search-input') as HTMLInputElement;
+    input.value = 'carlos';
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
-    expect(servicio.actualizarEstado).not.toHaveBeenCalled();
-    const confirmar = fixture.nativeElement.querySelector('.pedido-confirmacion-acciones .btn-primary') as HTMLButtonElement;
-    confirmar.click();
-    fixture.detectChanges();
-
-    expect(servicio.actualizarEstado).toHaveBeenCalledWith(5, 'Listo');
-    expect(fixture.nativeElement.querySelector('.pedido-toast').textContent).toContain('El pedido se actualizó y se envió el correo al cliente exitosamente.');
+    const tarjetas = fixture.nativeElement.querySelectorAll('.pedido-card');
+    expect(tarjetas.length).toBe(1);
+    expect(fixture.nativeElement.textContent).toContain('Carlos Soto');
+    expect(fixture.nativeElement.textContent).not.toContain('Ana Pérez');
   });
 
-  it('avisa si el estado se actualiza pero el correo falla', () => {
-    servicio.actualizarEstado.mockReturnValueOnce(of({ mensaje: 'Correo fallido', estado: 'Listo', estadoNotificacion: 'Fallida' }));
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.value = 'Listo';
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    (fixture.nativeElement.querySelector('.pedido-confirmacion-acciones .btn-primary') as HTMLButtonElement).click();
+  it('muestra estado vacío cuando la búsqueda no coincide con ningún cliente', () => {
+    const input = fixture.nativeElement.querySelector('.search-input') as HTMLInputElement;
+    input.value = 'inexistente';
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.pedido-toast').textContent).toContain('El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente.');
+    const tarjetas = fixture.nativeElement.querySelectorAll('.pedido-card');
+    expect(tarjetas.length).toBe(0);
+    expect(fixture.nativeElement.textContent).toContain('Sin pedidos');
   });
 
-  it('no muestra un aviso de correo para otros estados', () => {
-    servicio.actualizarEstado.mockReturnValueOnce(of({ mensaje: 'Estado actualizado.', estado: 'Entregado' }));
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.value = 'Entregado';
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.pedido-toast')).toBeNull();
-  });
-
-  it('informa si falla la actualización del estado', () => {
-    servicio.actualizarEstado.mockReturnValueOnce(throwError(() => new Error('offline')));
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.value = 'Entregado';
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.pedido-toast').textContent).toContain('No se pudo actualizar el estado del pedido');
+  it('cada tarjeta de pedido incluye el enlace al detalle', () => {
+    const enlaces = fixture.nativeElement.querySelectorAll('.btn-detalle');
+    expect(enlaces.length).toBe(2);
+    expect(enlaces[0].getAttribute('href')).toBe('/admin/panel/pedido/1');
   });
 });

@@ -13,5 +13,6 @@ public interface IPedidoRepository
     Task<Cliente?> ObtenerClientePorRutAsync(string rut);
     Task<Pedido> CrearPedidoAsync(Pedido pedido);
     Task<Pedido?> ObtenerPedidoPorIdAsync(int id);
+    Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id);
     Task ActualizarPedidoAsync(Pedido pedido);
 }

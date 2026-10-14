@@ -213,6 +213,7 @@ app-reserva {
 :where(
     app-crear-pedido,
     app-pedido,
+    app-detalle-pedido,
     app-producto,
     app-registro-receta,
     app-registro-venta,
@@ -304,7 +305,6 @@ app-reserva {
   font-size: 0.8rem;
   font-weight: 800;
 }
-:where(app-crear-pedido, app-pedido) .order-page,
 :where(app-reserva) .booking-page {
   min-height: 100vh;
   padding: 32px 20px;
@@ -316,7 +316,17 @@ app-reserva {
     radial-gradient(circle at 92% 84%, var(--decoracion-calida), transparent 27%);
   color: var(--color-texto);
 }
-:where(app-crear-pedido, app-pedido) .order-shell {
+
+:where(app-crear-pedido, app-pedido) .order-page,
+:where(app-detalle-pedido) .detail-page {
+  min-height: 100vh;
+  padding: 32px 20px;
+  display: grid;
+  place-items: center;
+  color: var(--color-texto);
+}
+:where(app-crear-pedido, app-pedido) .order-shell,
+:where(app-detalle-pedido) .detail-shell {
   width: min(800px, 100%);
   margin: 0 auto;
   overflow: hidden;

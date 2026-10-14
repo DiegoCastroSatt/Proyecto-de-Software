@@ -13,6 +13,7 @@ import { BuscarProductoCliente } from './Componentes/buscar-producto-cliente/bus
 import { BuscarProductoAdmin } from './Componentes/buscar-producto-admin/buscar-producto-admin';
 import { PedidoComponent } from './Componentes/pedido/pedido';
 import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
+import { DetallePedidoComponent } from './Componentes/detalle-pedido/detalle-pedido';
 import { ClientesComponent } from './Componentes/clientes/clientes';
 import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
@@ -56,6 +57,7 @@ export const routes: Routes = [
           { path: 'recetas/:id/editar', component: RegistroRecetaComponent },
           { path: 'pedido', component: PedidoComponent },
           { path: 'crear-pedido', component: CrearPedidoComponent },
+          { path: 'pedido/:id', component: DetallePedidoComponent },
           { path: 'historial-graduaciones', component: HistorialGraduaciones }
         ]
       }
