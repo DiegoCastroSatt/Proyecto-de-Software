@@ -15,9 +15,6 @@ public class PedidosController : ControllerBase
         _pedidoService = pedidoService;
     }
 
-    /// <summary>
-    /// Devuelve la lista de pedidos con el nombre completo del cliente y el estado.
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetPedidos()
     {
@@ -25,9 +22,6 @@ public class PedidosController : ControllerBase
         return Ok(pedidos);
     }
 
-    /// <summary>
-    /// Devuelve la lista de clientes activos (id, nombre completo).
-    /// </summary>
     [HttpGet("clientes")]
     public async Task<IActionResult> GetClientes()
     {
@@ -35,9 +29,6 @@ public class PedidosController : ControllerBase
         return Ok(clientes);
     }
 
-    /// <summary>
-    /// Devuelve el detalle de un pedido por su ID.
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPedidoById(int id)
     {

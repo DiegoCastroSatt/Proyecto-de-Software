@@ -25,11 +25,11 @@
             <form (ngSubmit)="onLogin()">
                 <div class="form-field">
                     <label for="usuario">Nombre de usuario</label>
-                    <input 
-                        type="text" 
-                        id="usuario" 
-                        name="usuario" 
-                        [(ngModel)]="usuario" 
+                    <input
+                        type="text"
+                        id="usuario"
+                        name="usuario"
+                        [(ngModel)]="usuario"
                         autocomplete="username"
                         required
                     >
@@ -37,12 +37,12 @@
 
                 <div class="form-field">
                     <label for="contrasena">Contraseña</label>
-                    <input 
-                        type="password" 
-                        id="contrasena" 
-                        name="contrasena" 
+                    <input
+                        type="password"
+                        id="contrasena"
+                        name="contrasena"
                         [(ngModel)]="contrasena"
-                        autocomplete="current-password" 
+                        autocomplete="current-password"
                         required
                     >
                 </div>
