@@ -29,14 +29,14 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
-      { path: 'productos', component: BuscarProductoCliente }
+      { path: 'productos', component: BuscarProductoCliente } 
     ]
   },
 
   {
     path: 'admin',
     children: [
-      { path: '', component: LoginAdmin },
+      {path: '', component: LoginAdmin},
       {
         path: 'panel',
         component: AdminLayoutComponent,

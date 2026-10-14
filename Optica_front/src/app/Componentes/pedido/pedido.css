@@ -1,7 +1,4 @@
-.btn-primary {
-  margin-top: 0;
-  letter-spacing: 0.02em;
-}
+.btn-primary { margin-top: 0; letter-spacing: 0.02em; }
 
 .pedido-toast {
   position: fixed;
@@ -19,9 +16,17 @@
   box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
 }
 
-.pedido-toast--warning { background: var(--color-aviso-texto); }
-.pedido-toast--error { background: var(--color-error-oscuro); }
-.pedido-toast--success { background: var(--color-exito); }
+.pedido-toast--warning {
+  background: var(--color-aviso-texto);
+}
+
+.pedido-toast--error {
+  background: var(--color-error-oscuro);
+}
+
+.pedido-toast--success {
+  background: var(--color-exito);
+}
 
 .pedido-toast button {
   border: 0;
@@ -50,10 +55,33 @@
   box-shadow: 0 18px 48px rgb(0 0 0 / 24%);
 }
 
-.pedido-confirmacion h2 { margin: 0 0 12px; font-size: 1.25rem; }
-.pedido-confirmacion p { margin: 0; line-height: 1.6; color: var(--color-texto-secundario); }
-.pedido-confirmacion-acciones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-.pedido-confirmacion-cancelar { padding: 10px 16px; border: 1px solid var(--color-borde-control); border-radius: 5px; background: transparent; color: var(--color-texto); font: inherit; cursor: pointer; }
+.pedido-confirmacion h2 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+}
+
+.pedido-confirmacion p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--color-texto-secundario);
+}
+
+.pedido-confirmacion-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.pedido-confirmacion-cancelar {
+  padding: 10px 16px;
+  border: 1px solid var(--color-borde-control);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-texto);
+  font: inherit;
+  cursor: pointer;
+}
 
 .search-bar-container {
   margin-bottom: 24px;
