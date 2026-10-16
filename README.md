@@ -21,9 +21,9 @@ Nosotros trabajaremos con el Centro óptico San Francisco, creando una aplicaci�
 
 - Docker Desktop instalado y ejecutandose.
 - Git para clonar el repositorio.
-- Node.js y npm para ejecutar el frontend Angular.
+- Node.js y npm solo si se ejecuta Angular fuera de Docker.
 
-### Backend y base de datos
+### Plataforma completa
 
 1. Clonar el repositorio y entrar a su carpeta:
 
@@ -38,13 +38,17 @@ cd Proyecto_de_Software
 Copy-Item .env.example .env
 ```
 
-3. Construir y levantar la API junto con MySQL:
+3. Configurar `MYSQL_ROOT_PASSWORD` en `.env` y construir y levantar toda la plataforma:
 
 ```powershell
 docker compose up --build -d
 ```
 
-La API quedara disponible en `http://localhost:8080` y MySQL en `localhost:3307`.
+Angular quedará disponible en `http://localhost:4200`, la API en `http://localhost:8080` y MySQL en `localhost:3307`. No necesitas ejecutar `npm start` para usar Angular con Docker. Si hay un servidor local de Angular usando el puerto 4200, detenlo antes de iniciar Compose.
+
+El contenedor del frontend compila Angular y ejecuta su servidor de producción. La API espera a que MySQL esté disponible y los datos se conservan en el volumen existente.
+
+Esta configuración está preparada para abrir la plataforma desde el mismo equipo: el navegador consulta la API en `localhost:8080`.
 
 Para el uso local, `EMAIL_API_BASE_URL=http://localhost:8080` permite enviar los correos; sus enlaces funcionan al abrirlos en el mismo equipo donde corre Docker. Si el cliente abre el mensaje desde otro dispositivo, configura `EMAIL_API_BASE_URL` en `.env` con la URL HTTPS pública de la API, porque `localhost` apunta al dispositivo que abre el enlace.
 
@@ -62,9 +66,9 @@ docker compose down
 
 El volumen de MySQL conserva los datos. Para eliminar tambien esos datos, usar `docker compose down -v`.
 
-### Frontend Angular
+### Frontend Angular para desarrollo sin Docker
 
-En otra terminal:
+Para trabajar en Angular con recarga automática, ejecuta en otra terminal (sin el servicio `frontend` de Compose activo):
 
 ```powershell
 cd Optica_front
