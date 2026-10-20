@@ -25,6 +25,11 @@ public class ClienteService : IClienteService
 
     public async Task<Cliente> RegistrarAsync(CrearClienteDto dto)
     {
+        if (!RutChilenoValidator.EsValido(dto.Rut))
+        {
+            throw new ArgumentException("El RUT ingresado no es válido.");
+        }
+
         // Regla 1: Validar medio de contacto
         if (string.IsNullOrWhiteSpace(dto.Telefono) && string.IsNullOrWhiteSpace(dto.Correo))
         {
