@@ -1,3 +1,4 @@
+import { RecomendadorMarcosComponent } from './Componentes/recomendador-marcos/recomendador-marcos';
 import { VerVentasComponent } from './Componentes/ver-ventas/ver-ventas';
 import { Routes } from '@angular/router';
 import { ReservaComponent } from './Componentes/reserva/reserva';
@@ -29,6 +30,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
+      { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
       { path: 'productos', component: BuscarProductoCliente } 
     ]
   },
