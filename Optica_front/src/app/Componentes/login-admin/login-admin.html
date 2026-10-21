@@ -9,17 +9,13 @@
         </div>
 
         <div class="brand-intro">
-            <p class="brand-eyebrow">PORTAL DE ADMINISTRACIÓN</p>
             <h1>Centro Óptico<br>San Francisco</h1>
             <span class="brand-rule" aria-hidden="true"></span>
         </div>
-
-        <p class="brand-footer">GESTIÓN INTERNA <span>·</span> ÓPTICA</p>
     </aside>
 
     <main class="login-main">
         <section class="login-content" aria-labelledby="login-title">
-            <p class="login-eyebrow">ACCESO ADMINISTRATIVO</p>
             <h2 id="login-title">Iniciar sesión</h2>
 
             <form (ngSubmit)="onLogin()">
@@ -60,7 +56,6 @@
     @if (mostrarSolicitudRecuperacion()) {
         <div class="recovery-backdrop" role="presentation" (click)="cancelarRecuperacion()" (keydown.escape)="cancelarRecuperacion()">
             <section class="recovery-dialog" role="dialog" aria-modal="true" aria-labelledby="recovery-request-title" (click)="$event.stopPropagation()">
-                <p class="login-eyebrow">ACCESO ADMINISTRATIVO</p>
                 <h2 id="recovery-request-title">Recuperar contraseña</h2>
                 <p class="recovery-description">Ingresa tu nombre de usuario. Si la cuenta puede recuperar acceso, el código se enviará al correo asociado.</p>
                 <form novalidate (ngSubmit)="solicitarCodigo()">
@@ -84,7 +79,6 @@
     @if (mostrarConfirmacionRecuperacion()) {
         <div class="recovery-backdrop" role="presentation" (click)="cancelarRecuperacion()" (keydown.escape)="cancelarRecuperacion()">
             <section class="recovery-dialog" role="dialog" aria-modal="true" aria-labelledby="recovery-confirm-title" (click)="$event.stopPropagation()">
-                <p class="login-eyebrow">ACCESO ADMINISTRATIVO</p>
                 <h2 id="recovery-confirm-title">Crear nueva contraseña</h2>
                 <p class="recovery-description">{{ mensajeRecuperacion() }}</p>
                 <form novalidate (ngSubmit)="confirmarRecuperacion()">
