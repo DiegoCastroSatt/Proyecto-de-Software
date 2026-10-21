@@ -10,45 +10,66 @@
   flex: 1;
 }
 
-.client-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 18px clamp(20px, 5vw, 64px);
-  border-top: 1px solid var(--color-texto-inverso-secundario);
+.client-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: clamp(16px, 3vw, 40px);
 }
 
-.client-footer a {
-  padding: 8px 12px;
-  border-radius: 3px;
-  color: var(--color-principal);
-  font-size: 0.85rem;
-  text-decoration: none;
-}
-
-.client-footer a:hover,
-.client-footer a:focus-visible {
+.login-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid var(--color-acento);
+  border-radius: 8px;
   background: var(--color-acento-suave);
-  text-decoration: underline;
+  color: var(--color-principal);
+  font-size: .88rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-@media (max-width: 680px) {
+.login-button:hover {
+  background: var(--color-acento);
+}
+
+.login-button:focus-visible {
+  outline: 3px solid var(--color-texto-inverso);
+  outline-offset: 4px;
+}
+
+.login-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+@media (max-width: 900px) {
   .client-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
   }
-}
 
-@media (max-width: 680px) {
+  .login-button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .client-header nav {
-    width: 100%;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
     overflow-x: auto;
     flex-wrap: nowrap;
     padding-bottom: 2px;
   }
-}
 
-@media (max-width: 680px) {
   .client-header nav a {
     flex: 0 0 auto;
   }

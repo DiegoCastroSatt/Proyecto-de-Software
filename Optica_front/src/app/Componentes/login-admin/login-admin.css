@@ -15,10 +15,9 @@
 .login-brand {
 	position: relative;
 	isolation: isolate;
-	display: flex;
+	display: grid;
 	min-height: 100vh;
-	flex-direction: column;
-	justify-content: space-between;
+	grid-template-rows: 1fr auto 1fr;
 	overflow: hidden;
 	padding: 52px clamp(32px, 6vw, 84px);
 	border-right: 6px solid var(--color-acento);
@@ -54,6 +53,7 @@
 }
 
 .brand-lockup {
+	align-self: start;
 	display: flex;
 	align-items: center;
 	gap: 13px;
@@ -91,7 +91,7 @@
 	position: relative;
 	z-index: 1;
 	max-width: 440px;
-	margin-block: 72px;
+	margin-block: 0;
 }
 
 .brand-eyebrow,
@@ -372,6 +372,9 @@
 	}
 
 	.login-brand {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
 		min-height: 300px;
 		padding: 27px 26px 32px;
 		border-right: 0;

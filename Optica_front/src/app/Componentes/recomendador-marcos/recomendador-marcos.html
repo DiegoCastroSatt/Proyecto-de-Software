@@ -79,6 +79,7 @@
               <span class="etiqueta">Estilo sugerido</span>
               <h3>{{ marco.nombre }}</h3>
               <p>{{ marco.motivo }}</p>
+              <a routerLink="/probador-marcos" [queryParams]="{ modelo: formasMarcos[marco.nombre] }">Probar este marco</a>
             </article>
           }
         </div>
