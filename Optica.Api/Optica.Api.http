@@ -3,3 +3,14 @@
 GET {{Optica.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
+### Buscar clientes para autocompletar por RUT
+GET {{Optica.Api_HostAddress}}/api/Pedidos/clientes/buscar?rut=12345
+Accept: application/json
+
+### Consultar el historial de pedidos de un cliente
+GET {{Optica.Api_HostAddress}}/api/Pedidos/cliente/12.345.678-5
+Accept: application/json
+
+### Consultar el detalle de un pedido
+GET {{Optica.Api_HostAddress}}/api/Pedidos/1
+Accept: application/json

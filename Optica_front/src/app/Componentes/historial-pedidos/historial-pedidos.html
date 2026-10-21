@@ -1,0 +1,67 @@
+<section class="historial-pedidos">
+  <header class="historial-encabezado">
+    <div>
+      <h1>Historial de pedidos</h1>
+      <p>Busca un cliente por RUT para consultar sus pedidos anteriores.</p>
+    </div>
+    <a class="volver-lista" routerLink="/admin/panel/pedido">Lista de pedidos</a>
+  </header>
+
+  <div class="busqueda-cliente">
+    <label for="rut-cliente">RUT del cliente</label>
+    <input
+      id="rut-cliente"
+      type="search"
+      autocomplete="off"
+      placeholder="Ej.: 12.345.678-9"
+      [value]="rut()"
+      (input)="cambiarRut($any($event.target).value)"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-controls="sugerencias-clientes"
+      [attr.aria-expanded]="clientes().length > 0">
+    @if (buscandoClientes()) { <p class="estado-busqueda" aria-live="polite">Buscando clientes…</p> }
+    @if (errorClientes()) { <p class="mensaje-error" role="alert">No se pudieron buscar clientes. Inténtalo nuevamente.</p> }
+    @if (clientes().length > 0) {
+      <ul id="sugerencias-clientes" class="sugerencias-clientes" role="listbox" aria-label="Clientes encontrados">
+        @for (cliente of clientes(); track cliente.Rut) {
+          <li role="presentation">
+            <button type="button" role="option" (click)="seleccionarCliente(cliente)">
+              <strong>{{ cliente.nombreCompleto }}</strong>
+              <span>{{ cliente.Rut }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (rut().length >= 2 && !buscandoClientes() && !errorClientes() && !clienteSeleccionado()) {
+      <p class="estado-busqueda">No se encontraron clientes con ese RUT.</p>
+    }
+  </div>
+
+  @if (clienteSeleccionado(); as cliente) {
+    <section class="resultado-historial" aria-live="polite" aria-label="Historial del cliente">
+      <h2>Pedidos de {{ cliente.nombreCompleto }} <span>({{ cliente.Rut }})</span></h2>
+      @if (cargandoPedidos()) {
+        <p class="estado-busqueda">Cargando pedidos…</p>
+      } @else if (mensajeError()) {
+        <p class="mensaje-error" role="alert">{{ mensajeError() }}</p>
+      } @else if (pedidos().length === 0) {
+        <p class="sin-pedidos">Este cliente no tiene pedidos registrados.</p>
+      } @else {
+        <div class="pedidos-lista">
+          @for (pedido of pedidos(); track pedido.idPedido) {
+            <article class="pedido-historico">
+              <div>
+                <strong>Pedido #{{ pedido.idPedido }}</strong>
+                <span>{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
+                <span>Estado: {{ pedido.estado }}</span>
+                <span>Total: ${{ pedido.total }}</span>
+              </div>
+              <a [routerLink]="['/admin/panel/pedido', pedido.idPedido]">Ver detalle</a>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</section>
