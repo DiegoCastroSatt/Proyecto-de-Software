@@ -8,6 +8,10 @@ public interface IAutenticacionAdministradorRepository
         string nombreUsuario,
         CancellationToken cancellationToken);
 
+    Task<Administrador?> ObtenerPorIdAsync(
+        int idAdministrador,
+        CancellationToken cancellationToken);
+
     Task ActualizarAsync(
         Administrador administrador,
         CancellationToken cancellationToken);

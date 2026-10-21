@@ -7,6 +7,10 @@ export interface LoginAdministradorResponse {
   nombre: string;
 }
 
+export interface ResultadoRecuperacionAdministrador {
+  mensaje: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AutenticacionAdminService {
   readonly administrador = signal<LoginAdministradorResponse | null>(null);
@@ -16,6 +20,23 @@ export class AutenticacionAdminService {
   iniciarSesion(nombreUsuario: string, contrasena: string): Observable<LoginAdministradorResponse> {
     return this.http.post<LoginAdministradorResponse>(this.apiUrl, { nombreUsuario, contrasena }).pipe(tap(admin => this.administrador.set(admin)));
   }
+
+  solicitarRecuperacion(nombreUsuario: string): Observable<ResultadoRecuperacionAdministrador> {
+    return this.http.post<ResultadoRecuperacionAdministrador>(
+      `${this.apiUrl}/recuperacion/solicitar`, { nombreUsuario });
+  }
+
+  confirmarRecuperacion(
+    nombreUsuario: string,
+    codigo: string,
+    nuevaContrasena: string,
+    confirmarContrasena: string
+  ): Observable<ResultadoRecuperacionAdministrador> {
+    return this.http.post<ResultadoRecuperacionAdministrador>(
+      `${this.apiUrl}/recuperacion/confirmar`,
+      { nombreUsuario, codigo, nuevaContrasena, confirmarContrasena });
+  }
+
   verificarSesion(): Observable<LoginAdministradorResponse> {
     return this.http.get<LoginAdministradorResponse>(`${this.apiUrl}/sesion`).pipe(tap(admin => this.administrador.set(admin)));
   }

@@ -1,13 +1,16 @@
 using Optica.Api.Modules.AgendaReservas.Interfaces;
+using Optica.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Optica.Api.Modules.AgendaReservas.Services;
 
 public sealed class RecordatorioReservasService(
     IReservaRepository reservaRepository,
     IReservaCorreoService correoService,
-    ColaCorreosReprogramacion correosReprogramacion,
+    ColaCorreosReprogramacion? correosReprogramacion,
     TimeProvider proveedorTiempo,
-    ILogger<RecordatorioReservasService> logger) : IRecordatorioReservasService
+    ILogger<RecordatorioReservasService> logger,
+    OpticaDbContext? dbContext = null) : IRecordatorioReservasService
 {
     public async Task EnviarPendientes(CancellationToken cancellationToken)
     {
@@ -18,6 +21,20 @@ public sealed class RecordatorioReservasService(
         foreach (var reserva in pendientes)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (dbContext is not null)
+            {
+                await using var transaccion = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var yaPendiente = await dbContext.CorreosReserva.AnyAsync(c => c.ReservaId == reserva.Id
+                    && c.Tipo == "Recordatorio" && !c.Enviado, cancellationToken);
+                if (!yaPendiente)
+                {
+                    dbContext.CorreosReserva.Add(correoService.PrepararRecordatorio(reserva));
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
+                await transaccion.CommitAsync(cancellationToken);
+                continue;
+            }
+
             var enviadoUtc = proveedorTiempo.GetUtcNow().UtcDateTime;
             if (!await reservaRepository.MarcarRecordatorioEnviado(reserva.Id, reserva.HorarioId, enviadoUtc, cancellationToken))
             {
@@ -48,6 +65,7 @@ public sealed class RecordatorioReservasService(
 
     private async Task ReintentarCorreosReprogramacion(CancellationToken cancellationToken)
     {
+        if (correosReprogramacion is null) return;
         var lote = correosReprogramacion.TomarLote();
         for (var indice = 0; indice < lote.Count; indice++)
         {

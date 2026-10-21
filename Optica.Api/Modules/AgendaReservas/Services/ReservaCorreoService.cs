@@ -4,12 +4,15 @@ using System.Text.Encodings.Web;
 using Optica.Api.Modules.AgendaReservas.DTOs;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.Notificaciones.Interfaces;
+using Optica.Api.Modules.AgendaReservas.Models;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Optica.Api.Modules.AgendaReservas.Services;
 
-public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<ReservaCorreoService> logger, TimeProvider proveedorTiempo, IEmailService emailService) : IReservaCorreoService
+public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<ReservaCorreoService> logger, TimeProvider proveedorTiempo, IEmailService emailService, IDataProtectionProvider protectionProvider) : IReservaCorreoService
 {
     private const string NombreCentro = "Centro Óptico San Francisco";
+    private const string PropositoProteccion = "Optica.CorreosReservas.v1";
 
     public Task<bool> EnviarReservaCreada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion, CancellationToken cancellationToken)
         => EnviarCorreoReserva(reserva, tokenConfirmacion, tokenCancelacion, reprogramada: false, cancellationToken);
@@ -30,6 +33,30 @@ public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<R
             logger.LogWarning("No se envió el correo de reserva porque Correo:UrlBaseApi debe ser HTTPS (se permite HTTP solo en localhost).");
             return Task.FromResult(false);
         }
+        var mensaje = PrepararCorreoReserva(reserva, tokenConfirmacion, tokenCancelacion, reprogramada);
+        var html = protectionProvider.CreateProtector(PropositoProteccion).Unprotect(mensaje.CuerpoHtmlProtegido);
+        return emailService.EnviarAsync(mensaje.Destinatario, mensaje.Asunto, html, cancellationToken,
+            adjunto: mensaje.Adjunto, nombreAdjunto: mensaje.NombreAdjunto, tipoAdjunto: mensaje.TipoAdjunto);
+    }
+
+    public CorreoReservaPendiente PrepararReservaCreada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion) =>
+        PrepararCorreoReserva(reserva, tokenConfirmacion, tokenCancelacion, reprogramada: false);
+
+    public CorreoReservaPendiente PrepararReservaReprogramada(ReservaCorreoDto reserva, string tokenConfirmacion, string tokenCancelacion) =>
+        PrepararCorreoReserva(reserva, tokenConfirmacion, tokenCancelacion, reprogramada: true);
+
+    private CorreoReservaPendiente PrepararCorreoReserva(
+        ReservaCorreoDto reserva,
+        string tokenConfirmacion,
+        string tokenCancelacion,
+        bool reprogramada)
+    {
+        var baseUrlConfigurada = configuracion["Correo:UrlBaseApi"]?.TrimEnd('/');
+        var baseUrl = EsUrlBaseSegura(baseUrlConfigurada) ? baseUrlConfigurada! : "__URL_BASE_API__";
+        if (baseUrl == "__URL_BASE_API__")
+        {
+            logger.LogWarning("El correo de reserva quedó pendiente porque Correo:UrlBaseApi debe ser HTTPS (se permite HTTP solo en localhost).");
+        }
 
         var urlConfirmacion = $"{baseUrl}/api/Reservas/acciones/confirmar/{tokenConfirmacion}";
         var urlCancelacion = $"{baseUrl}/api/Reservas/acciones/cancelar/{tokenCancelacion}";
@@ -37,7 +64,21 @@ public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<R
         var html = CrearHtmlReserva(reserva, urlConfirmacion, urlCancelacion, googleCalendarUrl, reprogramada);
         var asunto = reprogramada ? $"Reserva reprogramada - {NombreCentro}" : $"Reserva registrada - {NombreCentro}";
         var adjunto = CrearArchivoCalendario(reserva);
-        return Enviar(reserva.CorreoCliente, asunto, html, adjunto, cancellationToken);
+        var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
+        return new CorreoReservaPendiente
+        {
+            ReservaId = reserva.Id,
+            HorarioId = reserva.HorarioId,
+            Tipo = reprogramada ? "Reprogramacion" : "Confirmacion",
+            Destinatario = reserva.CorreoCliente ?? string.Empty,
+            Asunto = asunto,
+            CuerpoHtmlProtegido = protectionProvider.CreateProtector(PropositoProteccion).Protect(html),
+            Adjunto = adjunto,
+            NombreAdjunto = "reserva.ics",
+            TipoAdjunto = "text/calendar",
+            CreadoUtc = ahora,
+            ProximoIntentoUtc = ahora
+        };
     }
 
     internal static string CrearHtmlReserva(
@@ -74,6 +115,14 @@ public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<R
 
     public Task<bool> EnviarRecordatorio(ReservaCorreoDto reserva, CancellationToken cancellationToken)
     {
+        var mensaje = PrepararRecordatorio(reserva);
+        var htmlPreparado = protectionProvider.CreateProtector(PropositoProteccion).Unprotect(mensaje.CuerpoHtmlProtegido);
+        return emailService.EnviarAsync(mensaje.Destinatario, mensaje.Asunto, htmlPreparado, cancellationToken,
+            adjunto: mensaje.Adjunto, nombreAdjunto: mensaje.NombreAdjunto, tipoAdjunto: mensaje.TipoAdjunto);
+    }
+
+    public CorreoReservaPendiente PrepararRecordatorio(ReservaCorreoDto reserva)
+    {
         var nombre = HtmlEncoder.Default.Encode(reserva.NombreCliente);
         var fecha = HtmlEncoder.Default.Encode(reserva.Fecha.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("es-CL")));
         var inicio = HtmlEncoder.Default.Encode(reserva.HoraInicio.ToString(@"hh\:mm"));
@@ -87,13 +136,21 @@ public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<R
             <strong>Fecha:</strong> {fecha}<br><strong>Hora:</strong> {inicio} - {fin}</p>
             <p>Te esperamos en {NombreCentro}.</p></td></tr></table></td></tr></table></body></html>
             """;
-        return Enviar(reserva.CorreoCliente, $"Recordatorio de tu hora - {NombreCentro}", html, CrearArchivoCalendario(reserva), cancellationToken);
-    }
-
-    private async Task<bool> Enviar(string? destinatario, string asunto, string html, byte[] calendario, CancellationToken cancellationToken)
-    {
-        return await emailService.EnviarAsync(destinatario, asunto, html, cancellationToken,
-            adjunto: calendario, nombreAdjunto: "reserva.ics", tipoAdjunto: "text/calendar");
+        var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
+        return new CorreoReservaPendiente
+        {
+            ReservaId = reserva.Id,
+            HorarioId = reserva.HorarioId,
+            Tipo = "Recordatorio",
+            Destinatario = reserva.CorreoCliente ?? string.Empty,
+            Asunto = $"Recordatorio de tu hora - {NombreCentro}",
+            CuerpoHtmlProtegido = protectionProvider.CreateProtector(PropositoProteccion).Protect(html),
+            Adjunto = CrearArchivoCalendario(reserva),
+            NombreAdjunto = "reserva.ics",
+            TipoAdjunto = "text/calendar",
+            CreadoUtc = ahora,
+            ProximoIntentoUtc = ahora
+        };
     }
 
     private string CrearUrlGoogleCalendar(ReservaCorreoDto reserva)
@@ -135,7 +192,7 @@ public sealed class ReservaCorreoService(IConfiguration configuracion, ILogger<R
 
     private static string EscaparIcs(string valor) => valor.Replace("\\", "\\\\").Replace(";", "\\;").Replace(",", "\\,").Replace("\r\n", "\\n").Replace("\n", "\\n");
 
-    private static bool EsUrlBaseSegura(string? valor)
+    internal static bool EsUrlBaseSegura(string? valor)
     {
         if (!Uri.TryCreate(valor, UriKind.Absolute, out var uri)) return false;
         return uri.Scheme == Uri.UriSchemeHttps

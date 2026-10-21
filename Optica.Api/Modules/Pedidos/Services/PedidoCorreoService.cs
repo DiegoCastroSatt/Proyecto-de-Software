@@ -1,5 +1,6 @@
 using Optica.Api.Modules.Notificaciones.Interfaces;
 using Optica.Api.Modules.Pedidos.Interfaces;
+using Optica.Api.Modules.Pedidos.Models;
 using System.Globalization;
 using System.Text.Encodings.Web;
 
@@ -11,6 +12,14 @@ public sealed class PedidoCorreoService(IEmailService emailService) : IPedidoCor
 
     public async Task<bool> EnviarPedidoListoAsync(string? destinatario, string nombreCliente, int idPedido, CancellationToken cancellationToken)
     {
+        var correo = PrepararPedidoListo(destinatario, nombreCliente, idPedido);
+        return (await emailService.EnviarConResultadoAsync(correo.Destinatario, correo.Asunto, correo.CuerpoHtml,
+            cancellationToken, correo.Importante)).Exitoso;
+    }
+
+    public CorreoPedidoPendiente PrepararPedidoListo(string? destinatario, string nombreCliente, int idPedido)
+    {
+        destinatario ??= string.Empty;
         var nombre = HtmlEncoder.Default.Encode(nombreCliente);
         var numeroPedido = HtmlEncoder.Default.Encode(idPedido.ToString(CultureInfo.InvariantCulture));
         var html = $"""
@@ -25,7 +34,15 @@ public sealed class PedidoCorreoService(IEmailService emailService) : IPedidoCor
             <p style="color:#63777c">Si tienes dudas, puedes contactarnos directamente en el centro.</p>
             </td></tr></table></td></tr></table></body></html>
             """;
-        return await emailService.EnviarAsync(destinatario, "Pedido listo para retirar - Centro Óptico San Francisco", html,
-            cancellationToken, importante: true);
+        return new CorreoPedidoPendiente
+        {
+            PedidoId = idPedido,
+            Destinatario = destinatario,
+            Asunto = "Pedido listo para retirar - Centro Óptico San Francisco",
+            CuerpoHtml = html,
+            Importante = true,
+            CreadoUtc = DateTime.UtcNow,
+            ProximoIntentoUtc = DateTime.UtcNow
+        };
     }
 }

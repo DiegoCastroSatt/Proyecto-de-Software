@@ -59,15 +59,7 @@ public class ReservasController : ControllerBase
     {
         try
         {
-            var correoEnviado = await _reservaService.ReprogramarReserva(id, dto.IdHorario, cancellationToken);
-            if (!correoEnviado)
-            {
-                return Accepted(new
-                {
-                    correoEnviado = false,
-                    mensaje = "La reserva fue reprogramada, pero el correo quedó pendiente y se reintentará automáticamente."
-                });
-            }
+            await _reservaService.ReprogramarReserva(id, dto.IdHorario, cancellationToken);
             return NoContent();
         }
         catch (ArgumentException ex)

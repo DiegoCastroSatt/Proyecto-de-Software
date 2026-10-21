@@ -224,4 +224,4 @@ INSERT INTO detalle_venta
 
 INSERT INTO administradores
 (nombre, correo, contrasena, estado) VALUES
-('ale', 'admin@optica.cl', '1234', 'Activo');
+('ale', 'alejandro.gamer@gmail.com', '1234', 'Activo');

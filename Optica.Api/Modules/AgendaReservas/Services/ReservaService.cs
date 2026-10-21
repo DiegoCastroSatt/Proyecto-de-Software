@@ -4,6 +4,8 @@ using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
 using Optica.Api.Modules.Clientes.Services;
 using System.Net.Mail;
+using Optica.Api.Data;
+using Microsoft.EntityFrameworkCore;
 public class ReservaService : IReservaService
 {
     private readonly IReservaRepository _reservaRepository;
@@ -11,19 +13,22 @@ public class ReservaService : IReservaService
     private readonly TimeProvider _proveedorTiempo;
     private readonly ILogger<ReservaService> _logger;
     private readonly ColaCorreosReprogramacion _correosPendientes;
+    private readonly OpticaDbContext? _dbContext;
 
     public ReservaService(
         IReservaRepository reservaRepository,
         IReservaCorreoService correoService,
         TimeProvider proveedorTiempo,
         ILogger<ReservaService> logger,
-        ColaCorreosReprogramacion correosPendientes)
+        ColaCorreosReprogramacion? correosPendientes = null,
+        OpticaDbContext? dbContext = null)
     {
         _reservaRepository = reservaRepository;
         _correoService = correoService;
         _proveedorTiempo = proveedorTiempo;
         _logger = logger;
-        _correosPendientes = correosPendientes;
+        _correosPendientes = correosPendientes ?? new ColaCorreosReprogramacion();
+        _dbContext = dbContext;
     }
 
     public async Task<ReservaResponseDto> CrearReserva(
@@ -71,10 +76,29 @@ public class ReservaService : IReservaService
 
         var tokenConfirmacion = TokenAccionReserva.Crear();
         var tokenCancelacion = TokenAccionReserva.Crear();
+        await using var transaccion = _dbContext is null ? null : await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         var reservaCreada = await _reservaRepository.CrearReserva(
             dto,
             TokenAccionReserva.ObtenerHash(tokenConfirmacion),
             TokenAccionReserva.ObtenerHash(tokenCancelacion));
+
+        if (_dbContext is not null)
+        {
+            var detalle = await _reservaRepository.ObtenerDatosCorreoReserva(reservaCreada.Id, cancellationToken)
+                ?? throw new InvalidOperationException("No se pudieron preparar los datos de la confirmación.");
+            var correo = _correoService.PrepararReservaCreada(detalle, tokenConfirmacion, tokenCancelacion);
+            _dbContext.CorreosReserva.Add(correo);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaccion!.CommitAsync(cancellationToken);
+            return new ReservaResponseDto
+            {
+                Id = reservaCreada.Id,
+                IdHorario = reservaCreada.HorarioId,
+                Fecha = reservaCreada.Fecha,
+                Hora = reservaCreada.Hora,
+                Estado = reservaCreada.Estado
+            };
+        }
 
         var correoEnviado = false;
         try
@@ -126,6 +150,7 @@ public class ReservaService : IReservaService
         var tokenCancelacion = TokenAccionReserva.Crear();
         var tokenConfirmacionHash = TokenAccionReserva.ObtenerHash(tokenConfirmacion);
         var tokenCancelacionHash = TokenAccionReserva.ObtenerHash(tokenCancelacion);
+        await using var transaccion = _dbContext is null ? null : await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         if (!await _reservaRepository.ReprogramarReserva(
                 id, idHorario, tokenConfirmacionHash, tokenCancelacionHash, cancellationToken))
         {
@@ -134,6 +159,15 @@ public class ReservaService : IReservaService
 
         var correoPendiente = new CorreoReprogramacionPendiente(
             id, tokenConfirmacion, tokenCancelacion, tokenConfirmacionHash, tokenCancelacionHash);
+        if (_dbContext is not null)
+        {
+            var detalle = await _reservaRepository.ObtenerDatosCorreoReserva(id, cancellationToken)
+                ?? throw new InvalidOperationException("No se pudieron preparar los datos de la reprogramación.");
+            _dbContext.CorreosReserva.Add(_correoService.PrepararReservaReprogramada(detalle, tokenConfirmacion, tokenCancelacion));
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaccion!.CommitAsync(cancellationToken);
+            return true;
+        }
         var correoEnviado = await EnviarCorreoReprogramacion(correoPendiente);
         if (!correoEnviado)
         {

@@ -21,7 +21,6 @@ export interface ReservaResponse {
   fecha: string;
   hora: string;
   estado: string;
-  correoEnviado: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

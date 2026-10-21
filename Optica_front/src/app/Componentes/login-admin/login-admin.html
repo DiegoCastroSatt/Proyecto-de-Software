@@ -48,10 +48,71 @@
                 </div>
 
                 <p class="login-error" [hidden]="!error()" role="alert">{{ error() }}</p>
+                <p class="login-success" [hidden]="!exito()" role="status">{{ exito() }}</p>
                 <button type="submit">Ingresar <span aria-hidden="true">→</span></button>
             </form>
+            <a class="recovery-link" href="#recuperar-contrasena" (click)="$event.preventDefault(); abrirRecuperacion()">¿Olvidaste tu contraseña?</a>
         </section>
 
         <span class="login-index" aria-hidden="true">SF / 01</span>
     </main>
+
+    @if (mostrarSolicitudRecuperacion()) {
+        <div class="recovery-backdrop" role="presentation" (click)="cancelarRecuperacion()" (keydown.escape)="cancelarRecuperacion()">
+            <section class="recovery-dialog" role="dialog" aria-modal="true" aria-labelledby="recovery-request-title" (click)="$event.stopPropagation()">
+                <p class="login-eyebrow">ACCESO ADMINISTRATIVO</p>
+                <h2 id="recovery-request-title">Recuperar contraseña</h2>
+                <p class="recovery-description">Ingresa tu nombre de usuario. Si la cuenta puede recuperar acceso, el código se enviará al correo asociado.</p>
+                <form novalidate (ngSubmit)="solicitarCodigo()">
+                    <div class="form-field">
+                        <label for="usuario-recuperacion">Nombre de usuario</label>
+                        <input type="text" id="usuario-recuperacion" name="usuarioRecuperacion"
+                            [(ngModel)]="nombreUsuarioRecuperacion" autocomplete="username" maxlength="60" required>
+                    </div>
+                    <p class="recovery-error" [hidden]="!errorRecuperacion()" role="alert">{{ errorRecuperacion() }}</p>
+                    <div class="recovery-actions">
+                        <button type="button" class="recovery-cancel" [disabled]="procesandoRecuperacion()" (click)="cancelarRecuperacion()">Cancelar</button>
+                        <button type="submit" class="recovery-submit" [disabled]="procesandoRecuperacion()">
+                            {{ procesandoRecuperacion() ? 'Procesando…' : 'Solicitar código' }}
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    }
+
+    @if (mostrarConfirmacionRecuperacion()) {
+        <div class="recovery-backdrop" role="presentation" (click)="cancelarRecuperacion()" (keydown.escape)="cancelarRecuperacion()">
+            <section class="recovery-dialog" role="dialog" aria-modal="true" aria-labelledby="recovery-confirm-title" (click)="$event.stopPropagation()">
+                <p class="login-eyebrow">ACCESO ADMINISTRATIVO</p>
+                <h2 id="recovery-confirm-title">Crear nueva contraseña</h2>
+                <p class="recovery-description">{{ mensajeRecuperacion() }}</p>
+                <form novalidate (ngSubmit)="confirmarRecuperacion()">
+                    <div class="form-field">
+                        <label for="codigo-recuperacion">Código de 6 dígitos</label>
+                        <input type="text" id="codigo-recuperacion" name="codigoRecuperacion"
+                            [(ngModel)]="codigoRecuperacion" inputmode="numeric" autocomplete="one-time-code"
+                            maxlength="6" pattern="[0-9]{6}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="nueva-contrasena">Nueva contraseña</label>
+                        <input type="password" id="nueva-contrasena" name="nuevaContrasena"
+                            [(ngModel)]="nuevaContrasena" autocomplete="new-password" minlength="12" maxlength="255" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="confirmar-contrasena">Confirmar nueva contraseña</label>
+                        <input type="password" id="confirmar-contrasena" name="confirmarContrasena"
+                            [(ngModel)]="confirmarContrasena" autocomplete="new-password" minlength="12" maxlength="255" required>
+                    </div>
+                    <p class="recovery-error" [hidden]="!errorRecuperacion()" role="alert">{{ errorRecuperacion() }}</p>
+                    <div class="recovery-actions">
+                        <button type="button" class="recovery-cancel" [disabled]="procesandoRecuperacion()" (click)="cancelarRecuperacion()">Cancelar</button>
+                        <button type="submit" class="recovery-submit" [disabled]="procesandoRecuperacion()">
+                            {{ procesandoRecuperacion() ? 'Procesando…' : 'Cambiar contraseña' }}
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    }
 </div>
