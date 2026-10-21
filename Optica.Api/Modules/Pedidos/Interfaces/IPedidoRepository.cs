@@ -17,6 +17,7 @@ public interface IPedidoRepository
         => throw new NotSupportedException("La consulta de historial por RUT no está implementada en este repositorio.");
     Task<Pedido> CrearPedidoAsync(Pedido pedido);
     Task<Pedido?> ObtenerPedidoPorIdAsync(int id);
+    Task<Pedido?> ObtenerPedidoPorIdParaActualizarAsync(int id) => ObtenerPedidoPorIdAsync(id);
     Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id);
     Task ActualizarPedidoAsync(Pedido pedido);
 }

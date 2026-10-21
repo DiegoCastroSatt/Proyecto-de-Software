@@ -83,6 +83,11 @@ public class PedidoRepository : IPedidoRepository
         return await _context.Pedidos.FindAsync(id);
     }
 
+    public Task<Pedido?> ObtenerPedidoPorIdParaActualizarAsync(int id) =>
+        _context.Pedidos
+            .FromSqlInterpolated($"SELECT id_pedido, rut, id_receta, fecha, estado, total, anotaciones FROM pedidos WHERE id_pedido = {id} FOR UPDATE")
+            .SingleOrDefaultAsync();
+
     public async Task ActualizarPedidoAsync(Pedido pedido)
     {
         _context.Pedidos.Update(pedido);

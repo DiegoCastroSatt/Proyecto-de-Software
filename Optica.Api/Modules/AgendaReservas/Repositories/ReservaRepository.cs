@@ -41,8 +41,6 @@ public class ReservaRepository : IReservaRepository
         string tokenCancelacionHash,
         CancellationToken cancellationToken)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
         var horarioAnteriorId = await _context.Reservas
             .Where(r => r.Id == id)
             .Select(r => (int?)r.HorarioId)
@@ -121,7 +119,6 @@ public class ReservaRepository : IReservaRepository
         reserva.TokenAccionExpiraUtc = ObtenerExpiracionAccionUtc(horarioNuevo.Fecha, horarioNuevo.HoraInicio);
         reserva.RecordatorioEnviadoUtc = null;
         await _context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
         return true;
     }
 
@@ -186,8 +183,6 @@ public class ReservaRepository : IReservaRepository
     public async Task<Reserva> CrearReserva(CrearReservaDto dto, string tokenConfirmacionHash, string tokenCancelacionHash)
     {
         var ahoraChile = HoraChile.ObtenerAhora(_proveedorTiempo);
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
         var horariosBloqueados = await _context.Horarios
             .FromSqlInterpolated($"SELECT id_horario, id_administrador, fecha, hora_inicio, hora_fin, estado FROM horarios_atencion WHERE id_horario = {dto.IdHorario} FOR UPDATE")
             .ToListAsync();
@@ -244,7 +239,6 @@ public class ReservaRepository : IReservaRepository
         horario.Estado = "Inhabilitada";
         _context.Reservas.Add(reserva);
         await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
         return reserva;
     }
 

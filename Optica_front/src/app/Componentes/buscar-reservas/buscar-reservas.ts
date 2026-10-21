@@ -24,7 +24,6 @@ export class BuscarReservas implements OnInit {
   readonly cancelando = signal(false);
   readonly mensajeCancelacion = signal<string | null>(null);
   readonly mensajeExitoReprogramacion = signal<string | null>(null);
-  readonly correoReprogramacionPendiente = signal(false);
   readonly mostrarReprogramacion = signal(false);
   readonly fechaNueva = signal('');
   readonly horariosDisponibles = signal<HorarioDisponible[]>([]);
@@ -56,7 +55,6 @@ export class BuscarReservas implements OnInit {
 
   abrirDetalle(reserva: ReservaAgenda): void {
     this.mensajeExitoReprogramacion.set(null);
-    this.correoReprogramacionPendiente.set(false);
     this.reservaSeleccionada.set(reserva);
   }
 
@@ -106,8 +104,7 @@ export class BuscarReservas implements OnInit {
         }
         this.mensajeExitoReprogramacion.set(respuesta?.correoEnviado === false
           ? respuesta.mensaje
-          : 'La reserva fue reprogramada y se envió un nuevo correo de confirmación.');
-        this.correoReprogramacionPendiente.set(respuesta?.correoEnviado === false);
+          : 'La reserva fue reprogramada correctamente.');
       },
       error: (error: HttpErrorResponse) => {
         this.reprogramando.set(false);

@@ -3,6 +3,8 @@ using Optica.Api.Modules.Pedidos.Interfaces;
 using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Clientes.Services;
 using System.Net.Mail;
+using Optica.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Optica.Api.Modules.Pedidos.Services;
 
@@ -10,11 +12,13 @@ public class PedidoService : IPedidoService
 {
     private readonly IPedidoRepository _pedidoRepository;
     private readonly IPedidoCorreoService _correoService;
+    private readonly OpticaDbContext? _dbContext;
 
-    public PedidoService(IPedidoRepository pedidoRepository, IPedidoCorreoService correoService)
+    public PedidoService(IPedidoRepository pedidoRepository, IPedidoCorreoService correoService, OpticaDbContext? dbContext = null)
     {
         _pedidoRepository = pedidoRepository;
         _correoService = correoService;
+        _dbContext = dbContext;
     }
 
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosAsync()
@@ -109,7 +113,10 @@ public class PedidoService : IPedidoService
 
     public async Task<PedidoResponseDto> ActualizarEstadoAsync(int id, UpdateEstadoPedidoDto dto)
     {
-        var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(id);
+        await using var transaccion = _dbContext is null ? null : await _dbContext.Database.BeginTransactionAsync();
+        var pedido = _dbContext is null
+            ? await _pedidoRepository.ObtenerPedidoPorIdAsync(id)
+            : await _pedidoRepository.ObtenerPedidoPorIdParaActualizarAsync(id);
         if (pedido == null)
         {
             throw new KeyNotFoundException("Pedido no encontrado.");
@@ -123,11 +130,38 @@ public class PedidoService : IPedidoService
 
         var estabaListo = pedido.Estado == "Listo";
         pedido.Estado = dto.Estado;
-        await _pedidoRepository.ActualizarPedidoAsync(pedido);
-
         string? estadoNotificacion = null;
         if (dto.Estado == "Listo" && !estabaListo)
-            estadoNotificacion = await EnviarNotificacionAsync(pedido);
+        {
+            if (_dbContext is not null)
+            {
+                var notificacionExistente = await _dbContext.CorreosPedido
+                    .Where(c => c.PedidoId == pedido.IdPedido)
+                    .OrderByDescending(c => c.Id)
+                    .FirstOrDefaultAsync();
+                if (notificacionExistente is not null)
+                {
+                    estadoNotificacion = notificacionExistente.Enviado ? "YaEnviada" : "Pendiente";
+                }
+                else
+                {
+                    var clienteCorreo = await _pedidoRepository.ObtenerClientePorRutAsync(pedido.Rut);
+                    var correo = _correoService.PrepararPedidoListo(
+                        clienteCorreo?.Correo,
+                        clienteCorreo is null ? string.Empty : $"{clienteCorreo.Nombre} {clienteCorreo.Apellido}".Trim(),
+                        pedido.IdPedido);
+                    _dbContext.CorreosPedido.Add(correo);
+                    estadoNotificacion = "Pendiente";
+                }
+            }
+            else
+            {
+                estadoNotificacion = await EnviarNotificacionAsync(pedido);
+            }
+        }
+        await _pedidoRepository.ActualizarPedidoAsync(pedido);
+        if (transaccion is not null)
+            await transaccion.CommitAsync();
 
         // Fetch client to return full DTO, or just return basic info. 
         // Returning full DTO is better.

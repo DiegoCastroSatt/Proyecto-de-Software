@@ -83,9 +83,14 @@ public class PedidosController : ControllerBase
         try
         {
             var result = await _pedidoService.ActualizarEstadoAsync(id, dto);
-            var mensaje = result.EstadoNotificacion == "Fallida"
-                ? "El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente."
-                : "Estado actualizado exitosamente.";
+            var mensaje = result.EstadoNotificacion switch
+            {
+                "Enviada" => "El pedido se actualizó y el correo se envió correctamente.",
+                "Pendiente" => "El pedido se actualizó; el correo quedó guardado para enviarse automáticamente.",
+                "Fallida" => "El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente.",
+                "YaEnviada" => "El pedido se actualizó; el correo de este pedido ya se había enviado.",
+                _ => "Estado actualizado exitosamente."
+            };
             return Ok(new { mensaje, estado = result.Estado, estadoNotificacion = result.EstadoNotificacion });
         }
         catch (KeyNotFoundException ex)

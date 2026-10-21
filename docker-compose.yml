@@ -29,6 +29,7 @@ services:
       - "8080:8080"
     volumes:
       - ./Optica.Api/wwwroot/uploads:/app/wwwroot/uploads
+      - optica_data_protection_keys:/var/opt/optica-dp-keys
     environment:
       ConnectionStrings__OpticaDb: "Server=database;Port=3306;Database=optica_db;User=root;Password=${MYSQL_ROOT_PASSWORD};"
       Correo__SmtpHost: ${SMTP_HOST:-}
@@ -39,6 +40,7 @@ services:
       Correo__NombreRemitente: ${SMTP_FROM_NAME:-Centro Óptico San Francisco}
       Correo__UrlBaseApi: ${EMAIL_API_BASE_URL:-http://localhost:8080}
       Correo__UsarTls: ${SMTP_USE_TLS:-true}
+      DataProtection__KeysPath: /var/opt/optica-dp-keys
     depends_on:
       database:
         condition: service_healthy
@@ -66,3 +68,4 @@ services:
 
 volumes:
   optica_mysql_data:
+  optica_data_protection_keys:
