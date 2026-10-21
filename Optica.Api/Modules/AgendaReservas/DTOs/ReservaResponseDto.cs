@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 public class ReservaResponseDto
 {
     public int Id { get; set; }
@@ -10,5 +12,6 @@ public class ReservaResponseDto
 
     public string Estado { get; set; } = string.Empty;
 
+    [JsonIgnore]
     public bool CorreoEnviado { get; set; }
 }

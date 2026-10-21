@@ -16,6 +16,18 @@ public sealed class SmtpEmailService(IConfiguration configuracion, ILogger<SmtpE
         byte[]? adjunto = null,
         string? nombreAdjunto = null,
         string? tipoAdjunto = null)
+        => (await EnviarConResultadoAsync(destinatario, asunto, cuerpoHtml, cancellationToken,
+            importante, adjunto, nombreAdjunto, tipoAdjunto)).Exitoso;
+
+    public async Task<ResultadoEnvioCorreo> EnviarConResultadoAsync(
+        string? destinatario,
+        string asunto,
+        string cuerpoHtml,
+        CancellationToken cancellationToken,
+        bool importante = false,
+        byte[]? adjunto = null,
+        string? nombreAdjunto = null,
+        string? tipoAdjunto = null)
     {
         var host = configuracion["Correo:SmtpHost"];
         var remitente = configuracion["Correo:Remitente"];
@@ -23,7 +35,7 @@ public sealed class SmtpEmailService(IConfiguration configuracion, ILogger<SmtpE
             || string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(remitente))
         {
             logger.LogWarning("No se envió el correo: falta destinatario válido o configuración SMTP.");
-            return false;
+            return new ResultadoEnvioCorreo(false, "Destinatario inválido o configuración SMTP incompleta.");
         }
 
         try
@@ -53,7 +65,7 @@ public sealed class SmtpEmailService(IConfiguration configuracion, ILogger<SmtpE
                 smtp.Credentials = new NetworkCredential(usuario, configuracion["Correo:Clave"] ?? string.Empty);
 
             await smtp.SendMailAsync(mensaje, cancellationToken);
-            return true;
+            return new ResultadoEnvioCorreo(true);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -62,7 +74,7 @@ public sealed class SmtpEmailService(IConfiguration configuracion, ILogger<SmtpE
         catch (Exception ex)
         {
             logger.LogError("Falló SMTP al enviar correo ({TipoError}).", ex.GetType().Name);
-            return false;
+            return new ResultadoEnvioCorreo(false, $"{ex.GetType().Name}: {ex.Message}");
         }
     }
 }

@@ -36,6 +36,14 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Pedido> Pedidos => Set<Pedido>();
 
+    public DbSet<CorreoReservaPendiente> CorreosReserva => Set<CorreoReservaPendiente>();
+
+    public DbSet<IntentoCorreoReserva> IntentosCorreoReserva => Set<IntentoCorreoReserva>();
+
+    public DbSet<CorreoPedidoPendiente> CorreosPedido => Set<CorreoPedidoPendiente>();
+
+    public DbSet<IntentoCorreoPedido> IntentosCorreoPedido => Set<IntentoCorreoPedido>();
+
 
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
@@ -276,6 +284,70 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.Estado).HasColumnName("estado");
             entity.Property(p => p.Total).HasColumnName("total").HasPrecision(10, 2);
             entity.Property(p => p.Anotaciones).HasColumnName("anotaciones");
+        });
+
+        modelBuilder.Entity<CorreoReservaPendiente>(entity =>
+        {
+            entity.ToTable("correos_reservas");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Id).HasColumnName("id_correo");
+            entity.Property(c => c.ReservaId).HasColumnName("id_reserva");
+            entity.Property(c => c.HorarioId).HasColumnName("id_horario");
+            entity.Property(c => c.Tipo).HasColumnName("tipo").HasMaxLength(30).IsRequired();
+            entity.Property(c => c.Destinatario).HasColumnName("destinatario").HasMaxLength(254).IsRequired();
+            entity.Property(c => c.Asunto).HasColumnName("asunto").HasMaxLength(255).IsRequired();
+            entity.Property(c => c.CuerpoHtmlProtegido).HasColumnName("cuerpo_html_protegido").HasColumnType("longtext").IsRequired();
+            entity.Property(c => c.Adjunto).HasColumnName("adjunto").HasColumnType("longblob");
+            entity.Property(c => c.NombreAdjunto).HasColumnName("nombre_adjunto").HasMaxLength(255);
+            entity.Property(c => c.TipoAdjunto).HasColumnName("tipo_adjunto").HasMaxLength(100);
+            entity.Property(c => c.Enviado).HasColumnName("enviado");
+            entity.Property(c => c.Intentos).HasColumnName("intentos");
+            entity.Property(c => c.CreadoUtc).HasColumnName("creado_utc");
+            entity.Property(c => c.ProximoIntentoUtc).HasColumnName("proximo_intento_utc");
+            entity.Property(c => c.ReclamadoHastaUtc).HasColumnName("reclamado_hasta_utc");
+            entity.HasIndex(c => new { c.Enviado, c.ProximoIntentoUtc });
+            entity.HasMany(c => c.Historial).WithOne().HasForeignKey(i => i.CorreoReservaId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<IntentoCorreoReserva>(entity =>
+        {
+            entity.ToTable("intentos_correo_reservas");
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Id).HasColumnName("id_intento");
+            entity.Property(i => i.CorreoReservaId).HasColumnName("id_correo");
+            entity.Property(i => i.FechaUtc).HasColumnName("fecha_utc");
+            entity.Property(i => i.Exitoso).HasColumnName("exitoso");
+            entity.Property(i => i.Error).HasColumnName("error").HasColumnType("text");
+        });
+
+        modelBuilder.Entity<CorreoPedidoPendiente>(entity =>
+        {
+            entity.ToTable("correos_pedidos");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Id).HasColumnName("id_correo");
+            entity.Property(c => c.PedidoId).HasColumnName("id_pedido");
+            entity.Property(c => c.Destinatario).HasColumnName("destinatario").HasMaxLength(254).IsRequired();
+            entity.Property(c => c.Asunto).HasColumnName("asunto").HasMaxLength(255).IsRequired();
+            entity.Property(c => c.CuerpoHtml).HasColumnName("cuerpo_html").HasColumnType("longtext").IsRequired();
+            entity.Property(c => c.Importante).HasColumnName("importante");
+            entity.Property(c => c.Enviado).HasColumnName("enviado");
+            entity.Property(c => c.Intentos).HasColumnName("intentos");
+            entity.Property(c => c.CreadoUtc).HasColumnName("creado_utc");
+            entity.Property(c => c.ProximoIntentoUtc).HasColumnName("proximo_intento_utc");
+            entity.Property(c => c.ReclamadoHastaUtc).HasColumnName("reclamado_hasta_utc");
+            entity.HasIndex(c => new { c.Enviado, c.ProximoIntentoUtc });
+            entity.HasMany(c => c.Historial).WithOne().HasForeignKey(i => i.CorreoPedidoId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<IntentoCorreoPedido>(entity =>
+        {
+            entity.ToTable("intentos_correo_pedidos");
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Id).HasColumnName("id_intento");
+            entity.Property(i => i.CorreoPedidoId).HasColumnName("id_correo");
+            entity.Property(i => i.FechaUtc).HasColumnName("fecha_utc");
+            entity.Property(i => i.Exitoso).HasColumnName("exitoso");
+            entity.Property(i => i.Error).HasColumnName("error").HasColumnType("text");
         });
 
     }

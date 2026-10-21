@@ -142,14 +142,15 @@ describe('DetallePedidoComponent', () => {
     expect(fixture.nativeElement.querySelector('.pedido-toast').textContent).toContain('El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente.');
   });
 
-  it('no muestra aviso de correo para estados diferentes a "Listo"', () => {
+  it('muestra el mensaje de actualización sin afirmar que se envió un correo para otros estados', () => {
     servicio.actualizarEstado.mockReturnValueOnce(of({ mensaje: 'Estado actualizado.', estado: 'Entregado' }));
     const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
     select.value = 'Entregado';
     select.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.pedido-toast')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.pedido-toast').textContent).toContain('El pedido se actualizó correctamente.');
+    expect(fixture.nativeElement.querySelector('.pedido-toast').textContent).not.toContain('correo');
   });
 
   it('informa si falla la actualización del estado desde la API', () => {

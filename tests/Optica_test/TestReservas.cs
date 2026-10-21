@@ -9,6 +9,7 @@ using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
 using Optica.Api.Modules.Notificaciones.Interfaces;
 using Xunit;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Optica.Ventas.Tests;
 
@@ -227,7 +228,8 @@ public class TestReservas
         var servicio = new ReservaCorreoService(configuracion,
             Microsoft.Extensions.Logging.Abstractions.NullLogger<ReservaCorreoService>.Instance,
             TimeProvider.System,
-            clienteCorreo);
+            clienteCorreo,
+            DataProtectionProvider.Create("Optica.Tests"));
         var reserva = new ReservaCorreoDto
         {
             Id = 31,

@@ -122,7 +122,8 @@ describe('Agenda de reservas', () => {
     expect(component.reservaSeleccionada()).toEqual(component.reservas()[0]);
     expect(component.mostrarReprogramacion()).toBe(false);
     expect(component.reprogramando()).toBe(false);
-    expect(component.mensajeExitoReprogramacion()).toContain('nuevo correo de confirmación');
+    expect(component.mensajeExitoReprogramacion()).toBe('La reserva fue reprogramada correctamente.');
+    expect(component.mensajeExitoReprogramacion()).not.toContain('se envió');
   });
   it('informa que el correo quedó pendiente de reintento sin afirmar que se envió', () => {
     servicio.reprogramar.mockReturnValueOnce(of({ correoEnviado: false, mensaje: 'Reserva guardada; correo pendiente.' }));

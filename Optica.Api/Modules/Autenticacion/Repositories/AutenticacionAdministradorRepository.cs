@@ -14,6 +14,12 @@ public sealed class AutenticacionAdministradorRepository(OpticaDbContext context
         context.Administradores
             .SingleOrDefaultAsync(administrador => administrador.Nombre == nombreUsuario, cancellationToken);
 
+    public Task<Administrador?> ObtenerPorIdAsync(
+        int idAdministrador,
+        CancellationToken cancellationToken) =>
+        context.Administradores
+            .SingleOrDefaultAsync(administrador => administrador.IdAdministrador == idAdministrador, cancellationToken);
+
     public async Task ActualizarAsync(
         Administrador administrador,
         CancellationToken cancellationToken)

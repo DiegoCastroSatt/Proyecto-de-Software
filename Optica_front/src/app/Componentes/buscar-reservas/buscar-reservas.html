@@ -68,7 +68,7 @@
       <h2 id="detalle-titulo">{{ reserva.nombreCliente }}</h2>
       <p class="detalle-fecha">{{ reserva.fecha | date:'EEEE d MMMM yyyy' }} · {{ reserva.horaInicio.slice(0, 5) }} a {{ reserva.horaFin.slice(0, 5) }}</p>
       @if (mensajeExitoReprogramacion()) {
-        <p class="mensaje-exito" [class.mensaje-pendiente]="correoReprogramacionPendiente()" role="status">{{ mensajeExitoReprogramacion() }}</p>
+        <p class="mensaje-exito" role="status">{{ mensajeExitoReprogramacion() }}</p>
       }
 
       <dl class="datos-cliente">

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -31,6 +32,10 @@ builder.Services.AddDbContext<OpticaDbContext>(options =>
         ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'OpticaDb'.")
     )
 );
+var rutaClavesProteccion = builder.Configuration["DataProtection:KeysPath"];
+var proteccionDatos = builder.Services.AddDataProtection();
+if (!string.IsNullOrWhiteSpace(rutaClavesProteccion))
+    proteccionDatos.PersistKeysToFileSystem(new DirectoryInfo(rutaClavesProteccion));
 // Registra controllers, OpenAPI y el acceso del frontend Angular.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -56,9 +61,11 @@ builder.Services.AddScoped<IReservaService>(proveedor => new ReservaService(
     proveedor.GetRequiredService<IReservaCorreoService>(),
     proveedor.GetRequiredService<TimeProvider>(),
     proveedor.GetRequiredService<ILogger<ReservaService>>(),
-    proveedor.GetRequiredService<ColaCorreosReprogramacion>()));
+    null,
+    proveedor.GetRequiredService<OpticaDbContext>()));
 builder.Services.AddScoped<IRecordatorioReservasService, RecordatorioReservasService>();
 builder.Services.AddHostedService<RecordatorioReservasBackgroundService>();
+builder.Services.AddHostedService<CorreoReservaBackgroundService>();
 builder.Services.AddScoped<IRecetaRepository, RecetaRepository>();
 builder.Services.AddScoped<IRecetaService, RecetaService>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
@@ -74,7 +81,9 @@ builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
 builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
+builder.Services.AddSingleton<EstadoRecuperacionAdministrador>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
 

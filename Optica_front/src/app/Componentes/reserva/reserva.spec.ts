@@ -125,7 +125,8 @@ describe('Reservas', () => {
       idHorario: 10
     });
     expect(dom.textContent).toContain('Reserva registrada, Ana Pérez');
-    expect(dom.textContent).toContain('Te enviamos un correo para confirmar o cancelar tu hora.');
+    expect(dom.textContent).toContain('Te contactaremos para confirmar la disponibilidad de tu hora.');
+    expect(dom.textContent).not.toContain('Te enviamos un correo');
   });
 
   it('muestra el mensaje de la API y no deja un éxito cuando la reserva es rechazada', () => {

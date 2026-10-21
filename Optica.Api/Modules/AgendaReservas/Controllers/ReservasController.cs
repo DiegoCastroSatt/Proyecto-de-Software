@@ -65,7 +65,7 @@ public class ReservasController : ControllerBase
                 return Accepted(new
                 {
                     correoEnviado = false,
-                    mensaje = "La reserva fue reprogramada, pero el correo quedó pendiente y se reintentará automáticamente."
+                    mensaje = "La reserva fue reprogramada y el correo quedó guardado para enviarse automáticamente."
                 });
             }
             return NoContent();
