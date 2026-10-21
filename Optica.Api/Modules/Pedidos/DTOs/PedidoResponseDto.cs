@@ -1,5 +1,4 @@
 using System;
-using System.Text.Json.Serialization;
 
 namespace Optica.Api.Modules.Pedidos.DTOs;
 
@@ -11,6 +10,5 @@ public class PedidoResponseDto
     public string Estado { get; set; } = string.Empty;
     public decimal Total { get; set; }
     public string? Anotaciones { get; set; }
-    [JsonIgnore]
     public string? EstadoNotificacion { get; set; }
 }

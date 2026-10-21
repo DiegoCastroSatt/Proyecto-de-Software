@@ -93,7 +93,7 @@ export class BuscarReservas implements OnInit {
     this.reprogramando.set(true);
     this.mensajeReprogramacion.set(null);
     this.agendaService.reprogramar(reserva.id, idHorario).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
+      next: (respuesta) => {
         this.reprogramando.set(false);
         this.mostrarReprogramacion.set(false);
         const horario = this.horariosDisponibles().find(item => item.idHorario === idHorario);
@@ -102,7 +102,9 @@ export class BuscarReservas implements OnInit {
           this.reservaSeleccionada.set(actualizada);
           this.reservas.update(items => items.map(item => item.id === reserva.id ? actualizada : item));
         }
-        this.mensajeExitoReprogramacion.set('La reserva fue reprogramada correctamente.');
+        this.mensajeExitoReprogramacion.set(respuesta?.correoEnviado === false
+          ? respuesta.mensaje
+          : 'La reserva fue reprogramada correctamente.');
       },
       error: (error: HttpErrorResponse) => {
         this.reprogramando.set(false);

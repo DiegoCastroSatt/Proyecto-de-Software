@@ -101,13 +101,24 @@ public class PedidoService : IPedidoService
         {
             if (_dbContext is not null)
             {
-                var clienteCorreo = await _pedidoRepository.ObtenerClientePorRutAsync(pedido.Rut);
-                var correo = _correoService.PrepararPedidoListo(
-                    clienteCorreo?.Correo,
-                    clienteCorreo is null ? string.Empty : $"{clienteCorreo.Nombre} {clienteCorreo.Apellido}".Trim(),
-                    pedido.IdPedido);
-                _dbContext.CorreosPedido.Add(correo);
-                estadoNotificacion = "Pendiente";
+                var notificacionExistente = await _dbContext.CorreosPedido
+                    .Where(c => c.PedidoId == pedido.IdPedido)
+                    .OrderByDescending(c => c.Id)
+                    .FirstOrDefaultAsync();
+                if (notificacionExistente is not null)
+                {
+                    estadoNotificacion = notificacionExistente.Enviado ? "YaEnviada" : "Pendiente";
+                }
+                else
+                {
+                    var clienteCorreo = await _pedidoRepository.ObtenerClientePorRutAsync(pedido.Rut);
+                    var correo = _correoService.PrepararPedidoListo(
+                        clienteCorreo?.Correo,
+                        clienteCorreo is null ? string.Empty : $"{clienteCorreo.Nombre} {clienteCorreo.Apellido}".Trim(),
+                        pedido.IdPedido);
+                    _dbContext.CorreosPedido.Add(correo);
+                    estadoNotificacion = "Pendiente";
+                }
             }
             else
             {
@@ -130,7 +141,7 @@ public class PedidoService : IPedidoService
             Estado = pedido.Estado,
             Total = pedido.Total,
             Anotaciones = pedido.Anotaciones,
-            EstadoNotificacion = null
+            EstadoNotificacion = estadoNotificacion
         };
     }
 

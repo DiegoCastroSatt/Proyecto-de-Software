@@ -166,7 +166,9 @@ public class ReservaService : IReservaService
             _dbContext.CorreosReserva.Add(_correoService.PrepararReservaReprogramada(detalle, tokenConfirmacion, tokenCancelacion));
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaccion!.CommitAsync(cancellationToken);
-            return true;
+            // En producción aquí solo se confirma que el correo quedó persistido.
+            // El envío real lo confirma el procesador de la cola en segundo plano.
+            return false;
         }
         var correoEnviado = await EnviarCorreoReprogramacion(correoPendiente);
         if (!correoEnviado)

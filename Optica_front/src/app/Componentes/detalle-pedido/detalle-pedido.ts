@@ -86,6 +86,23 @@ export class DetallePedidoComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.pedido.set({ ...pedido, estado: res.estado });
         if (nuevoEstado === 'Listo') {
+          switch (res.estadoNotificacion) {
+            case 'Enviada':
+              this.mostrarMensaje('success', 'El pedido se actualizó y se envió el correo al cliente exitosamente.');
+              break;
+            case 'Pendiente':
+              this.mostrarMensaje('warning', 'El pedido se actualizó; el correo quedó guardado y se intentará enviar automáticamente.');
+              break;
+            case 'Fallida':
+              this.mostrarMensaje('warning', 'El pedido se actualizó correctamente, pero no se pudo enviar el correo al cliente.');
+              break;
+            case 'YaEnviada':
+              this.mostrarMensaje('warning', 'El pedido se actualizó; el correo de este pedido ya se había enviado.');
+              break;
+            default:
+              this.mostrarMensaje('warning', 'El pedido se actualizó, pero el servidor no confirmó el envío del correo.');
+          }
+        } else {
           this.mostrarMensaje('success', 'El pedido se actualizó correctamente.');
         }
       },

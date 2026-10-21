@@ -19,6 +19,12 @@ export interface PedidoResponse {
   anotaciones?: string;
 }
 
+export interface ResultadoActualizacionPedido {
+  mensaje: string;
+  estado: string;
+  estadoNotificacion?: 'Enviada' | 'Pendiente' | 'Fallida' | 'YaEnviada' | null;
+}
+
 export interface ClienteOption {
   Rut: string;
   nombreCompleto: string;
@@ -41,8 +47,8 @@ export class PedidoService {
     return this.http.post<PedidoResponse>(this.apiUrl, pedido);
   }
 
-  actualizarEstado(idPedido: number, estado: string): Observable<{ mensaje: string, estado: string }> {
-    return this.http.patch<{ mensaje: string, estado: string }>(`${this.apiUrl}/${idPedido}/estado`, { estado });
+  actualizarEstado(idPedido: number, estado: string): Observable<ResultadoActualizacionPedido> {
+    return this.http.patch<ResultadoActualizacionPedido>(`${this.apiUrl}/${idPedido}/estado`, { estado });
   }
 
   obtenerPedidoPorId(id: number): Observable<PedidoResponse> {
