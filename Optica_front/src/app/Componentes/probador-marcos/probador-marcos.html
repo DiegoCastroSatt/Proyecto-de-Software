@@ -1,0 +1,131 @@
+<section class="probador" aria-labelledby="titulo-probador">
+  <header>
+    <p class="eyebrow">Tu próximo marco</p>
+    <h1 id="titulo-probador">Mira cómo te queda.</h1>
+    <p>Elige una foto o usa tu cámara. Nosotros colocamos el marco sobre tus ojos.</p>
+  </header>
+
+  <div class="distribucion">
+    <div class="vista">
+      <div class="escenario" aria-label="Vista previa del rostro con el marco">
+        <div class="medio" [class.espejo]="camara()">
+          <video
+            #video
+            playsinline
+            muted
+            [hidden]="!camara()"
+            aria-label="Tu cámara en directo"
+          ></video>
+          @if (foto()) {
+            <img class="foto" [src]="foto()" alt="Tu fotografía para probar marcos" />
+          }
+          @if (ajuste(); as posicion) {
+            <img
+              class="marco"
+              [src]="'/images/probador/' + seleccionado() + '.svg?v=negro-1'"
+              [alt]="'Marco ' + nombreModelo"
+              [style.left.%]="posicion.x"
+              [style.top.%]="posicion.y"
+              [style.width.%]="(posicion.ancho * tamano()) / 100"
+              [style.transform]="'translate(-50%, -50%) rotate(' + posicion.angulo + 'deg)'"
+            />
+          }
+        </div>
+        @if (!foto() && !camara()) {
+          <div class="vacio">
+            <svg viewBox="0 0 120 70" aria-hidden="true">
+              <rect x="8" y="22" width="43" height="30" rx="12" />
+              <rect x="69" y="22" width="43" height="30" rx="12" />
+              <path d="M51 31 Q60 25 69 31 M8 28 L1 25 M112 28 L119 25" />
+            </svg>
+            <h2>Tu estilo empieza aquí</h2>
+            <p>Una foto de frente y buena luz<br />es todo lo que necesitas.</p>
+          </div>
+        }
+        @if (analizando() && !solicitando()) {
+          <span class="buscando">Detectando tus ojos…</span>
+        }
+      </div>
+      <p class="estado" [class.detectado]="ajuste()" role="status">
+        <span aria-hidden="true">●</span> {{ estado }}
+      </p>
+      <div class="acciones">
+        <button class="primario" type="button" (click)="archivo.click()">
+          {{ foto() ? 'Cambiar foto' : 'Subir foto' }}
+        </button>
+        <input
+          #archivo
+          class="oculto"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          aria-label="Subir fotografía"
+          (change)="cargarFoto($event)"
+        />
+        <button type="button" (click)="activarCamara()" [disabled]="solicitando() || camara()">
+          {{ solicitando() ? 'Esperando permiso…' : 'Usar cámara' }}
+        </button>
+        @if (foto() || camara() || solicitando() || analizando()) {
+          <button class="discreto" type="button" (click)="limpiar()">
+            {{ solicitando() ? 'Cancelar' : camara() ? 'Apagar cámara' : 'Quitar foto' }}
+          </button>
+        }
+      </div>
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      <p class="privacidad">
+        Solo tú lo ves. La foto y el video se procesan en tu navegador y no se guardan en el
+        servidor.
+      </p>
+    </div>
+
+    <aside aria-labelledby="titulo-modelos">
+      <div class="encabezado-modelos">
+        <span class="eyebrow">01 · Elige tu estilo</span>
+        <h2 id="titulo-modelos">¿Cuál va contigo?</h2>
+      </div>
+      <div class="modelos" role="group" aria-label="Modelos de marcos compatibles">
+        @for (modelo of modelos; track modelo.id) {
+          <button
+            class="modelo"
+            type="button"
+            [class.seleccionado]="seleccionado() === modelo.id"
+            [attr.aria-pressed]="seleccionado() === modelo.id"
+            (click)="seleccionado.set(modelo.id)"
+          >
+            <img
+              [src]="'/images/probador/' + modelo.id + '.svg?v=negro-1'"
+              alt=""
+              width="120"
+              height="60"
+              loading="lazy"
+            />
+            <span>{{ modelo.nombre }}</span>
+          </button>
+        }
+      </div>
+      <div class="ajuste">
+        <p class="eyebrow">02 · Dale tu medida</p>
+        <label for="tamano"
+          >Tamaño del marco <output for="tamano">{{ tamano() }}%</output></label
+        >
+        <input
+          id="tamano"
+          type="range"
+          min="75"
+          max="130"
+          step="1"
+          [value]="tamano()"
+          [disabled]="!ajuste()"
+          (input)="tamano.set(+$any($event.target).value)"
+        />
+        <div class="escala"><span>Más pequeño</span><span>Más grande</span></div>
+        <p>La posición y la inclinación se ajustan a tus ojos automáticamente.</p>
+      </div>
+    </aside>
+  </div>
+  <p class="nota">
+    Prueba orientativa con ilustraciones de estilos. La disponibilidad y el ajuste real se confirman
+    en la óptica.
+  </p>
+</section>
