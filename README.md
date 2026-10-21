@@ -27,20 +27,20 @@ Nosotros trabajaremos con el Centro óptico San Francisco, creando una aplicaci�
 
 1. Clonar el repositorio y entrar a su carpeta:
 
-```powershell
+```bash
 git clone <URL_DEL_REPOSITORIO>
 cd Proyecto_de_Software
 ```
 
 2. Crear el archivo `.env` a partir de `.env.example`:
 
-```powershell
+```bash
 Copy-Item .env.example .env
 ```
 
 3. Configurar `MYSQL_ROOT_PASSWORD` en `.env` y construir y levantar toda la plataforma:
 
-```powershell
+```bash
 docker compose up --build -d
 ```
 
@@ -52,17 +52,15 @@ Esta configuración está preparada para abrir la plataforma desde el mismo equi
 
 Para el uso local, `EMAIL_API_BASE_URL=http://localhost:8080` permite enviar los correos; sus enlaces funcionan al abrirlos en el mismo equipo donde corre Docker. Si el cliente abre el mensaje desde otro dispositivo, configura `EMAIL_API_BASE_URL` en `.env` con la URL HTTPS pública de la API, porque `localhost` apunta al dispositivo que abre el enlace.
 
-Para actualizar una base MySQL creada antes de incorporar las notificaciones persistentes, ejecuta una vez `database/migrations/001_correos_pendientes.sql` sobre `optica_db`. El montaje de `database/schema.sql` se ejecuta únicamente al inicializar un volumen nuevo. Conserva el volumen Docker `optica_data_protection_keys`, necesario para descifrar los enlaces protegidos de correos de reserva pendientes.
-
 Para ver los logs:
 
-```powershell
+```bash
 docker compose logs -f
 ```
 
 Para detener los servicios:
 
-```powershell
+```bash
 docker compose down
 ```
 
@@ -72,7 +70,7 @@ El volumen de MySQL conserva los datos. Para eliminar tambien esos datos, usar `
 
 Para trabajar en Angular con recarga automática, ejecuta en otra terminal (sin el servicio `frontend` de Compose activo):
 
-```powershell
+```bash
 cd Optica_front
 npm install
 npm start
