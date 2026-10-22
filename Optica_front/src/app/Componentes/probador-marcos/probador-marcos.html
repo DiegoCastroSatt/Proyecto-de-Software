@@ -22,7 +22,7 @@
           @if (ajuste(); as posicion) {
             <img
               class="marco"
-              [src]="'/images/probador/' + seleccionado() + '.svg?v=negro-1'"
+              [src]="'/assets/images/probador/' + seleccionado() + '.svg?v=negro-1'"
               [alt]="'Marco ' + nombreModelo"
               [style.left.%]="posicion.x"
               [style.top.%]="posicion.y"
@@ -94,7 +94,7 @@
             (click)="seleccionado.set(modelo.id)"
           >
             <img
-              [src]="'/images/probador/' + modelo.id + '.svg?v=negro-1'"
+              [src]="'/assets/images/probador/' + modelo.id + '.svg?v=negro-1'"
               alt=""
               width="120"
               height="60"
