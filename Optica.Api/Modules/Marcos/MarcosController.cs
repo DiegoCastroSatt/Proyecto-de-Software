@@ -109,7 +109,7 @@ public sealed class MarcosController(OpticaDbContext db) : ControllerBase
         if (seleccion.Any(idProducto => !productos.Any(p => p.IdProducto == idProducto)))
             return BadRequest(new { mensaje = "Uno de los productos ya no existe. Actualiza la lista antes de guardar." });
         if (productos.Any(p => seleccion.Contains(p.IdProducto) && !ValidacionMarco.EsArmazon(p.Categoria)))
-            return BadRequest(new { mensaje = "Solo puedes vincular productos de la categoría Armazones." });
+            return BadRequest(new { mensaje = "Solo se pueden vincular productos de la categoría Armazones." });
         foreach (var producto in productos)
             producto.IdTipoMarco = seleccion.Contains(producto.IdProducto) ? id : null;
         await db.SaveChangesAsync(ct);
