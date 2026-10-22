@@ -27,12 +27,15 @@ public class TestMarcos
     public async Task Disponibles_SoloActivosConStockDeProductosVinculados()
     {
         await using var db = Contexto();
-        db.TiposMarco.AddRange(Marco("redondo", "Redondo"), Marco("cuadrado", "Cuadrado", false),
-            Marco("aviador", "Aviador"), Marco("alto", "Rectangular alto"), Marco("nuevo", "Nuevo"));
-        db.Productos.AddRange(Producto("Marcos Redondos", 3), Producto("Redondo", 2), Producto("Cuadrado", 9),
-            Producto("Aviador", 0), Producto("Aviador", 4, "Agotado"), Producto("Rectangular", 8), Producto("Nuevo", 1));
-        foreach (var producto in db.Productos.Local)
-            producto.IdTipoMarco = db.TiposMarco.Local.SingleOrDefault(m => ValidacionMarco.Categoria(m.Categoria) == ValidacionMarco.Categoria(producto.Categoria))?.Id;
+        var redondo = Marco("redondo", "Redondo"); var cuadrado = Marco("cuadrado", "Cuadrado", false);
+        var aviador = Marco("aviador", "Aviador"); var nuevo = Marco("nuevo", "Armazones");
+        db.TiposMarco.AddRange(redondo, cuadrado, aviador, Marco("alto", "Rectangular alto"), nuevo);
+        foreach (var item in new[] { (redondo.Id, 3, "Disponible"), (redondo.Id, 2, "Disponible"), (cuadrado.Id, 9, "Disponible"),
+            (aviador.Id, 0, "Disponible"), (aviador.Id, 4, "Agotado"), (nuevo.Id, 1, "Disponible") })
+        {
+            var producto = Producto("Armazones", item.Item2, item.Item3); producto.IdTipoMarco = item.Id; db.Productos.Add(producto);
+        }
+        db.Productos.Add(Producto("Armazones", 8));
         await db.SaveChangesAsync();
         var respuesta = await new MarcosController(db).Disponibles(default);
         var tipos = Assert.IsType<List<TipoMarcoResponse>>(Assert.IsType<OkObjectResult>(respuesta.Result).Value);
@@ -110,7 +113,7 @@ public class TestMarcos
     [Fact]
     public void Mutaciones_NoPermitenAccesoAnonimo()
     {
-        foreach (var metodo in new[] { "Crear", "CambiarEstado", "Borrar", "Listar", "ValidarDiseno", "VincularProductos" })
+        foreach (var metodo in new[] { "Crear", "CambiarEstado", "Borrar", "Listar", "ValidarDiseno", "VincularProductos", "ProductosVinculables" })
             Assert.Empty(typeof(MarcosController).GetMethod(metodo)!.GetCustomAttributes(typeof(AllowAnonymousAttribute), true));
         Assert.NotEmpty(typeof(MarcosController).GetMethod("Disponibles")!.GetCustomAttributes(typeof(AllowAnonymousAttribute), true));
     }
@@ -161,7 +164,7 @@ public class TestMarcos
     public async Task Vincular_ReasignaSinContarElProductoEnDosMarcosYPermiteDesvincular()
     {
         await using var db = Contexto(); var primero = Marco("primero", "Redondo"); var segundo = Marco("segundo", "Redondo");
-        db.TiposMarco.AddRange(primero, segundo); var producto = Producto("Redondo", 5); db.Productos.Add(producto); await db.SaveChangesAsync();
+        db.TiposMarco.AddRange(primero, segundo); var producto = Producto("Armazones", 5); db.Productos.Add(producto); await db.SaveChangesAsync();
         var controller = new MarcosController(db);
         await controller.VincularProductos(primero.Id, new([producto.IdProducto]), default);
         await controller.VincularProductos(segundo.Id, new([producto.IdProducto]), default);
@@ -197,5 +200,41 @@ public class TestMarcos
         Assert.IsType<CreatedResult>(await controller.Crear(new("Redondo", "Armazones", Svg, ["ovalado"]), default));
         Assert.IsType<CreatedResult>(await controller.Crear(new("Cuadrado", "Armazones", Svg, ["ovalado"]), default));
     }
+
+    [Theory]
+    [InlineData("Cordones")]
+    [InlineData("Accesorios")]
+    [InlineData("Cordones para marcos")]
+    [InlineData("Lentes de contacto")]
+    [InlineData("Lentes de sol")]
+    [InlineData("Lentes ópticos")]
+    [InlineData("Marcos redondos")]
+    [InlineData("Monturas")]
+    public async Task Vincular_RechazaAccesoriosAunqueSuNombreMencioneMarcos(string categoria)
+    {
+        await using var db = Contexto(); var marco = Marco("redondo", "Armazones"); db.TiposMarco.Add(marco);
+        var armazon = Producto("Armazones", 2); armazon.IdTipoMarco = marco.Id;
+        var accesorio = Producto(categoria, 100); db.Productos.AddRange(armazon, accesorio); await db.SaveChangesAsync();
+        var controller = new MarcosController(db);
+        Assert.IsType<BadRequestObjectResult>(await controller.VincularProductos(marco.Id, new([accesorio.IdProducto]), default));
+        Assert.Null(accesorio.IdTipoMarco); Assert.Equal(marco.Id, armazon.IdTipoMarco);
+        var vinculables = Assert.IsType<List<ProductoVinculableMarcoResponse>>(Assert.IsType<OkObjectResult>(await controller.ProductosVinculables(default)).Value);
+        Assert.Equal(armazon.IdProducto, Assert.Single(vinculables).Id);
+    }
+
+    [Fact]
+    public async Task Disponibles_NoSumaStockDeAccesoriosVinculadosAntesDeLaCorreccion()
+    {
+        await using var db = Contexto(); var marco = Marco("redondo", "Armazones"); db.TiposMarco.Add(marco);
+        var accesorio = Producto("Accesorios", 100); accesorio.IdTipoMarco = marco.Id; db.Productos.Add(accesorio); await db.SaveChangesAsync();
+        var controller = new MarcosController(db);
+        var publicos = Assert.IsType<List<TipoMarcoResponse>>(Assert.IsType<OkObjectResult>((await controller.Disponibles(default)).Result).Value);
+        Assert.Empty(publicos);
+    }
+
+    [Theory]
+    [InlineData("Armazones")]
+    [InlineData(" ARMAZÓN ")]
+    public void Clasificar_ReconoceCategoriasDeArmazones(string categoria) => Assert.True(ValidacionMarco.EsArmazon(categoria));
 
 }
