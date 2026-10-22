@@ -1,3 +1,5 @@
+using Optica.Api.Modules.Rostros;
+using Optica.Api.Modules.Marcos;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Catalogos.Models;
@@ -28,6 +30,10 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Administrador> Administradores => Set<Administrador>();
 
+    public DbSet<TipoRostro> TiposRostro => Set<TipoRostro>();
+
+    public DbSet<TipoMarco> TiposMarco => Set<TipoMarco>();
+
     public DbSet<Producto> Productos => Set<Producto>();
 
     public DbSet<CatalogoItem> Catalogos => Set<CatalogoItem>();
@@ -50,6 +56,10 @@ public class OpticaDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Codigo).IsUnique();
+        modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Nombre).IsUnique();
+        modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Codigo).IsUnique();
+        modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Nombre).IsUnique();
 
         modelBuilder.Entity<Cliente>(entity =>
         {
@@ -226,6 +236,8 @@ public class OpticaDbContext : DbContext
             entity.ToTable("productos");
             entity.HasKey(p => p.IdProducto);
             entity.Property(p => p.IdProducto).HasColumnName("id_producto");
+            entity.Property(p => p.IdTipoMarco).HasColumnName("id_tipo_marco");
+            entity.HasOne<TipoMarco>().WithMany().HasForeignKey(p => p.IdTipoMarco).OnDelete(DeleteBehavior.SetNull);
             entity.Property(p => p.Codigo).HasColumnName("codigo").HasMaxLength(30).IsRequired();
             entity.Property(p => p.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
             entity.Property(p => p.Marca).HasColumnName("marca").HasMaxLength(60);
