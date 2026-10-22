@@ -269,3 +269,14 @@ CREATE TABLE IF NOT EXISTS tipos_rostro (
 -- Un armazón del inventario utiliza el diseño de un tipo de marco.
 ALTER TABLE productos ADD COLUMN id_tipo_marco INT NULL;
 ALTER TABLE productos ADD CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL;
+
+-- Contornos personalizados reutilizables en el editor de marcos.
+CREATE TABLE IF NOT EXISTS formas_lente (
+    id_forma_lente INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL,
+    nombre_normalizado VARCHAR(80) NOT NULL UNIQUE,
+    geometria VARCHAR(20) NOT NULL DEFAULT 'contorno',
+    mantener_proporcion BOOLEAN NOT NULL DEFAULT FALSE,
+    contorno TEXT NOT NULL
+);
