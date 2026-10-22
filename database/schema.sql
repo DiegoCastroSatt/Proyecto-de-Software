@@ -265,3 +265,7 @@ CREATE TABLE IF NOT EXISTS tipos_rostro (
     tipo_imagen VARCHAR(30) NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+-- Un armazón del inventario utiliza el diseño de un tipo de marco.
+ALTER TABLE productos ADD COLUMN id_tipo_marco INT NULL;
+ALTER TABLE productos ADD CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL;
