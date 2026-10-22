@@ -59,30 +59,30 @@
       <section class="panel-notificaciones" id="panel-notificaciones" aria-label="Últimas notificaciones" aria-live="polite">
         <h2>Notificaciones</h2>
         @if (errorInventario()) {
-        <p role="alert">No se pudo verificar el stock.</p>
+          <p role="alert">No se pudo verificar el stock.</p>
         } @if (notificaciones().length) {
-        <ul>
-          @for (notificacion of notificaciones(); track notificacion.id) {
-          <li>
-            <div class="contenido-notificacion">
-              <strong>{{ notificacion.titulo }}</strong>
-              <span>{{ notificacion.mensaje }}</span>
-            </div>
-            <button
-              class="boton-eliminar-notificacion"
-              type="button"
-              (click)="eliminarNotificacion(notificacion.id)"
-              [attr.aria-label]="'Eliminar notificación: ' + notificacion.titulo"
-              title="Eliminar notificación">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </li>
-          }
-        </ul>
-      } @else if (!errorInventario()) {
-        <p>No hay notificaciones.</p>
+          <ul>
+            @for (notificacion of notificaciones(); track notificacion.id) {
+              <li>
+                <div class="contenido-notificacion">
+                  <strong>{{ notificacion.titulo }}</strong>
+                  <span>{{ notificacion.mensaje }}</span>
+                </div>
+                <button
+                  class="boton-eliminar-notificacion"
+                  type="button"
+                  (click)="eliminarNotificacion(notificacion.id)"
+                  [attr.aria-label]="'Eliminar notificación: ' + notificacion.titulo"
+                  title="Eliminar notificación">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else if (!errorInventario()) {
+          <p>No hay notificaciones.</p>
         }
       </section>
       }
