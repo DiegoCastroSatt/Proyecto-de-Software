@@ -95,7 +95,7 @@ public class TestRostros
         db.TiposRostro.AddRange(new TipoRostro { Codigo = "nuevo", Nombre = "Nuevo", Activo = false },
             new TipoRostro { Codigo = "activo", Nombre = "Activo" });
         db.TiposMarco.Add(Marco("redondo", "nuevo,activo"));
-        db.Productos.Add(new() { Categoria = "redondo", Stock = 2, Estado = "Disponible" });
+        db.Productos.Add(new() { Categoria = "Armazones", IdTipoMarco = db.TiposMarco.Local.Single().Id, Stock = 2, Estado = "Disponible" });
         await db.SaveChangesAsync();
         var controller = new MarcosController(db);
         var publicos = Assert.IsType<List<TipoMarcoResponse>>(Assert.IsType<OkObjectResult>((await controller.Disponibles(default)).Result).Value);
