@@ -242,3 +242,26 @@ CREATE TABLE IF NOT EXISTS trabajadores (
     CONSTRAINT fk_trabajador_rol FOREIGN KEY (id_rol) REFERENCES roles_trabajadores(id_rol),
     CONSTRAINT fk_trabajador_administrador FOREIGN KEY (id_administrador_creador) REFERENCES administradores(id_administrador)
 );
+
+-- Tipos de marco administrables para recomendador y simulador.
+CREATE TABLE IF NOT EXISTS tipos_marco (
+    id_tipo_marco INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(80) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL UNIQUE,
+    categoria VARCHAR(50) NOT NULL,
+    svg MEDIUMTEXT NOT NULL,
+    rostros VARCHAR(100) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+-- Rostros administrables del recomendador.
+CREATE TABLE IF NOT EXISTS tipos_rostro (
+    id_tipo_rostro INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(80) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL UNIQUE,
+    rasgos VARCHAR(500) NOT NULL,
+    consejo VARCHAR(500) NOT NULL,
+    ruta_imagen VARCHAR(255) NULL,
+    imagen MEDIUMBLOB NULL,
+    tipo_imagen VARCHAR(30) NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
