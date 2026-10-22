@@ -28,16 +28,7 @@ public static class ValidacionMarco
         };
     }
 
-    public static bool EsArmazon(string categoria)
-    {
-        var nombre = Normalizar(categoria);
-        if (nombre is "armazon" or "armazones" or "marco" or "marcos" or "montura" or "monturas"
-            or "lentes opticos" or "lentes de sol" or "lentes solares" or "anteojos opticos" or "anteojos de sol") return true;
-        // Conservar las categorías de formas usadas antes de incorporar los vínculos explícitos.
-        return Categoria(categoria) is "rectangular" or "redondo" or "ovalado" or "cuadrado" or "cat eye"
-            or "aviador" or "wayfarer" or "geometrico" or "browline" or "semimontura" or "sin montura"
-            or "transparente" or "rectangular alto" or "aviador angular" or "cat eye suave" or "mariposa" or "oversize";
-    }
+    public static bool EsArmazon(string categoria) => Normalizar(categoria) is "armazon" or "armazones";
 
     public static string ValidarSvg(string svg)
     {
