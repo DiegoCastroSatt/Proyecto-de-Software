@@ -1,0 +1,93 @@
+<section class="gestion-marcos" aria-labelledby="titulo-marcos">
+  <header>
+    <p class="eyebrow">Inventario</p>
+    <div class="encabezado-inventario"><h1 id="titulo-marcos">Marcos</h1><a class="boton-inventario" routerLink="/admin/panel/marcos/rostros">Tipos de rostro</a></div>
+    <p>Administra los tipos que se muestran en el recomendador y el simulador.</p>
+    <p>Armazones y marcos son el mismo producto. Vincula aquí los armazones del inventario; sus existencias se usarán en el recomendador y simulador.</p>
+  </header>
+
+  @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
+  @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
+
+  <form #formulario="ngForm" (ngSubmit)="crear(archivo)" class="crear">
+    <h2>Crear tipo de marco</h2>
+    <div class="campos">
+      <label>Nombre<input name="nombre" [(ngModel)]="nombre" required maxlength="80" placeholder="Ej. Redondo" /></label>
+
+    </div>
+    <app-editor-marco [disenos]="marcos()" [reinicio]="reinicioDiseno()" (disenoChange)="svg = $event" (cargandoChange)="cargandoDiseno.set($event)" />
+    <details class="cargar-ilustracion"><summary>Ya tengo una ilustración (opcional)</summary>
+      <label>Seleccionar archivo<input #archivo type="file" accept=".svg,image/svg+xml" (change)="elegirSvg($event)" [disabled]="guardando() || leyendoArchivo() || cargandoDiseno()" /></label>
+      <small>Puedes cargar una ilustración de hasta 100 KB o usar directamente el editor de arriba.</small>
+    </details>
+    <fieldset>
+      <legend>Recomendar para estos rostros</legend>
+      @if (cargandoRostros()) { <p role="status">Cargando rostros…</p> }
+      @else if (!rostros().length) { <p>Crea o activa un rostro desde el botón «Tipos de rostro» para poder asociarlo a un marco.</p> }
+      <div class="rostros">
+        @for (rostro of rostros(); track rostro.id) {
+          <label><input type="checkbox" [checked]="rostrosSeleccionados.has(rostro.codigo)" (change)="cambiarRostro(rostro.codigo, $any($event.target).checked)" />{{ rostro.nombre }}</label>
+        }
+      </div>
+    </fieldset>
+    @if (archivoNombre) { <small>Ilustración seleccionada: {{ archivoNombre }}</small> }
+    <button class="primario" type="submit" [disabled]="formulario.invalid || guardando() || leyendoArchivo() || cargandoDiseno() || !svg || !rostrosSeleccionados.size">{{ guardando() ? 'Creando…' : 'Crear marco' }}</button>
+  </form>
+
+  <div class="titulo-lista"><h2>Tipos de marco <span>({{ marcos().length }})</span></h2><button type="button" (click)="cargar()" [disabled]="cargando() || ocupado() !== null || guardando()">Actualizar</button></div>
+  <div class="busqueda-marcos">
+    <label for="buscar-marcos">Buscar marcos</label>
+    <div class="campo-busqueda"><input id="buscar-marcos" type="search" [(ngModel)]="busquedaMarcos" placeholder="Buscar por nombre, por ejemplo: redondo" aria-controls="lista-marcos" />
+      @if (busquedaMarcos) { <button type="button" (click)="busquedaMarcos = ''">Limpiar búsqueda</button> }
+    </div>
+    @if (!cargando() && marcos().length) { <small role="status">{{ marcosFiltrados.length }} de {{ marcos().length }} marcos</small> }
+  </div>
+  @if (cargando()) { <p role="status">Cargando marcos…</p> }
+  @else if (!marcos().length) { <p>No hay tipos de marco. Crea el primero para empezar.</p> }
+  @else if (!marcosFiltrados.length) { <p role="status">No hay marcos que coincidan con la búsqueda.</p> }
+  @else {
+    <ul class="lista" id="lista-marcos">
+      @for (marco of marcosFiltrados; track marco.id) {
+        <li [class.inactivo]="!marco.activo">
+          <img [src]="imagenMarco(marco.id)" [alt]="'Ilustración de ' + marco.nombre" width="160" height="80" />
+          <div class="detalle"><h3>{{ marco.nombre }}</h3><p>Armazones vinculados: {{ marco.productosVinculados ?? 0 }}</p><p>Stock disponible: {{ marco.stock }}</p>
+            <span class="etiqueta" [class.apagado]="!marco.activo">{{ !marco.activo ? 'Inactivo' : marco.stock > 0 ? 'Visible para clientes' : 'Activo · sin stock' }}</span>
+          </div>
+          <div class="acciones">
+            <button type="button" (click)="abrirVinculos(marco)" [disabled]="ocupado() !== null">Vincular armazones</button>
+            <button type="button" (click)="alternar(marco)" [disabled]="ocupado() !== null">{{ marco.activo ? 'Desactivar' : 'Activar' }}</button>
+            @if (confirmarBorrado() !== marco.id) {
+              <button class="peligro" type="button" (click)="confirmarBorrado.set(marco.id)" [disabled]="ocupado() !== null">Borrar</button>
+            } @else {
+              <div class="confirmacion"><p>¿Borrar {{ marco.nombre }}? Se retirará del recomendador y simulador. Los productos se conservan.</p>
+                <button class="peligro" type="button" (click)="borrar(marco)" [disabled]="ocupado() !== null">Sí, borrar</button>
+                <button type="button" (click)="confirmarBorrado.set(null)" [disabled]="ocupado() !== null">Cancelar</button>
+              </div>
+            }
+          </div>
+          @if (vinculando() === marco.id) {
+            <fieldset class="vinculos"><legend>Armazones de {{ marco.nombre }}</legend>
+              <p>Solo se muestran productos de la categoría Armazones. Los lentes de sol, ópticos, de contacto y accesorios no se pueden vincular. El precio y stock se conservan en el inventario.</p>
+              <p>Cada producto puede pertenecer a un solo marco. Si eliges uno vinculado a otro, se trasladará al guardar. Desmarcarlo retira únicamente el vínculo.</p>
+              @if (cargandoProductos()) { <p role="status">Cargando productos…</p> }
+              @else if (errorProductos()) { <p class="error" role="alert">{{ errorProductos() }}</p><button type="button" (click)="abrirVinculos(marco)">Reintentar</button> }
+              @else {
+                <label>Buscar por nombre, código o categoría<input type="search" [(ngModel)]="filtroProductos" [ngModelOptions]="{standalone: true}" /></label>
+                <p>{{ productosSeleccionados.size }} productos seleccionados</p>
+                <ul class="productos-vinculables">
+                  @for (producto of productosFiltrados; track producto.id) {
+                    <li><label><input type="checkbox" [checked]="productosSeleccionados.has(producto.id)" (change)="marcarProducto(producto.id, $any($event.target).checked)" [disabled]="ocupado() !== null" />
+                      <span><strong>{{ producto.nombre }}</strong> · {{ producto.codigo }}<small>{{ producto.categoria }} · Stock: {{ producto.stock }} · {{ producto.estado }}</small>
+                        @if (producto.idTipoMarco && producto.idTipoMarco !== marco.id) { <small class="traslado">Actualmente en {{ nombreMarco(producto.idTipoMarco) }}. Al guardar pasará a {{ marco.nombre }}.</small> }
+                      </span></label></li>
+                  } @empty { <li>No hay productos que coincidan con la búsqueda.</li> }
+                </ul>
+              }
+              <div class="acciones-vinculos"><button class="primario" type="button" (click)="guardarVinculos(marco)" [disabled]="ocupado() !== null || cargandoProductos() || !!errorProductos()">Guardar vínculos</button><button type="button" (click)="vinculando.set(null)" [disabled]="ocupado() !== null">Cancelar</button></div>
+            </fieldset>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

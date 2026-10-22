@@ -1,0 +1,59 @@
+<fieldset class="editor">
+  <legend>Diseña el marco</legend>
+  <p>Elige un diseño o crea uno desde cero agregando sus partes. La ilustración se prepara automáticamente.</p>
+  <div class="distribucion-editor">
+    <div class="vista-diseno"><img [src]="vistaPrevia()" alt="Vista previa del marco que estás creando" width="360" height="180" /><span>Vista previa · fondo transparente</span></div>
+    <div class="controles">
+      <label>Diseño base<select [ngModel]="elegido" (ngModelChange)="elegir($event)" [ngModelOptions]="{standalone: true}" [disabled]="cargando()">
+        <option value="">Diseño simple</option>
+        <option value="nuevo">Crear desde cero</option>
+        @if (elegido === 'archivo') { <option value="archivo">Ilustración cargada</option> }
+        @for (diseno of disenos; track diseno.id) { <option [value]="diseno.id">{{ diseno.nombre }}</option> }
+      </select></label>
+      @if (elegido === 'nuevo') {
+        <div class="construccion">
+          <p>Agrega las partes que tendrá tu marco:</p>
+          <div class="agregar-piezas">
+            <button type="button" (click)="agregarPieza('lentes')" [disabled]="piezas.includes('lentes')">Agregar lentes</button>
+            <button type="button" (click)="agregarPieza('puente')" [disabled]="piezas.includes('puente')">Agregar puente</button>
+            <button type="button" (click)="agregarPieza('patillas')" [disabled]="piezas.includes('patillas')">Agregar patillas</button>
+          </div>
+          @if (!piezas.length) { <p role="status">El lienzo está vacío. Agrega una parte para comenzar.</p> }
+          <ul class="piezas">
+            @for (pieza of piezas; track pieza) {
+              <li><span>{{ nombresPiezas[pieza] }}</span><button type="button" (click)="quitarPieza(pieza)" [attr.aria-label]="'Quitar ' + nombresPiezas[pieza].toLowerCase()">Quitar</button></li>
+            }
+          </ul>
+          @if (piezas.length) {
+            @if (piezas.includes('lentes')) {
+              <label>Forma de los lentes<select [(ngModel)]="nuevo.forma" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}">@for (forma of formasLentes; track forma.id) { <option [value]="forma.id">{{ forma.nombre }}</option> }</select></label>
+            }
+            @if (nuevo.forma === 'redonda' || nuevo.forma === 'cuadrada') {
+              <small>Esta forma mantiene el ancho y el alto iguales, usando la menor de las dos medidas.</small>
+            }
+            <label>Ancho de cada lente<input type="range" min="32" max="84" [(ngModel)]="nuevo.ancho" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
+            <label>Altura de los lentes<input type="range" min="24" max="80" [(ngModel)]="nuevo.alto" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
+            <label>Separación entre lentes<input type="range" min="8" max="48" [(ngModel)]="nuevo.separacion" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
+            @if (piezas.includes('lentes') && (nuevo.forma === 'rectangular' || nuevo.forma === 'cuadrada')) {
+              <label>Redondeado de las esquinas<input type="range" min="0" max="40" [(ngModel)]="nuevo.esquinas" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
+            }
+            @if (piezas.includes('puente')) {
+              <label>Curvatura del puente<input type="range" min="0" max="24" [(ngModel)]="nuevo.curvatura" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
+            }
+            @if (piezas.includes('patillas')) {
+              <label>Largo de las patillas<input type="range" min="0" max="20" [(ngModel)]="nuevo.largoPatillas" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
+            }
+            <button type="button" (click)="crearDesdeCero()">Vaciar lienzo</button>
+          }
+        </div>
+      }
+      <label>Ancho <output>{{ ajustes.ancho }}%</output><input type="range" min="60" max="115" step="1" [(ngModel)]="ajustes.ancho" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" [disabled]="cargando()" /></label>
+      <label>Altura <output>{{ ajustes.alto }}%</output><input type="range" min="60" max="115" step="1" [(ngModel)]="ajustes.alto" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" [disabled]="cargando()" /></label>
+      <label>Grosor <output>{{ ajustes.grosor }}</output><input type="range" min="1" max="8" step="0.5" [(ngModel)]="ajustes.grosor" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" [disabled]="cargando()" /></label>
+      <label>Color del marco<input type="color" [(ngModel)]="ajustes.color" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" [disabled]="cargando()" /></label>
+      <button type="button" (click)="restablecer()">Volver al diseño simple</button>
+    </div>
+  </div>
+  @if (cargando()) { <p role="status">Preparando diseño…</p> }
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+</fieldset>
