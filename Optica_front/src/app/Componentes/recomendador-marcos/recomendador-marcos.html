@@ -23,24 +23,27 @@
       <p>Mira la frente, los pómulos y la mandíbula. Elige una opción para ver las sugerencias.</p>
     </div>
   </div>
+  @if (cargandoRostros()) { <p role="status">Cargando tipos de rostro…</p> }
+  @else if (errorRostros()) { <p role="alert">{{ errorRostros() }}</p> }
+  @else if (!rostros().length) { <p role="status">No hay tipos de rostro activos para recomendar en este momento.</p> }
   <div class="rostros" role="group" aria-label="Selecciona la forma de tu rostro">
-    @for (rostro of rostros; track rostro.id) {
+    @for (rostro of rostros(); track rostro.id) {
       <button
         type="button"
         class="rostro"
-        [class.seleccionado]="seleccionado() === rostro.id"
-        [attr.aria-pressed]="seleccionado() === rostro.id"
+        [class.seleccionado]="seleccionado() === rostro.codigo"
+        [attr.aria-pressed]="seleccionado() === rostro.codigo"
         aria-controls="resultado-marcos"
-        (click)="seleccionar(rostro.id)"
+        (click)="seleccionar(rostro.codigo)"
       >
         <div class="retrato">
           <img
-            [src]="'/images/recomendador/rostro-' + rostro.id + '.png'"
+            [src]="imagenRostro(rostro)"
             [alt]="'Retrato ilustrativo de una persona con rostro ' + rostro.nombre.toLowerCase()"
             width="400"
             height="400"
           /><span class="marca" aria-hidden="true">{{
-            seleccionado() === rostro.id ? '✓' : '+'
+            seleccionado() === rostro.codigo ? '✓' : '+'
           }}</span>
         </div>
         <div class="descripcion">
@@ -51,8 +54,7 @@
     }
   </div>
   <p class="nota-imagenes">
-    Retratos de personas ficticias generados con IA como referencia visual. No necesitas subir una
-    foto.
+    Imágenes de referencia para identificar la forma del rostro. No necesitas subir una foto.
   </p>
   <div id="resultado-marcos" aria-live="polite" aria-atomic="true">
     @if (recomendacion; as resultado) {
@@ -65,12 +67,19 @@
             <p>{{ resultado.consejo }}</p>
           </div>
         </div>
+        @if (cargando()) {
+          <p role="status">Consultando marcos disponibles…</p>
+        } @else if (errorStock()) {
+          <p role="alert">{{ errorStock() }}</p>
+        } @else if (!resultado.marcos.length) {
+          <p role="status">No hay marcos recomendados para este rostro con stock disponible.</p>
+        }
         <div class="sugerencias">
-          @for (marco of resultado.marcos; track marco.nombre) {
+          @for (marco of resultado.marcos; track marco.id) {
             <article>
               <div class="forma-marco">
                 <img
-                  [src]="'/images/recomendador/marcos/' + formasMarcos[marco.nombre] + '.svg'"
+                  [src]="imagenMarco(marco.id)"
                   [alt]="'Forma de marco: ' + marco.nombre"
                   width="240"
                   height="120"
@@ -78,8 +87,8 @@
               </div>
               <span class="etiqueta">Estilo sugerido</span>
               <h3>{{ marco.nombre }}</h3>
-              <p>{{ marco.motivo }}</p>
-              <a routerLink="/probador-marcos" [queryParams]="{ modelo: formasMarcos[marco.nombre] }">Probar este marco</a>
+              <p>Disponible en tienda · {{ marco.stock }} unidades</p>
+              <a routerLink="/probador-marcos" [queryParams]="{ modelo: marco.codigo }">Probar este marco</a>
             </article>
           }
         </div>
@@ -90,7 +99,7 @@
         </div>
         <p class="nota">
           Estas sugerencias son un punto de partida de estilo. Tu gusto, la comodidad y el ajuste
-          del marco son lo más importante. El catálogo puede no incluir todos los estilos sugeridos.
+          del marco son lo más importante. Solo se muestran estilos con stock disponible en tienda.
         </p>
       </section>
     } @else {

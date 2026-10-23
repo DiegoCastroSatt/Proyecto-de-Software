@@ -223,3 +223,60 @@ CREATE TABLE intentos_correo_pedidos (
 );
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);
+
+-- Migración aditiva para bases existentes. Ejecutar una vez antes de iniciar la API actualizada.
+USE optica_db;
+CREATE TABLE IF NOT EXISTS roles_trabajadores (
+    id_rol INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL UNIQUE,
+    permisos_json LONGTEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS trabajadores (
+    id_trabajador INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    correo VARCHAR(100) NOT NULL UNIQUE,
+    contrasena VARCHAR(255) NOT NULL,
+    estado VARCHAR(8) NOT NULL DEFAULT 'Activo',
+    id_rol INT NOT NULL,
+    id_administrador_creador INT NOT NULL,
+    CONSTRAINT fk_trabajador_rol FOREIGN KEY (id_rol) REFERENCES roles_trabajadores(id_rol),
+    CONSTRAINT fk_trabajador_administrador FOREIGN KEY (id_administrador_creador) REFERENCES administradores(id_administrador)
+);
+
+-- Tipos de marco administrables para recomendador y simulador.
+CREATE TABLE IF NOT EXISTS tipos_marco (
+    id_tipo_marco INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(80) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL UNIQUE,
+    categoria VARCHAR(50) NOT NULL,
+    svg MEDIUMTEXT NOT NULL,
+    rostros VARCHAR(100) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+-- Rostros administrables del recomendador.
+CREATE TABLE IF NOT EXISTS tipos_rostro (
+    id_tipo_rostro INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(80) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL UNIQUE,
+    rasgos VARCHAR(500) NOT NULL,
+    consejo VARCHAR(500) NOT NULL,
+    ruta_imagen VARCHAR(255) NULL,
+    imagen MEDIUMBLOB NULL,
+    tipo_imagen VARCHAR(30) NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- Un armazón del inventario utiliza el diseño de un tipo de marco.
+ALTER TABLE productos ADD COLUMN id_tipo_marco INT NULL;
+ALTER TABLE productos ADD CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL;
+
+-- Contornos personalizados reutilizables en el editor de marcos.
+CREATE TABLE IF NOT EXISTS formas_lente (
+    id_forma_lente INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL,
+    nombre_normalizado VARCHAR(80) NOT NULL UNIQUE,
+    geometria VARCHAR(20) NOT NULL DEFAULT 'contorno',
+    mantener_proporcion BOOLEAN NOT NULL DEFAULT FALSE,
+    contorno TEXT NOT NULL
+);

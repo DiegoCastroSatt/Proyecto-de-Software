@@ -5,6 +5,7 @@ namespace Optica.Api.Modules.Productos.Models;
 public class Producto
 {
     public int IdProducto { get; set; }
+    public int? IdTipoMarco { get; set; }
     public string Codigo { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public string Marca { get; set; } = string.Empty;

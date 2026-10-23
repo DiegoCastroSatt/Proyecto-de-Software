@@ -1,0 +1,64 @@
+<section class="gestion-marcos" aria-labelledby="titulo-rostros">
+  <header><p class="eyebrow">Inventario</p><div class="encabezado-inventario"><h1 id="titulo-rostros">Tipos de rostro</h1><a class="boton-inventario" routerLink="/admin/panel/marcos">Volver a Marcos</a></div>
+    <p>Administra las opciones del recomendador y los marcos sugeridos para cada rostro.</p>
+    <p>Desactivar oculta el rostro y conserva sus asociaciones para reactivarlo después.</p>
+  </header>
+  @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
+  @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
+  <form #formulario="ngForm" (ngSubmit)="crear(archivo)" class="crear">
+    <h2>Crear tipo de rostro</h2>
+    <div class="campos">
+      <label>Nombre<input name="nombre" [(ngModel)]="nombre" required maxlength="80" placeholder="Ej. Triangular" /></label>
+      <label>Imagen de referencia<input #archivo type="file" accept="image/png,image/jpeg,image/webp" (change)="elegirImagen($event)" [disabled]="guardando()" /><small>PNG, JPG o WebP de hasta 3 MB.</small></label>
+      <label>Rasgos del rostro<textarea name="rasgos" [(ngModel)]="rasgos" required maxlength="500" rows="3" placeholder="Describe cómo reconocer esta forma"></textarea></label>
+      <label>Consejo de estilo<textarea name="consejo" [(ngModel)]="consejo" required maxlength="500" rows="3" placeholder="Orientación para elegir un marco"></textarea></label>
+    </div>
+    <fieldset><legend>Marcos recomendados</legend>
+      @if (cargandoMarcos()) { <p role="status">Cargando marcos…</p> }
+      @else if (errorMarcos()) { <p role="alert">No se pudieron cargar los marcos.</p><button type="button" (click)="cargarMarcos()">Reintentar</button> }
+      @else if (!marcos().length) { <p>No hay tipos de marco. Puedes asociarlos después de crear el rostro.</p> }
+      <div class="rostros">
+        @for (marco of marcos(); track marco.id) {
+          <label><input type="checkbox" [checked]="marcosSeleccionados.has(marco.id)" (change)="marcar(marco.id, $any($event.target).checked, marcosSeleccionados)" />{{ marco.nombre }}{{ marco.activo ? '' : ' (inactivo)' }}</label>
+        }
+      </div>
+      <small>El recomendador solo mostrará los marcos activos con stock disponible. También puedes guardar el rostro sin asociaciones.</small>
+    </fieldset>
+    <button class="primario" type="submit" [disabled]="formulario.invalid || !imagen || guardando() || cargandoMarcos() || errorMarcos()">{{ guardando() ? 'Creando…' : 'Crear rostro' }}</button>
+  </form>
+
+  <div class="titulo-lista"><h2>Tipos de rostro ({{ rostros().length }})</h2><button type="button" (click)="cargar()" [disabled]="cargando() || ocupado() !== null || guardando() || editando() !== null">Actualizar</button></div>
+  @if (cargando()) { <p role="status">Cargando rostros…</p> }
+  @else if (!rostros().length) { <p>No hay tipos de rostro. Crea el primero para empezar.</p> }
+  @else {
+    <ul class="lista">
+      @for (rostro of rostros(); track rostro.id) {
+        <li [class.inactivo]="!rostro.activo">
+          <img class="retrato" [src]="imagenRostro(rostro)" [alt]="'Rostro ' + rostro.nombre" width="120" height="120" />
+          <div class="detalle"><h3>{{ rostro.nombre }}</h3><p>{{ rostro.rasgos }}</p><p>{{ rostro.consejo }}</p>
+            <p>{{ rostro.marcos.length }} tipos de marco asociados</p><span class="etiqueta" [class.apagado]="!rostro.activo">{{ rostro.activo ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+          <div class="acciones">
+            <button type="button" (click)="alternar(rostro)" [disabled]="ocupado() !== null">{{ rostro.activo ? 'Desactivar' : 'Activar' }}</button>
+            <button type="button" (click)="editarAsociaciones(rostro)" [disabled]="ocupado() !== null || cargandoMarcos() || errorMarcos()">Marcos recomendados</button>
+            @if (confirmarBorrado() !== rostro.id) {
+              <button class="peligro" type="button" (click)="confirmarBorrado.set(rostro.id)" [disabled]="ocupado() !== null">Borrar</button>
+            } @else {
+              <div class="confirmacion"><p>¿Borrar {{ rostro.nombre }} y sus asociaciones? Los marcos y productos se conservarán.</p>
+                <button class="peligro" type="button" (click)="borrar(rostro)" [disabled]="ocupado() !== null">Sí, borrar</button>
+                <button type="button" (click)="confirmarBorrado.set(null)" [disabled]="ocupado() !== null">Cancelar</button>
+              </div>
+            }
+          </div>
+          @if (editando() === rostro.id) {
+            <fieldset class="asociaciones"><legend>Marcos para {{ rostro.nombre }}</legend><div class="rostros">
+              @for (marco of marcos(); track marco.id) {
+                <label><input type="checkbox" [checked]="asociaciones.has(marco.id)" (change)="marcar(marco.id, $any($event.target).checked, asociaciones)" [disabled]="ocupado() !== null" />{{ marco.nombre }}{{ marco.activo ? '' : ' (inactivo)' }}</label>
+              }
+            </div><div class="botones"><button class="primario" type="button" (click)="guardarAsociaciones(rostro)" [disabled]="ocupado() !== null">Guardar asociaciones</button><button type="button" (click)="editando.set(null)" [disabled]="ocupado() !== null">Cancelar</button></div></fieldset>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

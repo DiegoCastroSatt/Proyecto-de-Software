@@ -1,3 +1,5 @@
+import { GestionRostrosComponent } from './Componentes/gestion-rostros/gestion-rostros';
+import { GestionMarcosComponent } from './Componentes/gestion-marcos/gestion-marcos';
 import { ProbadorMarcosComponent } from './Componentes/probador-marcos/probador-marcos';
 import { RecomendadorMarcosComponent } from './Componentes/recomendador-marcos/recomendador-marcos';
 import { VerVentasComponent } from './Componentes/ver-ventas/ver-ventas';
@@ -54,6 +56,9 @@ export const routes: Routes = [
           { path: 'clientes', component: ClientesComponent },
           { path: 'productos', component: BuscarProductoAdmin },
           { path: 'stock', component: ConsultarStock },
+          { path: 'marcos', component: GestionMarcosComponent },
+          { path: 'marcos/rostros', component: GestionRostrosComponent },
+          { path: 'rostros', redirectTo: 'marcos/rostros', pathMatch: 'full' },
           { path: 'ventas', component: RegistroVentaComponent },
           { path: 'ventas/historial', component: VerVentasComponent },
           { path: 'recetas', component: RegistroRecetaComponent },
