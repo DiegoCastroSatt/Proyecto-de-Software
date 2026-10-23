@@ -10,7 +10,7 @@ const marco: TipoMarco = { id: 1, codigo: 'redondo', nombre: 'Redondo', categori
 
 describe('Inventario de marcos', () => {
   function crear() {
-    const servicio = { productosVinculables: vi.fn(() => of([{ id: 10, nombre: 'Armazón Ray-Ban', codigo: 'RB1', categoria: 'Armazones', stock: 3, estado: 'Disponible', idTipoMarco: 1 }, { id: 11, nombre: 'Armazón nuevo', codigo: 'RB2', categoria: 'Armazones', stock: 2, estado: 'Disponible', idTipoMarco: null }])), listar: vi.fn(() => of([{ ...marco }])), crear: vi.fn(() => of({ ...marco, id: 2 })),
+    const servicio = { listarFormas: vi.fn(() => of([])), productosVinculables: vi.fn(() => of([{ id: 10, nombre: 'Armazón Ray-Ban', codigo: 'RB1', categoria: 'Armazones', stock: 3, estado: 'Disponible', idTipoMarco: 1 }, { id: 11, nombre: 'Armazón nuevo', codigo: 'RB2', categoria: 'Armazones', stock: 2, estado: 'Disponible', idTipoMarco: null }])), listar: vi.fn(() => of([{ ...marco }])), crear: vi.fn(() => of({ ...marco, id: 2 })),
       cambiarEstado: vi.fn(() => of(undefined)), borrar: vi.fn(() => of(undefined)), vincularProductos: vi.fn(() => of([{ ...marco }])) };
     TestBed.configureTestingModule({ imports: [GestionMarcosComponent], providers: [provideRouter([]), { provide: TiposRostroService, useValue: { activos: () => of([{ id: 1, codigo: 'ovalado', nombre: 'Ovalado' }]) } }, { provide: TiposMarcoService, useValue: servicio }] });
     const fixture = TestBed.createComponent(GestionMarcosComponent); fixture.detectChanges();

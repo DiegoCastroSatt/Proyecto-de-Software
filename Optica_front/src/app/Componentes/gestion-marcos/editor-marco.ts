@@ -1,8 +1,7 @@
-import { DisenoDesdeCero, PiezaMarco, configuracionDesdeCero, generarMarcoDesdeCero, nombresPiezas, formasLentes } from './diseno-desde-cero';
+import { DisenoDesdeCero, FormaLenteDiseno, PiezaMarco, configuracionDesdeCero, generarMarcoDesdeCero, nombresPiezas, ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from './diseno-marco';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TipoMarco, TiposMarcoService } from '../../shared/services/tipos-marco.service';
-import { ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from './diseno-marco';
 
 @Component({
   selector: 'app-editor-marco', imports: [FormsModule],
@@ -22,7 +21,27 @@ export class EditorMarcoComponent implements OnChanges {
   piezas: PiezaMarco[] = [];
   nuevo: DisenoDesdeCero = { ...configuracionDesdeCero };
   readonly nombresPiezas = nombresPiezas;
-  readonly formasLentes = formasLentes;
+  readonly formasLentes = signal<FormaLenteDiseno[]>([]);
+  readonly errorFormas = signal('');
+
+  constructor() { this.cargarFormas(); }
+
+  cargarFormas(): void {
+    this.errorFormas.set('');
+    this.servicio.listarFormas().subscribe({
+      next: formas => {
+        this.formasLentes.set(formas);
+        if (!formas.some(forma => forma.id === this.nuevo.forma)) this.nuevo.forma = formas[0]?.id ?? '';
+        if (this.elegido === 'nuevo') this.actualizar();
+      },
+      error: () => this.errorFormas.set('No se pudieron cargar las formas guardadas.'),
+    });
+  }
+
+  get formaSeleccionada(): FormaLenteDiseno | undefined { return this.formasLentes().find(forma => forma.id === this.nuevo.forma); }
+
+  seleccionarForma(id: string): void { this.nuevo.forma = id; this.actualizar(); }
+
   private base = disenoMarcoInicial;
   private solicitud = 0;
 
@@ -59,7 +78,10 @@ export class EditorMarcoComponent implements OnChanges {
 
   actualizar(): void {
     if (this.elegido === 'nuevo') {
-      this.base = generarMarcoDesdeCero(this.nuevo, this.piezas);
+      if (this.piezas.includes('lentes') && !this.formaSeleccionada) {
+        this.disenoChange.emit(''); this.error.set('Selecciona una forma disponible para los lentes.'); return;
+      }
+      this.base = generarMarcoDesdeCero(this.nuevo, this.piezas, this.formasLentes());
       if (!this.piezas.length) {
         this.vistaPrevia.set(this.urlImagen(this.base)); this.disenoChange.emit(''); this.error.set(''); return;
       }
@@ -72,7 +94,7 @@ export class EditorMarcoComponent implements OnChanges {
 
   crearDesdeCero(): void {
     ++this.solicitud; this.elegido = 'nuevo'; this.piezas = [];
-    this.nuevo = { ...configuracionDesdeCero }; this.ajustes = { ...ajustesDisenoIniciales };
+    this.nuevo = { ...configuracionDesdeCero, forma: this.formasLentes()[0]?.id ?? '' }; this.ajustes = { ...ajustesDisenoIniciales };
     this.error.set(''); this.terminarCarga(); this.actualizar();
   }
 

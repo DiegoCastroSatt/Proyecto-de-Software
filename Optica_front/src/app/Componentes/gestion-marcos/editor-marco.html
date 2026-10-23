@@ -26,15 +26,16 @@
           </ul>
           @if (piezas.length) {
             @if (piezas.includes('lentes')) {
-              <label>Forma de los lentes<select [(ngModel)]="nuevo.forma" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}">@for (forma of formasLentes; track forma.id) { <option [value]="forma.id">{{ forma.nombre }}</option> }</select></label>
+              <label>Forma de los lentes<select [ngModel]="nuevo.forma" (ngModelChange)="seleccionarForma($event)" [ngModelOptions]="{standalone: true}">@for (forma of formasLentes(); track forma.id) { <option [value]="forma.id">{{ forma.nombre }}</option> }</select></label>
+              @if (errorFormas()) { <p role="alert">{{ errorFormas() }}</p><button type="button" (click)="cargarFormas()">Reintentar cargar formas</button> }
             }
-            @if (nuevo.forma === 'redonda' || nuevo.forma === 'cuadrada') {
+            @if (formaSeleccionada?.mantenerProporcion) {
               <small>Esta forma mantiene el ancho y el alto iguales, usando la menor de las dos medidas.</small>
             }
             <label>Ancho de cada lente<input type="range" min="32" max="84" [(ngModel)]="nuevo.ancho" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
             <label>Altura de los lentes<input type="range" min="24" max="80" [(ngModel)]="nuevo.alto" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
             <label>Separación entre lentes<input type="range" min="8" max="48" [(ngModel)]="nuevo.separacion" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
-            @if (piezas.includes('lentes') && (nuevo.forma === 'rectangular' || nuevo.forma === 'cuadrada')) {
+            @if (piezas.includes('lentes') && formaSeleccionada?.geometria === 'rectangulo') {
               <label>Redondeado de las esquinas<input type="range" min="0" max="40" [(ngModel)]="nuevo.esquinas" (ngModelChange)="actualizar()" [ngModelOptions]="{standalone: true}" /></label>
             }
             @if (piezas.includes('puente')) {

@@ -1,16 +1,22 @@
-import { formasLentes, configuracionDesdeCero, generarMarcoDesdeCero } from './diseno-desde-cero';
+import { FormaLenteDiseno, configuracionDesdeCero, generarMarcoDesdeCero, ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from './diseno-marco';
 import { TestBed } from '@angular/core/testing';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { EditorMarcoComponent } from './editor-marco';
-import { ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from './diseno-marco';
 import { TiposMarcoService } from '../../shared/services/tipos-marco.service';
 
 const diseno = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g stroke="#222222" stroke-width="4"><polygon points="10,20 80,20 90,70"/><ellipse cx="170" cy="50" rx="30" ry="20"/></g></svg>';
 
+// Datos simulados de la API con identificadores ajenos al catálogo inicial.
+const formasApi: FormaLenteDiseno[] = [
+  { id: 'modelo-a', nombre: 'Modelo A', contorno: '', geometria: 'rectangulo' },
+  { id: 'modelo-b', nombre: 'Modelo B', contorno: '', geometria: 'elipse', mantenerProporcion: true },
+  { id: 'modelo-c', nombre: 'Modelo C', contorno: 'M0 0 L1 0 L.7 1 L.2 1 Z', geometria: 'contorno' },
+];
+
 describe('Editor visual de marcos', () => {
   function crear() {
-    const servicio = { obtenerDiseno: vi.fn(() => of(diseno)) };
+    const servicio = { listarFormas: vi.fn(() => of(formasApi)), obtenerDiseno: vi.fn(() => of(diseno)) };
     TestBed.configureTestingModule({ imports: [EditorMarcoComponent], providers: [{ provide: TiposMarcoService, useValue: servicio }] });
     const fixture = TestBed.createComponent(EditorMarcoComponent);
     fixture.componentRef.setInput('disenos', [{ id: 51, nombre: 'Diseño nuevo' }]); fixture.detectChanges();
@@ -68,7 +74,7 @@ describe('Editor visual de marcos', () => {
     const svg = emitir.mock.calls.at(-1)![0]!;
     const dibujo = new DOMParser().parseFromString(svg, 'image/svg+xml');
     expect(dibujo.querySelectorAll('rect').length).toBe(2); expect(dibujo.querySelectorAll('path').length).toBe(2);
-    componente.nuevo.forma = 'ovalada'; componente.actualizar();
+    componente.nuevo.forma = 'modelo-b'; componente.actualizar();
     expect(emitir.mock.calls.at(-1)![0]).toContain('<ellipse');
     componente.quitarPieza('lentes'); componente.quitarPieza('puente'); componente.quitarPieza('patillas');
     expect(emitir).toHaveBeenLastCalledWith('');
@@ -90,10 +96,10 @@ describe('Editor visual de marcos', () => {
   it('ofrece todas las formas y genera contornos distintos conservando las piezas', () => {
     const { componente, fixture } = crear(); componente.elegir('nuevo'); componente.agregarPieza('lentes'); fixture.detectChanges();
     const selector = fixture.nativeElement.querySelectorAll('select')[1] as HTMLSelectElement;
-    expect(selector.options.length).toBe(formasLentes.length);
+    expect(selector.options.length).toBe(formasApi.length);
     const dibujos = new Set<string>();
-    for (const forma of formasLentes) {
-      const svg = generarMarcoDesdeCero({ ...configuracionDesdeCero, forma: forma.id }, ['lentes', 'puente', 'patillas']);
+    for (const forma of formasApi) {
+      const svg = generarMarcoDesdeCero({ ...configuracionDesdeCero, forma: forma.id }, ['lentes', 'puente', 'patillas'], formasApi);
       const documento = new DOMParser().parseFromString(svg, 'image/svg+xml');
       expect(documento.querySelector('parsererror')).toBeNull(); expect(svg).not.toContain('NaN');
       expect(documento.querySelector('g')!.children.length).toBe(4); dibujos.add(svg);
@@ -102,14 +108,30 @@ describe('Editor visual de marcos', () => {
         expect(lentes.length).toBe(2); expect(lentes[1].getAttribute('transform')).toContain('scale(-1 1)');
       }
     }
-    expect(dibujos.size).toBe(formasLentes.length);
+    expect(dibujos.size).toBe(formasApi.length);
   });
 
-  it('mantiene círculos y cuadrados proporcionados cuando las medidas son distintas', () => {
-    const redondo = new DOMParser().parseFromString(generarMarcoDesdeCero({ ...configuracionDesdeCero, forma: 'redonda' }, ['lentes']), 'image/svg+xml');
-    expect(redondo.querySelectorAll('circle').length).toBe(2);
-    const cuadrado = new DOMParser().parseFromString(generarMarcoDesdeCero({ ...configuracionDesdeCero, forma: 'cuadrada' }, ['lentes']), 'image/svg+xml').querySelector('rect')!;
-    expect(cuadrado.getAttribute('width')).toBe(cuadrado.getAttribute('height'));
+  it('aplica proporciones y controles según los atributos devueltos por la API', () => {
+    const { componente, fixture } = crear(); componente.elegir('nuevo'); componente.agregarPieza('lentes');
+    componente.seleccionarForma('modelo-b'); fixture.detectChanges();
+    const svg = generarMarcoDesdeCero({ ...configuracionDesdeCero, forma: 'modelo-b' }, ['lentes'], formasApi);
+    const elipse = new DOMParser().parseFromString(svg, 'image/svg+xml').querySelector('ellipse')!;
+    expect(elipse.getAttribute('rx')).toBe(elipse.getAttribute('ry'));
+    expect(fixture.nativeElement.textContent).toContain('mantiene el ancho y el alto iguales');
+    expect(fixture.nativeElement.textContent).not.toContain('Redondeado de las esquinas');
+    componente.seleccionarForma('modelo-a'); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Redondeado de las esquinas');
+  });
+
+  it('no inventa formas cuando la base está vacía o falla la carga', () => {
+    const { componente, servicio, fixture } = crear();
+    servicio.listarFormas.mockReturnValue(of([])); componente.cargarFormas();
+    componente.elegir('nuevo'); componente.agregarPieza('lentes'); fixture.detectChanges();
+    expect(componente.formasLentes()).toEqual([]); expect(componente.nuevo.forma).toBe('');
+    expect(fixture.nativeElement.querySelectorAll('select')[1].options.length).toBe(0);
+    expect(componente.error()).toContain('Selecciona una forma disponible');
+    servicio.listarFormas.mockReturnValue(throwError(() => new Error('Sin conexión'))); componente.cargarFormas();
+    expect(componente.formasLentes()).toEqual([]); expect(componente.errorFormas()).toContain('No se pudieron cargar');
   });
 
 });

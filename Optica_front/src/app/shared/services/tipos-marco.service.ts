@@ -1,3 +1,4 @@
+import { FormaLenteDiseno } from '../../Componentes/gestion-marcos/diseno-marco';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
@@ -21,6 +22,7 @@ export function imagenMarco(id: number): string { return `http://localhost:8080/
 export class TiposMarcoService {
   private readonly http = inject(HttpClient);
   private readonly url = 'http://localhost:8080/api/Marcos';
+  listarFormas() { return this.http.get<FormaLenteDiseno[]>(`${this.url}/formas-lente`); }
   listar() { return this.http.get<TipoMarco[]>(this.url); }
   disponibles() { return this.http.get<TipoMarco[]>(`${this.url}/disponibles`); }
   obtenerDiseno(id: number) { return this.http.get(`${this.url}/${id}/imagen`, { responseType: 'text' }); }
