@@ -24,3 +24,16 @@ public sealed record ValidarDisenoMarcoRequest(string Svg);
 public sealed record VincularProductosMarcoRequest(int[] Productos);
 
 public sealed record ProductoVinculableMarcoResponse(int Id, string Codigo, string Nombre, string Categoria, string Marca, int Stock, string Estado, int? IdTipoMarco);
+
+[Table("formas_lente")]
+public sealed class FormaLente
+{
+    [Key, Column("id_forma_lente")] public int Id { get; set; }
+    [Column("codigo"), MaxLength(50)] public string Codigo { get; set; } = "";
+    [Column("nombre"), MaxLength(80)] public string Nombre { get; set; } = "";
+    [Column("nombre_normalizado"), MaxLength(80)] public string NombreNormalizado { get; set; } = "";
+    [Column("geometria"), MaxLength(20)] public string Geometria { get; set; } = "contorno";
+    [Column("mantener_proporcion")] public bool MantenerProporcion { get; set; }
+    [Column("contorno", TypeName = "text")] public string Contorno { get; set; } = "";
+}
+public sealed record FormaLenteResponse(string Id, string Nombre, string Contorno, string Geometria = "contorno", bool MantenerProporcion = false);

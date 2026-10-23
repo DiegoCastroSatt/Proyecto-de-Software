@@ -32,6 +32,8 @@ public class OpticaDbContext : DbContext
 
     public DbSet<TipoRostro> TiposRostro => Set<TipoRostro>();
 
+    public DbSet<FormaLente> FormasLente => Set<FormaLente>();
+
     public DbSet<TipoMarco> TiposMarco => Set<TipoMarco>();
 
     public DbSet<Producto> Productos => Set<Producto>();
@@ -56,6 +58,8 @@ public class OpticaDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<FormaLente>().HasIndex(f => f.Codigo).IsUnique();
+        modelBuilder.Entity<FormaLente>().HasIndex(f => f.NombreNormalizado).IsUnique();
         modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Codigo).IsUnique();
         modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Nombre).IsUnique();
         modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Codigo).IsUnique();

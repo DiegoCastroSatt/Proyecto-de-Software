@@ -12,6 +12,12 @@ public sealed class MarcosController(OpticaDbContext db) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<TipoMarcoResponse>>> Listar(CancellationToken ct) => Ok(await Consultar(false, ct));
 
+    [HttpGet("formas-lente")]
+    public async Task<IActionResult> ListarFormas(CancellationToken ct) => Ok(await db.FormasLente.AsNoTracking()
+        .OrderBy(f => f.Nombre)
+        .Select(f => new FormaLenteResponse(f.Codigo, f.Nombre, f.Contorno, f.Geometria, f.MantenerProporcion))
+        .ToListAsync(ct));
+
     [AllowAnonymous]
     [HttpGet("disponibles")]
     public async Task<ActionResult<List<TipoMarcoResponse>>> Disponibles(CancellationToken ct) => Ok(await Consultar(true, ct));

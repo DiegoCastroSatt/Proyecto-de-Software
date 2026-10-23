@@ -237,4 +237,19 @@ public class TestMarcos
     [InlineData(" ARMAZÓN ")]
     public void Clasificar_ReconoceCategoriasDeArmazones(string categoria) => Assert.True(ValidacionMarco.EsArmazon(categoria));
 
+    [Fact]
+    public async Task ListarFormas_DevuelveLaGeometriaYProporcionGuardadasSinDependerDelNombre()
+    {
+        await using var db = Contexto();
+        db.FormasLente.Add(new FormaLente { Codigo = "modelo-nuevo", Nombre = "Modelo nuevo", NombreNormalizado = "modelo nuevo", Geometria = "elipse", MantenerProporcion = true });
+        await db.SaveChangesAsync();
+        var lista = Assert.IsType<List<FormaLenteResponse>>(Assert.IsType<OkObjectResult>(await new MarcosController(db).ListarFormas(default)).Value);
+        var forma = Assert.Single(lista);
+        Assert.Equal("elipse", forma.Geometria); Assert.True(forma.MantenerProporcion);
+    }
+    [Fact]
+    public void ListarFormas_RequiereSesion()
+    {
+        Assert.Empty(typeof(MarcosController).GetMethod("ListarFormas")!.GetCustomAttributes(typeof(AllowAnonymousAttribute), true));
+    }
 }
