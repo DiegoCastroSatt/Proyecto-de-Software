@@ -225,3 +225,263 @@ INSERT INTO detalle_venta
 INSERT INTO administradores
 (nombre, correo, contrasena, estado) VALUES
 ('ale', 'admin@optica.cl', '1234', 'Activo');
+
+-- TIPOS DE MARCOS
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'rectangular',
+  'Rectangular',
+  'Rectangular',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M24 42 Q22 37 30 37 H91 Q100 37 98 45 L94 73 Q93 79 85 79 H38 Q30 79 28 72 Z"/><path d="M24 42 Q22 37 30 37 H91 Q100 37 98 45 L94 73 Q93 79 85 79 H38 Q30 79 28 72 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'corazon,ovalado,redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'redondo',
+  'Redondo',
+  'Redondo',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M98 60 A36 36 0 1 1 26 60 A36 36 0 1 1 98 60 Z"/><path d="M98 60 A36 36 0 1 1 26 60 A36 36 0 1 1 98 60 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'alargado,corazon,cuadrado,diamante,ovalado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'ovalado',
+  'Ovalado',
+  'Ovalado',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M100 60 A39 28 0 1 1 22 60 A39 28 0 1 1 100 60 Z"/><path d="M100 60 A39 28 0 1 1 22 60 A39 28 0 1 1 100 60 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'corazon,cuadrado,diamante,ovalado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'cuadrado',
+  'Cuadrado',
+  'Cuadrado',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M30 29 Q25 29 25 36 L28 83 Q28 89 35 89 H87 Q95 89 95 81 L98 36 Q98 29 90 29 Z"/><path d="M30 29 Q25 29 25 36 L28 83 Q28 89 35 89 H87 Q95 89 95 81 L98 36 Q98 29 90 29 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'alargado,ovalado,redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'cat-eye',
+  'Cat eye',
+  'Cat eye',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M16 29 Q54 43 91 39 Q102 39 99 53 L92 75 Q85 88 57 85 Q32 82 25 62 Z"/><path d="M16 29 Q54 43 91 39 Q102 39 99 53 L92 75 Q85 88 57 85 Q32 82 25 62 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'diamante,ovalado,redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'aviador',
+  'Aviador',
+  'Aviador',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M23 39 Q23 28 42 29 L89 36 Q102 39 98 54 Q88 91 66 94 Q39 96 27 69 Q22 57 23 39 Z"/><path d="M23 39 Q23 28 42 29 L89 36 Q102 39 98 54 Q88 91 66 94 Q39 96 27 69 Q22 57 23 39 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/><path d="M100 36 Q120 29 140 36"/></g></svg>',
+  'alargado,corazon,cuadrado,diamante,ovalado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'wayfarer',
+  'Wayfarer',
+  'Wayfarer',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M19 34 Q60 27 101 35 L92 77 Q89 85 78 86 H43 Q33 85 29 76 Z"/><path d="M19 34 Q60 27 101 35 L92 77 Q89 85 78 86 H43 Q33 85 29 76 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'alargado,redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'geometrico',
+  'Geométrico',
+  'Geométrico',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M23 44 L43 25 H78 L100 44 L94 76 L76 90 H43 L26 74 Z"/><path d="M23 44 L43 25 H78 L100 44 L94 76 L76 90 H43 L26 74 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'ovalado,redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'browline',
+  'Browline',
+  'Browline',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M23 42 Q58 28 97 41 L94 65 Q89 87 61 88 Q34 86 27 67 Z"/><path d="M23 42 Q58 28 97 41 L94 65 Q89 87 61 88 Q34 86 27 67 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g><path d="M23 42 Q58 28 97 41 M143 41 Q182 28 217 42" fill="none" stroke="#222222" stroke-width="7" stroke-linecap="round"/></svg>',
+  'alargado,diamante,ovalado,redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'semimontura',
+  'Semimontura',
+  'Semimontura',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="1.3" stroke-linejoin="round"><path d="M24 42 Q60 27 98 42 L94 70 Q89 87 62 87 Q35 86 28 69 Z"/><path d="M24 42 Q60 27 98 42 L94 70 Q89 87 62 87 Q35 86 28 69 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g><path d="M23 42 Q58 28 97 41 M143 41 Q182 28 217 42" fill="none" stroke="#222222" stroke-width="7" stroke-linecap="round"/></svg>',
+  'corazon,cuadrado,diamante,ovalado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'sin-montura-cuadrado',
+  'Sin montura cuadrado',
+  'Sin montura',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M101 44 Q120 34 139 44"/><path d="M26 43 L9 39 M214 43 L231 39"/></g><g fill="#222222"><circle cx="101" cy="44" r="2.5"/><circle cx="139" cy="44" r="2.5"/><circle cx="26" cy="43" r="2.5"/><circle cx="214" cy="43" r="2.5"/></g></svg>',
+  'ovalado,redondo,corazon,diamante'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'sin-montura',
+  'Sin montura',
+  'Sin montura',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="1.3" stroke-linejoin="round"><path d="M100 60 A39 28 0 1 1 22 60 A39 28 0 1 1 100 60 Z"/><path d="M100 60 A39 28 0 1 1 22 60 A39 28 0 1 1 100 60 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'corazon,cuadrado,diamante,ovalado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'transparente',
+  'Transparente',
+  'Transparente',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="6" stroke-linejoin="round"><path d="M25 35 Q61 26 95 35 Q102 38 99 49 L94 77 Q91 86 80 86 H43 Q31 86 28 75 L23 48 Q21 39 25 35 Z"/><path d="M25 35 Q61 26 95 35 Q102 38 99 49 L94 77 Q91 86 80 86 H43 Q31 86 28 75 L23 48 Q21 39 25 35 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'corazon'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'rectangular-alto',
+  'Rectangular alto',
+  'Rectangular alto',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M25 32 Q23 27 32 27 H91 Q100 27 98 36 L94 82 Q93 90 84 90 H39 Q30 90 28 81 Z"/><path d="M25 32 Q23 27 32 27 H91 Q100 27 98 36 L94 82 Q93 90 84 90 H39 Q30 90 28 81 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'alargado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'aviador-angular',
+  'Aviador angular',
+  'Aviador angular',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M24 32 L88 37 L100 48 L84 86 L61 95 L34 83 L23 58 Z"/><path d="M24 32 L88 37 L100 48 L84 86 L61 95 L34 83 L23 58 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/><path d="M100 36 Q120 29 140 36"/></g></svg>',
+  'redondo'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'cat-eye-suave',
+  'Cat eye suave',
+  'Cat eye suave',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M20 35 Q55 42 88 40 Q101 41 98 57 Q93 83 65 85 Q37 86 28 65 Z"/><path d="M20 35 Q55 42 88 40 Q101 41 98 57 Q93 83 65 85 Q37 86 28 65 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'cuadrado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'mariposa',
+  'Mariposa',
+  'Mariposa',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M14 27 Q42 30 94 44 Q103 47 98 63 Q91 89 64 91 Q33 92 24 67 Z"/><path d="M14 27 Q42 30 94 44 Q103 47 98 63 Q91 89 64 91 Q33 92 24 67 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'cuadrado'
+);
+
+INSERT IGNORE INTO tipos_marco
+(codigo, nombre, categoria, svg, rostros)
+VALUES (
+  'oversize',
+  'Oversize',
+  'Oversize',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none"><g fill="none" stroke="#222222" stroke-width="4" stroke-linejoin="round"><path d="M19 28 Q54 17 95 30 Q106 35 100 63 L91 89 Q88 97 70 98 H43 Q25 96 22 81 L17 48 Q15 34 19 28 Z"/><path d="M19 28 Q54 17 95 30 Q106 35 100 63 L91 89 Q88 97 70 98 H43 Q25 96 22 81 L17 48 Q15 34 19 28 Z" transform="translate(240 0) scale(-1 1)"/></g><g stroke="#222222" stroke-width="3" stroke-linecap="round"><path d="M100 49 Q120 38 140 49 M22 44 L9 40 M218 44 L231 40"/></g></svg>',
+  'alargado'
+);
+
+
+-- TIPOS DE ROSTRO
+
+ALTER TABLE tipos_marco
+MODIFY COLUMN rostros TEXT NOT NULL;
+
+INSERT IGNORE INTO tipos_rostro
+(codigo, nombre, rasgos, consejo, ruta_imagen)
+VALUES (
+  'ovalado',
+  'Ovalado',
+  'Un poco más largo que ancho, con mandíbula suavemente redondeada.',
+  'Prueba distintas formas y mantén el ancho del marco cerca del ancho de tus pómulos.',
+  '/assets/images/recomendador/rostro-ovalado.png'
+);
+
+INSERT IGNORE INTO tipos_rostro
+(codigo, nombre, rasgos, consejo, ruta_imagen)
+VALUES (
+  'redondo',
+  'Redondo',
+  'Mejillas llenas, contornos suaves y ancho similar al largo.',
+  'Si buscas contraste, elige líneas definidas y un marco que no quede demasiado pequeño.',
+  '/assets/images/recomendador/rostro-redondo.png'
+);
+
+INSERT IGNORE INTO tipos_rostro
+(codigo, nombre, rasgos, consejo, ruta_imagen)
+VALUES (
+  'cuadrado',
+  'Cuadrado',
+  'Frente amplia y mandíbula definida, con anchos parecidos.',
+  'Las curvas y los perfiles finos pueden dar un contraste suave a la mandíbula.',
+  '/assets/images/recomendador/rostro-cuadrado.png'
+);
+
+INSERT IGNORE INTO tipos_rostro
+(codigo, nombre, rasgos, consejo, ruta_imagen)
+VALUES (
+  'alargado',
+  'Alargado',
+  'El largo predomina sobre el ancho, con mejillas más estrechas.',
+  'Prueba lentes con más altura y evita que el marco quede demasiado estrecho.',
+  '/assets/images/recomendador/rostro-alargado.png'
+);
+
+INSERT IGNORE INTO tipos_rostro
+(codigo, nombre, rasgos, consejo, ruta_imagen)
+VALUES (
+  'corazon',
+  'Corazón',
+  'Frente más amplia y rostro que se estrecha hacia el mentón.',
+  'Los perfiles ligeros y las curvas suaves ayudan a que el marco no domine la frente.',
+  '/assets/images/recomendador/rostro-corazon.png'
+);
+
+INSERT IGNORE INTO tipos_rostro
+(codigo, nombre, rasgos, consejo, ruta_imagen)
+VALUES (
+  'diamante',
+  'Diamante',
+  'Pómulos destacados, con frente y mentón más estrechos.',
+  'Busca un ajuste cómodo sobre los pómulos y prueba detalles en la parte superior.',
+  '/assets/images/recomendador/rostro-diamante.png'
+);
+
+-- Catálogo inicial de formas de lentes; el editor lo obtiene desde la API.
+INSERT IGNORE INTO formas_lente (codigo, nombre, nombre_normalizado, contorno, geometria, mantener_proporcion) VALUES
+('rectangular', 'Rectangular', 'rectangular', '', 'rectangulo', FALSE),
+('ovalada', 'Ovalada', 'ovalada', '', 'elipse', FALSE),
+('redonda', 'Redonda', 'redonda', '', 'elipse', TRUE),
+('cuadrada', 'Cuadrada', 'cuadrada', '', 'rectangulo', TRUE),
+('aviador', 'Aviador', 'aviador', 'M.04 .12 Q.2 .02 .42 .08 L.88 .17 Q1 .2 1 .28 Q1 .55 .75 .86 Q.58 1 .38 .96 Q.1 .91 .03 .6 Q0 .35 .04 .12Z', 'contorno', FALSE),
+('cat-eye', 'Cat eye', 'cat eye', 'M.02 0 Q.4 .2 .85 .15 Q1 .14 1 .28 L.9 .68 Q.8 .95 .45 .9 Q.1 .84 .03 .48 L0 .28Z', 'contorno', FALSE),
+('wayfarer', 'Wayfarer', 'wayfarer', 'M.05 .05 Q.4 0 .88 .08 Q1 .1 1 .28 L.85 .87 Q.82 .98 .64 1 H.28 Q.1 .98 .08 .8 L0 .28Q0 .1 .05 .05Z', 'contorno', FALSE),
+('hexagonal', 'Hexagonal', 'hexagonal', 'M.18 0 H.82 L1 .28 L.82 1 H.18 L0 .28Z', 'contorno', FALSE),
+('octagonal', 'Octagonal', 'octagonal', 'M.2 0 H.8 L1 .28 V.72 L.8 1 H.2 L0 .72 V.28Z', 'contorno', FALSE),
+('mariposa', 'Mariposa', 'mariposa', 'M.04 0 Q.45 .03 .9 .2 Q1 .22 1 .28 Q1 .6 .8 .86 Q.65 1 .35 .96 Q.08 .9 .02 .55 L0 .28Z', 'contorno', FALSE);

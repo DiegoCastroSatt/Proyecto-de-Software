@@ -1,3 +1,6 @@
+import { TipoMarco, imagenMarco } from '../../shared/services/tipos-marco.service';
+import { DisponibilidadMarcosService } from '../../shared/services/disponibilidad-marcos.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DetectorRostroService } from './detector-rostro.service';
@@ -12,26 +15,11 @@ import { AjusteMarco, calcularAjuste } from './ajuste-marco';
 export class ProbadorMarcosComponent implements OnDestroy {
   @ViewChild('video', { static: true }) video!: ElementRef<HTMLVideoElement>;
   private readonly detector = inject(DetectorRostroService);
-  readonly modelos = [
-    { id: 'rectangular', nombre: 'Rectangular' },
-    { id: 'redondo', nombre: 'Redondo' },
-    { id: 'ovalado', nombre: 'Ovalado' },
-    { id: 'cuadrado', nombre: 'Cuadrado' },
-    { id: 'cat-eye', nombre: 'Cat eye' },
-    { id: 'aviador', nombre: 'Aviador' },
-    { id: 'wayfarer', nombre: 'Wayfarer' },
-    { id: 'geometrico', nombre: 'Geométrico' },
-    { id: 'browline', nombre: 'Browline' },
-    { id: 'semimontura', nombre: 'Semimontura' },
-    { id: 'sin-montura', nombre: 'Sin montura' },
-    { id: 'transparente', nombre: 'Transparente' },
-    { id: 'rectangular-alto', nombre: 'Rectangular alto' },
-    { id: 'aviador-angular', nombre: 'Aviador angular' },
-    { id: 'cat-eye-suave', nombre: 'Cat eye suave' },
-    { id: 'mariposa', nombre: 'Mariposa' },
-    { id: 'oversize', nombre: 'Oversize' },
-  ];
-  readonly seleccionado = signal('rectangular');
+  readonly imagenMarco = imagenMarco;
+  readonly modelos = signal<TipoMarco[]>([]);
+  readonly cargandoModelos = signal(true);
+  readonly errorModelos = signal('');
+  readonly seleccionado = signal('');
   readonly foto = signal('');
   readonly camara = signal(false);
   readonly solicitando = signal(false);
@@ -48,11 +36,24 @@ export class ProbadorMarcosComponent implements OnDestroy {
 
   constructor() {
     const modelo = inject(ActivatedRoute).snapshot.queryParamMap.get('modelo');
-    if (this.modelos.some((item) => item.id === modelo)) this.seleccionado.set(modelo!);
+    inject(DisponibilidadMarcosService).consultar().pipe(takeUntilDestroyed()).subscribe({
+      next: disponibles => {
+        const modelos = disponibles;
+        this.modelos.set(modelos);
+        this.seleccionado.set(modelos.find(item => item.codigo === modelo)?.codigo ?? modelos[0]?.codigo ?? '');
+        this.cargandoModelos.set(false);
+      },
+      error: () => {
+        this.errorModelos.set('No se pudo consultar el stock de marcos. Vuelve a intentarlo.');
+        this.cargandoModelos.set(false);
+      },
+    });
   }
 
+  get modeloActual() { return this.modelos().find(item => item.codigo === this.seleccionado()); }
+
   get nombreModelo(): string {
-    return this.modelos.find((item) => item.id === this.seleccionado())!.nombre;
+    return this.modelos().find((item) => item.codigo === this.seleccionado())?.nombre ?? '';
   }
 
   get estado(): string {

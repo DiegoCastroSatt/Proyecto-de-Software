@@ -1,7 +1,7 @@
 <div class="admin-shell">
   <header class="admin-header">
     <a class="brand" routerLink="/inicio" aria-label="Centro Óptico San Francisco, inicio">
-      <img class="brand-logo" src="/images/favicon-san-francisco-transparente.png" alt="Óptica San Francisco" width="72" height="72">
+      <img class="brand-logo" src="/assets/images/favicon-san-francisco-transparente.png" alt="Óptica San Francisco" width="72" height="72">
     </a>
 
     <nav aria-label="Navegación del administrador">
@@ -18,6 +18,7 @@
         <div class="inventory-submenu">
           <a routerLink="/admin/panel/productos" routerLinkActive="is-active">Catálogo</a>
           <a routerLink="/admin/panel/productos/nuevo" routerLinkActive="is-active">Nuevo Producto</a>
+          <a routerLink="/admin/panel/marcos" routerLinkActive="is-active">Marcos</a>
           <a routerLink="/admin/panel/stock" routerLinkActive="is-active">Consultar Stock</a>
         </div>
       </div>
@@ -36,11 +37,19 @@
       <div class="inventory-menu" routerLinkActive="is-active">
         <button type="button" aria-haspopup="true">Pedidos <span aria-hidden="true">▾</span></button>
         <div class="inventory-submenu">
+<<<<<<< HEAD
           <a routerLink="/admin/panel/crear-pedido" routerLinkActive="is-active">Crear</a>
           <a routerLink="/admin/panel/pedido" routerLinkActive="is-active">Lista</a>
           <a routerLink="/admin/panel/pedidos/historial" routerLinkActive="is-active">Historial</a>
         </div>
       </div>
+=======
+          <a routerLink="/admin/panel/pedido" routerLinkActive="is-active"> Lista de Pedidos </a>
+          <a routerLink="/admin/panel/crear-pedido" routerLinkActive="is-active">Crear Pedido</a>
+        </div>
+      </div>
+
+>>>>>>> d5ac54af215794cf12ec7b9c7df59dd5724b539f
     </nav>
     <div class="notificaciones">
       <button

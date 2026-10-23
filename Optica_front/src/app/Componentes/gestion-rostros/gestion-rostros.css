@@ -1,0 +1,4 @@
+textarea { width: 100%; box-sizing: border-box; border: 1px solid #7b9691; padding: 10px; border-radius: 6px; font: inherit; resize: vertical; }
+textarea:focus-visible { outline: 3px solid #bf8542; outline-offset: 3px; }
+.lista li { flex-wrap: wrap; } .lista .retrato { object-fit: cover; padding: 0; }
+.detalle { min-width: 180px; } .asociaciones { width: 100%; box-sizing: border-box; } .botones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
