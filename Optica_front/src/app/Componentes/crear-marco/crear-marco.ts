@@ -1,6 +1,6 @@
 import { RouterLink } from '@angular/router';
-import { EditorMarcoComponent } from './editor-marco';
-import { disenoMarcoInicial } from './diseno-marco';
+import { EditorMarcoComponent } from '../editor-marco/editor-marco';
+import { disenoMarcoInicial } from '../diseño-marco/diseno-marco';
 import { TipoRostro, TiposRostroService } from '../../shared/services/tipos-rostro.service';
 import { Component, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';

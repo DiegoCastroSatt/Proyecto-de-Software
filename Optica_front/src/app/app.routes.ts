@@ -1,4 +1,4 @@
-import { CrearMarcoComponent } from './Componentes/gestion-marcos/crear-marco';
+import { CrearMarcoComponent } from './Componentes/crear-marco/crear-marco';
 import { GestionRostrosComponent } from './Componentes/gestion-rostros/gestion-rostros';
 import { GestionMarcosComponent } from './Componentes/gestion-marcos/gestion-marcos';
 import { ProbadorMarcosComponent } from './Componentes/probador-marcos/probador-marcos';
