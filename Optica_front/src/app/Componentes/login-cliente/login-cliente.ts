@@ -61,7 +61,7 @@ export class LoginCliente implements OnDestroy {
       error: (error: HttpErrorResponse) => {
         this.cargandoLogin.set(false);
         this.errorLogin.set(error.status === 401
-          ? 'No fue posible iniciar sesión. Revisa tus datos. Si ya eres cliente del centro y aún no tienes cuenta, contacta al personal para verificar o activar tu acceso.'
+          ? 'No fue posible iniciar sesión. Revisa tus datos. Si no tienes cuenta, regístrate; si tus datos ya están registrados en el centro, contacta al personal para verificar o activar tu acceso.'
           : 'No se pudo conectar con el servidor. Inténtalo nuevamente más tarde.');
       }
     });
