@@ -1,5 +1,4 @@
 import { provideRouter } from '@angular/router';
-import { TiposRostroService } from '../../shared/services/tipos-rostro.service';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
@@ -12,10 +11,17 @@ describe('Inventario de marcos', () => {
   function crear() {
     const servicio = { listarFormas: vi.fn(() => of([])), productosVinculables: vi.fn(() => of([{ id: 10, nombre: 'Armazón Ray-Ban', codigo: 'RB1', categoria: 'Armazones', stock: 3, estado: 'Disponible', idTipoMarco: 1 }, { id: 11, nombre: 'Armazón nuevo', codigo: 'RB2', categoria: 'Armazones', stock: 2, estado: 'Disponible', idTipoMarco: null }])), listar: vi.fn(() => of([{ ...marco }])), crear: vi.fn(() => of({ ...marco, id: 2 })),
       cambiarEstado: vi.fn(() => of(undefined)), borrar: vi.fn(() => of(undefined)), vincularProductos: vi.fn(() => of([{ ...marco }])) };
-    TestBed.configureTestingModule({ imports: [GestionMarcosComponent], providers: [provideRouter([]), { provide: TiposRostroService, useValue: { activos: () => of([{ id: 1, codigo: 'ovalado', nombre: 'Ovalado' }]) } }, { provide: TiposMarcoService, useValue: servicio }] });
+    TestBed.configureTestingModule({ imports: [GestionMarcosComponent], providers: [provideRouter([]), { provide: TiposMarcoService, useValue: servicio }] });
     const fixture = TestBed.createComponent(GestionMarcosComponent); fixture.detectChanges();
     return { fixture, componente: fixture.componentInstance, servicio };
   }
+
+  it('abre el formulario en otra pantalla y no muestra el editor dentro de la gestión', () => {
+    const { fixture } = crear();
+    expect(fixture.nativeElement.querySelector('a[href="/admin/panel/marcos/crear"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-editor-marco')).toBeNull();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+  });
 
   it('lista el SVG y permite desactivar sin borrar el tipo', () => {
     const { fixture, componente, servicio } = crear();
@@ -33,14 +39,7 @@ describe('Inventario de marcos', () => {
     expect(servicio.borrar).toHaveBeenCalledWith(1); expect(componente.marcos()).toEqual([]);
   });
 
-  it('envía nombre, categoría, SVG y rostros al crear', () => {
-    const { componente, servicio } = crear();
-    componente.nombre = 'Nuevo'; componente.categoria = 'Nueva'; componente.svg = '<svg/>';
-    componente.rostrosSeleccionados = new Set(['ovalado']);
-    componente.crear(document.createElement('input'));
-    expect(servicio.crear).toHaveBeenCalledWith({ nombre: 'Nuevo', categoria: 'Nueva', svg: '<svg/>', rostros: ['ovalado'] });
-    expect(componente.marcos().length).toBe(2); expect(componente.svg).toContain('<svg');
-  });
+
 
   it('conserva el estado visible si falla la desactivación', () => {
     const { componente, servicio } = crear();
@@ -48,13 +47,7 @@ describe('Inventario de marcos', () => {
     componente.alternar(marco); expect(componente.marcos()[0].activo).toBe(true);
     expect(componente.error()).toBe('Falló'); expect(componente.ocupado()).toBeNull();
   });
-  it('permite crear un marco sin cargar archivos ni conocer SVG', () => {
-    const { componente, servicio, fixture } = crear();
-    componente.nombre = 'Nuevo'; componente.categoria = 'Nueva';
-    componente.crear(document.createElement('input'));
-    expect(servicio.crear).toHaveBeenCalledWith(expect.objectContaining({ nombre: 'Nuevo', svg: expect.stringContaining('<svg') }));
-    expect(fixture.nativeElement.querySelector('app-editor-marco')).toBeTruthy();
-  });
+
 
   it('permite vincular armazones sin exigir que su categoría sea igual al diseño', () => {
     const { componente, servicio } = crear(); componente.abrirVinculos(marco);

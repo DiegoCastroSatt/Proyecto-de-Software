@@ -1,0 +1,35 @@
+<section class="crear-marco" aria-labelledby="titulo-crear-marco">
+  <header>
+    <p class="eyebrow">Inventario · Marcos</p>
+    <div class="encabezado"><h1 id="titulo-crear-marco">Diseñar y crear marco</h1>
+      <a class="boton" routerLink="/admin/panel/marcos">Volver a Marcos</a></div>
+    <p>Prepara el diseño y selecciona los rostros para los que se recomienda.</p>
+    <a routerLink="/admin/panel/marcos/rostros">Administrar tipos de rostro</a>
+  </header>
+  @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
+  @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
+  <form #formulario="ngForm" (ngSubmit)="crear(archivo)" class="crear">
+    <h2>Crear tipo de marco</h2>
+    <div class="campos">
+      <label>Nombre<input name="nombre" [(ngModel)]="nombre" required maxlength="80" placeholder="Ej. Redondo" /></label>
+
+    </div>
+    <app-editor-marco [disenos]="marcos()" [reinicio]="reinicioDiseno()" (disenoChange)="svg = $event" (cargandoChange)="cargandoDiseno.set($event)" />
+    <details class="cargar-ilustracion"><summary>Ya tengo una ilustración (opcional)</summary>
+      <label>Seleccionar archivo<input #archivo type="file" accept=".svg,image/svg+xml" (change)="elegirSvg($event)" [disabled]="guardando() || leyendoArchivo() || cargandoDiseno()" /></label>
+      <small>Puedes cargar una ilustración de hasta 100 KB o usar directamente el editor de arriba.</small>
+    </details>
+    <fieldset>
+      <legend>Recomendar para estos rostros</legend>
+      @if (cargandoRostros()) { <p role="status">Cargando rostros…</p> }
+      @else if (!rostros().length) { <p>Crea o activa un rostro desde «Administrar tipos de rostro» para poder asociarlo a un marco.</p> }
+      <div class="rostros">
+        @for (rostro of rostros(); track rostro.id) {
+          <label><input type="checkbox" [checked]="rostrosSeleccionados.has(rostro.codigo)" (change)="cambiarRostro(rostro.codigo, $any($event.target).checked)" />{{ rostro.nombre }}</label>
+        }
+      </div>
+    </fieldset>
+    @if (archivoNombre) { <small>Ilustración seleccionada: {{ archivoNombre }}</small> }
+    <button class="primario" type="submit" [disabled]="formulario.invalid || guardando() || leyendoArchivo() || cargandoDiseno() || !svg || !rostrosSeleccionados.size">{{ guardando() ? 'Creando…' : 'Crear marco' }}</button>
+  </form>
+</section>
