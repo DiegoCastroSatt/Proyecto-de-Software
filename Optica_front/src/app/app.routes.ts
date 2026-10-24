@@ -21,9 +21,12 @@ import { DetallePedidoComponent } from './Componentes/detalle-pedido/detalle-ped
 import { ClientesComponent } from './Componentes/clientes/clientes';
 import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
+import { LoginCliente } from './Componentes/login-cliente/login-cliente';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
 import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
+import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
+import { authClienteGuard } from './guards/auth-cliente-guard';
 
 export const routes: Routes = [
   {
@@ -31,6 +34,9 @@ export const routes: Routes = [
     component: ClienteLayoutComponent,
     children: [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+      { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
+      { path: 'cliente/login', component: LoginCliente },
+      { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
