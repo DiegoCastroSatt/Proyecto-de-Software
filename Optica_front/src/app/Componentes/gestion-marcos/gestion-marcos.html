@@ -1,7 +1,7 @@
 <section class="gestion-marcos" aria-labelledby="titulo-marcos">
   <header>
     <p class="eyebrow">Inventario</p>
-    <div class="encabezado-inventario"><h1 id="titulo-marcos">Marcos</h1><a class="boton-inventario" routerLink="/admin/panel/marcos/rostros">Tipos de rostro</a></div>
+    <div class="encabezado-inventario"><h1 id="titulo-marcos">Marcos</h1><a class="boton-inventario" routerLink="/admin/panel/marcos/crear">Crear marco</a><a class="boton-inventario" routerLink="/admin/panel/marcos/rostros">Tipos de rostro</a></div>
     <p>Administra los tipos que se muestran en el recomendador y el simulador.</p>
     <p>Armazones y marcos son el mismo producto. Vincula aquí los armazones del inventario; sus existencias se usarán en el recomendador y simulador.</p>
   </header>
@@ -9,32 +9,9 @@
   @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
   @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
 
-  <form #formulario="ngForm" (ngSubmit)="crear(archivo)" class="crear">
-    <h2>Crear tipo de marco</h2>
-    <div class="campos">
-      <label>Nombre<input name="nombre" [(ngModel)]="nombre" required maxlength="80" placeholder="Ej. Redondo" /></label>
 
-    </div>
-    <app-editor-marco [disenos]="marcos()" [reinicio]="reinicioDiseno()" (disenoChange)="svg = $event" (cargandoChange)="cargandoDiseno.set($event)" />
-    <details class="cargar-ilustracion"><summary>Ya tengo una ilustración (opcional)</summary>
-      <label>Seleccionar archivo<input #archivo type="file" accept=".svg,image/svg+xml" (change)="elegirSvg($event)" [disabled]="guardando() || leyendoArchivo() || cargandoDiseno()" /></label>
-      <small>Puedes cargar una ilustración de hasta 100 KB o usar directamente el editor de arriba.</small>
-    </details>
-    <fieldset>
-      <legend>Recomendar para estos rostros</legend>
-      @if (cargandoRostros()) { <p role="status">Cargando rostros…</p> }
-      @else if (!rostros().length) { <p>Crea o activa un rostro desde el botón «Tipos de rostro» para poder asociarlo a un marco.</p> }
-      <div class="rostros">
-        @for (rostro of rostros(); track rostro.id) {
-          <label><input type="checkbox" [checked]="rostrosSeleccionados.has(rostro.codigo)" (change)="cambiarRostro(rostro.codigo, $any($event.target).checked)" />{{ rostro.nombre }}</label>
-        }
-      </div>
-    </fieldset>
-    @if (archivoNombre) { <small>Ilustración seleccionada: {{ archivoNombre }}</small> }
-    <button class="primario" type="submit" [disabled]="formulario.invalid || guardando() || leyendoArchivo() || cargandoDiseno() || !svg || !rostrosSeleccionados.size">{{ guardando() ? 'Creando…' : 'Crear marco' }}</button>
-  </form>
 
-  <div class="titulo-lista"><h2>Tipos de marco <span>({{ marcos().length }})</span></h2><button type="button" (click)="cargar()" [disabled]="cargando() || ocupado() !== null || guardando()">Actualizar</button></div>
+  <div class="titulo-lista"><h2>Tipos de marco <span>({{ marcos().length }})</span></h2><button type="button" (click)="cargar()" [disabled]="cargando() || ocupado() !== null">Actualizar</button></div>
   <div class="busqueda-marcos">
     <label for="buscar-marcos">Buscar marcos</label>
     <div class="campo-busqueda"><input id="buscar-marcos" type="search" [(ngModel)]="busquedaMarcos" placeholder="Buscar por nombre, por ejemplo: redondo" aria-controls="lista-marcos" />

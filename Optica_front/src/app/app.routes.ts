@@ -1,3 +1,4 @@
+import { CrearMarcoComponent } from './Componentes/crear-marco/crear-marco';
 import { GestionRostrosComponent } from './Componentes/gestion-rostros/gestion-rostros';
 import { GestionMarcosComponent } from './Componentes/gestion-marcos/gestion-marcos';
 import { ProbadorMarcosComponent } from './Componentes/probador-marcos/probador-marcos';
@@ -63,6 +64,7 @@ export const routes: Routes = [
           { path: 'productos', component: BuscarProductoAdmin },
           { path: 'stock', component: ConsultarStock },
           { path: 'marcos', component: GestionMarcosComponent },
+          { path: 'marcos/crear', component: CrearMarcoComponent },
           { path: 'marcos/rostros', component: GestionRostrosComponent },
           { path: 'rostros', redirectTo: 'marcos/rostros', pathMatch: 'full' },
           { path: 'ventas', component: RegistroVentaComponent },

@@ -1,4 +1,4 @@
-import { DisenoDesdeCero, FormaLenteDiseno, PiezaMarco, configuracionDesdeCero, generarMarcoDesdeCero, nombresPiezas, ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from './diseno-marco';
+import { DisenoDesdeCero, FormaLenteDiseno, PiezaMarco, configuracionDesdeCero, generarMarcoDesdeCero, nombresPiezas, ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from '../diseno/diseno-marco';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TipoMarco, TiposMarcoService } from '../../shared/services/tipos-marco.service';
