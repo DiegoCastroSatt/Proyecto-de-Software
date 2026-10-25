@@ -130,9 +130,6 @@ artifacts/
 # Imágenes cargadas 
 /Optica.Api/wwwroot/
 
-# Datos locales para poblar la base de datos
-/database/insert.sql
-
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
