@@ -20,6 +20,8 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Cliente> Clientes => Set<Cliente>();
 
+    public DbSet<CuentaCliente> CuentasCliente => Set<CuentaCliente>();
+
     public DbSet<Reserva> Reservas => Set<Reserva>();
 
     public DbSet<Horario> Horarios => Set<Horario>();
@@ -104,6 +106,25 @@ public class OpticaDbContext : DbContext
 
             entity.Property(c => c.FechaRegistro)
                 .HasColumnName("fecha_registro");
+        });
+
+        modelBuilder.Entity<CuentaCliente>(entity =>
+        {
+            entity.ToTable("cuentas_cliente");
+            entity.HasKey(c => c.IdCuenta);
+            entity.Property(c => c.IdCuenta).HasColumnName("id_cuenta");
+            entity.Property(c => c.IdCliente).HasColumnName("id_cliente");
+            entity.Property(c => c.Correo).HasColumnName("correo").HasMaxLength(100).IsRequired();
+            entity.Property(c => c.CorreoNormalizado).HasColumnName("correo_normalizado").HasMaxLength(100).IsRequired();
+            entity.Property(c => c.ContrasenaHash).HasColumnName("contrasena_hash").HasMaxLength(500).IsRequired();
+            entity.Property(c => c.Estado).HasColumnName("estado").HasMaxLength(12).IsRequired();
+            entity.Property(c => c.FechaCreacion).HasColumnName("fecha_creacion");
+            entity.HasIndex(c => c.IdCliente).IsUnique();
+            entity.HasIndex(c => c.CorreoNormalizado).IsUnique();
+            entity.HasOne(c => c.Cliente)
+                .WithOne()
+                .HasForeignKey<CuentaCliente>(c => c.IdCliente)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Reserva>(entity =>
