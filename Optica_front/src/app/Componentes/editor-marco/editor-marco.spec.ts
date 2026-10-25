@@ -1,4 +1,4 @@
-import { FormaLenteDiseno, configuracionDesdeCero, generarMarcoDesdeCero, ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from './diseno-marco';
+import { FormaLenteDiseno, configuracionDesdeCero, generarMarcoDesdeCero, ajustarDisenoMarco, ajustesDisenoIniciales, disenoMarcoInicial } from '../diseno/diseno-marco';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';

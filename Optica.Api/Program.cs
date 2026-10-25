@@ -16,9 +16,11 @@ using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Autenticacion.Interfaces;
 using Optica.Api.Modules.Autenticacion.Repositories;
 using Optica.Api.Modules.Autenticacion.Services;
+using Optica.Api.Modules.Autenticacion.Controllers;
 using Optica.Api.Modules.Clientes.Interfaces;
 using Optica.Api.Modules.Clientes.Repositories;
 using Optica.Api.Modules.Clientes.Services;
+using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
 using Optica.Api.Modules.Notificaciones.Interfaces;
@@ -83,6 +85,8 @@ builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
 builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
+builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
+builder.Services.AddScoped<AutenticacionClienteService>();
 builder.Services.AddSingleton<EstadoRecuperacionAdministrador>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
@@ -93,12 +97,14 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.Cookie.Name = "Optica.Admin";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SecurePolicy = builder.Environment.IsProduction()
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = false;
         options.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
@@ -113,9 +119,42 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 await ctx.HttpContext.SignOutAsync();
             }
         };
+    })
+    .AddCookie(AutenticacionClientesController.Esquema, options =>
+    {
+        options.Cookie.Name = "Optica.Cliente";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = builder.Environment.IsProduction()
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = false;
+        options.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = StatusCodes.Status401Unauthorized; return Task.CompletedTask; };
+        options.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
+        options.Events.OnValidatePrincipal = async ctx =>
+        {
+            var db = ctx.HttpContext.RequestServices.GetRequiredService<OpticaDbContext>();
+            if (!int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)
+                || !await db.CuentasCliente.AnyAsync(c => c.IdCliente == idCliente
+                    && c.Estado == "Activa" && c.Cliente!.Estado == "Activo", ctx.HttpContext.RequestAborted))
+            {
+                ctx.RejectPrincipal();
+                await ctx.HttpContext.SignOutAsync(AutenticacionClientesController.Esquema);
+            }
+        };
     });
 builder.Services.AddAuthorization(options =>
-    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+{
+    // La política predeterminada y de respaldo conserva la autenticación administrativa existente.
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    options.AddPolicy(AutenticacionClientesController.Politica, policy =>
+    {
+        policy.AddAuthenticationSchemes(AutenticacionClientesController.Esquema);
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(AutenticacionClientesController.ClaimTipo, "cliente");
+    });
+});
 
 var app = builder.Build();
 
@@ -130,7 +169,10 @@ app.Use(async (context, next) =>
 {
     if (context.Request.Path.StartsWithSegments("/api")
         && context.Request.Method is not ("GET" or "HEAD" or "OPTIONS")
-        && (context.User.Identity?.IsAuthenticated == true || context.Request.Path == "/api/Autenticacion/admin"))
+        && (context.User.Identity?.IsAuthenticated == true
+            || context.Request.Cookies.ContainsKey("Optica.Cliente")
+            || context.Request.Path == "/api/Autenticacion/admin"
+            || context.Request.Path.StartsWithSegments("/api/Autenticacion/cliente")))
     {
         var origin = context.Request.Headers.Origin.ToString();
         if (origin != "http://localhost:4200" && origin != "http://localhost:4300"

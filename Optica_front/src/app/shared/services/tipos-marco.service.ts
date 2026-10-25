@@ -1,4 +1,4 @@
-import { FormaLenteDiseno } from '../../Componentes/gestion-marcos/diseno-marco';
+import { FormaLenteDiseno } from '../../Componentes/diseno/diseno-marco';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 

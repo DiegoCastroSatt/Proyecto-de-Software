@@ -1,66 +1,50 @@
-.historial-pedidos {
-  width: min(100% - 32px, 960px);
-  margin: 36px auto;
-  padding: clamp(20px, 4vw, 36px);
-  border: 1px solid var(--color-borde-control);
-  border-radius: 8px;
-  background: var(--color-superficie);
-  color: var(--color-texto);
-  box-sizing: border-box;
-}
-
-.historial-encabezado {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.form-heading {
   gap: 16px;
-  margin-bottom: 28px;
 }
 
-.historial-encabezado h1,
-.resultado-historial h2 {
-  margin: 0;
-}
-
-.historial-encabezado p {
+.form-heading p {
   margin: 8px 0 0;
   color: var(--color-texto-secundario);
 }
 
-.volver-lista,
-.pedido-historico a {
+.volver-lista {
   color: var(--color-principal);
   font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.busqueda-cliente {
+.search-bar-container {
   position: relative;
-  max-width: 560px;
+  margin-bottom: 24px;
 }
 
-.busqueda-cliente label {
+.search-bar-container label {
   display: block;
   margin-bottom: 8px;
   font-weight: 700;
 }
 
-.busqueda-cliente input {
+.search-input {
   width: 100%;
-  min-height: 46px;
+  min-height: 44px;
   padding: 10px 14px;
   border: 1px solid var(--color-borde-control);
   border-radius: 4px;
+  box-sizing: border-box;
   background: var(--color-superficie);
   color: var(--color-texto);
   font: inherit;
-  box-sizing: border-box;
+  font-size: 0.9rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.busqueda-cliente input:focus-visible,
+.search-input:focus,
 .sugerencias-clientes button:focus-visible,
-.pedido-historico a:focus-visible,
+.btn-detalle:focus-visible,
 .volver-lista:focus-visible {
+  border-color: var(--color-principal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-principal) 12%, transparent);
   outline: 3px solid color-mix(in srgb, var(--color-principal) 35%, transparent);
   outline-offset: 2px;
 }
@@ -102,52 +86,178 @@
 }
 
 .sugerencias-clientes span,
-.resultado-historial h2 span,
-.pedido-historico span,
+.resultado-historial h3 span,
 .estado-busqueda,
-.sin-pedidos {
+.empty-subtitle {
   color: var(--color-texto-secundario);
 }
 
 .resultado-historial {
-  margin-top: 36px;
+  margin-top: 28px;
 }
 
-.resultado-historial h2 {
+.resultado-historial h3 {
   margin-bottom: 18px;
-  font-size: 1.2rem;
+  color: var(--color-texto);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.4rem;
+  font-weight: 400;
 }
 
-.pedidos-lista {
-  display: grid;
-  gap: 10px;
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--color-fondo-panel);
+  border: 1px dashed var(--color-borde-control);
+  border-radius: 4px;
 }
 
-.pedido-historico {
+.empty-title {
+  margin: 0;
+  color: var(--color-texto-secundario);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.empty-subtitle {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+}
+
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.pedido-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-pedido);
+  border-radius: 6px;
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.pedido-card:hover {
+  border-color: var(--color-principal);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-principal) 8%, transparent);
+}
+
+.pedido-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pedido-cliente {
+  color: var(--color-texto);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.pedido-fecha {
+  color: var(--color-texto-secundario);
+  font-size: 0.85rem;
+}
+
+.pedido-total {
+  color: var(--color-texto-secundario);
+  font-size: 0.9rem;
+}
+
+.pedido-estado {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.pedido-estado[data-estado="Pendiente"] {
+  background: var(--color-estado-pendiente-fondo);
+  color: var(--color-estado-pendiente);
+}
+
+.pedido-estado[data-estado="En proceso"] {
+  background: var(--color-estado-proceso-fondo);
+  color: var(--color-estado-proceso);
+}
+
+.pedido-estado[data-estado="Listo"] {
+  background: var(--color-exito-fondo);
+  color: var(--color-exito);
+}
+
+.pedido-estado[data-estado="Entregado"] {
+  background: var(--color-estado-listo-fondo);
+  color: var(--color-estado-listo);
+}
+
+.pedido-estado[data-estado="Cancelado"] {
+  background: var(--color-estado-cancelado-fondo);
+  color: var(--color-estado-cancelado);
+}
+
+.pedido-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px;
-  border: 1px solid var(--color-borde-control);
-  border-radius: 5px;
-  background: var(--color-fondo-panel);
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-.pedido-historico > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
+.btn-detalle {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border: 1px solid var(--color-principal);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-principal);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.btn-detalle:hover {
+  background: var(--color-principal);
+  color: var(--color-superficie-calida);
+  transform: translateY(-1px);
 }
 
 .mensaje-error {
   color: var(--color-error-oscuro);
 }
 
-@media (max-width: 600px) {
-  .historial-encabezado,
-  .pedido-historico {
+@media (max-width: 720px) {
+  .order-page {
+    padding: 0;
+  }
+
+  .order-shell {
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .form-heading,
+  .pedido-card {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .pedido-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 }

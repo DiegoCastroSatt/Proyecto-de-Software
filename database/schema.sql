@@ -17,6 +17,18 @@ estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo',
 fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE cuentas_cliente (
+    id_cuenta INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT NOT NULL UNIQUE,
+    correo VARCHAR(100) NOT NULL,
+    correo_normalizado VARCHAR(100) NOT NULL UNIQUE,
+    contrasena_hash VARCHAR(500) NOT NULL,
+    estado VARCHAR(12) NOT NULL DEFAULT 'Activa',
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cuentas_cliente_cliente FOREIGN KEY (id_cliente)
+        REFERENCES clientes(id_cliente) ON DELETE RESTRICT
+);
+
 CREATE TABLE recetas (
 id_receta INT AUTO_INCREMENT PRIMARY KEY,
 id_cliente INT NOT NULL,
@@ -83,6 +95,8 @@ ON DELETE SET NULL
 
 CREATE TABLE ventas (
 id_venta INT AUTO_INCREMENT PRIMARY KEY,
+id_cliente INT NULL,
+CONSTRAINT fk_venta_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE SET NULL,
 fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 total DECIMAL(10,2) NOT NULL DEFAULT 0
 );
