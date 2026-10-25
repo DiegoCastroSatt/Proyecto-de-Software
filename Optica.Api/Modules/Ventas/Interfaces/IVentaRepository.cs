@@ -6,4 +6,5 @@ public interface IVentaRepository
 {
     Task<IReadOnlyList<VentaResponseDto>> Listar();
     Task Guardar(Venta venta);
+    Task<int?> BuscarClienteActivo(string rutNormalizado);
 }

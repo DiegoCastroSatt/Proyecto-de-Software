@@ -61,6 +61,12 @@
       </section>
       <aside class="resumen">
         <h2>Resumen de venta</h2>
+        <fieldset class="cliente-venta" [disabled]="guardando()">
+          <legend>Cliente (opcional)</legend>
+          <app-autocompletado-rut [(value)]="rutCliente" />
+          <small>Deja el RUT vacío para registrar la venta sin vincularla a un cliente.</small>
+          @if (rutCliente()) { <button type="button" (click)="rutCliente.set('')">Quitar cliente</button> }
+        </fieldset>
         <p>{{ productos().length }} productos · {{ unidades() }} unidades</p>
         <span>Total</span>
         <strong class="total">${{ total() | number:'1.0-2' }}</strong>
