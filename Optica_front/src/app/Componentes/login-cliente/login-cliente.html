@@ -20,7 +20,13 @@
             maxlength="100" required [disabled]="cargandoLogin() || sesionIniciada()">
         </div>
         <div class="form-field">
-          <label for="contrasena">Contraseña</label>
+          <div class="contrasena-etiqueta-fila">
+            <label for="contrasena">Contraseña</label>
+            <button #recuperarTrigger type="button" class="enlace-secundario" (click)="abrirRecuperar()"
+              [disabled]="cargandoLogin() || sesionIniciada()">
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
           <input type="password" id="contrasena" name="contrasena" [(ngModel)]="contrasena"
             autocomplete="current-password" maxlength="255" required
             [disabled]="cargandoLogin() || sesionIniciada()">
@@ -39,6 +45,53 @@
     <span class="login-index" aria-hidden="true">SF / 01</span>
   </main>
 
+  <!-- Modal Recuperación de Contraseña -->
+  @if (modalRecuperarAbierto()) {
+    <div class="registro-backdrop" role="presentation" (click)="$event.target === $event.currentTarget && cerrarRecuperar()">
+      <section #recuperarDialog class="registro-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="recuperar-titulo" aria-describedby="recuperar-descripcion">
+        <header class="registro-cabecera">
+          <div>
+            <p class="registro-eyebrow">CENTRO ÓPTICO SAN FRANCISCO</p>
+            <h2 id="recuperar-titulo">Recuperar contraseña</h2>
+          </div>
+          <button type="button" class="registro-cerrar" aria-label="Cerrar ventana"
+            [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">×</button>
+        </header>
+
+        @if (recuperacionEnviada()) {
+          <div class="registro-confirmacion" role="status">
+            <h3>Enlace enviado</h3>
+            <p>Si la dirección corresponde a una cuenta activa registrada, te hemos enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada o spam.</p>
+            <button type="button" class="registro-crear" (click)="cerrarRecuperar()">Entendido</button>
+          </div>
+        } @else {
+          <p id="recuperar-descripcion" class="registro-descripcion">
+            Ingresa tu correo registrado. Te enviaremos un enlace de duración limitada (15 minutos) para definir una nueva contraseña.
+          </p>
+          <form class="registro-formulario" (submit)="enviarRecuperacion(); $event.preventDefault()" novalidate>
+            <div class="form-field">
+              <label for="recuperar-correo">Correo electrónico</label>
+              <input type="email" id="recuperar-correo" name="correoRecuperacion" [(ngModel)]="correoRecuperacion"
+                autocomplete="email" maxlength="100" required placeholder="ejemplo@correo.cl">
+            </div>
+
+            @if (errorRecuperar()) {
+              <p class="registro-error" role="alert">{{ errorRecuperar() }}</p>
+            }
+
+            <div class="registro-acciones">
+              <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
+              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()">
+                {{ cargandoRecuperar() ? 'Enviando enlace…' : 'Enviar enlace' }}
+              </button>
+            </div>
+          </form>
+        }
+      </section>
+    </div>
+  }
+  
   @if (modalRegistroAbierto()) {
     <div class="registro-backdrop" role="presentation" (click)="$event.target === $event.currentTarget && cerrarRegistro()">
       <section #registroDialog class="registro-dialog" role="dialog" aria-modal="true"
