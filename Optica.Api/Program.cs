@@ -88,6 +88,7 @@ builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Admini
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
 builder.Services.AddSingleton<EstadoRecuperacionAdministrador>();
+builder.Services.AddSingleton<EstadoRecuperacionCliente>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
 
