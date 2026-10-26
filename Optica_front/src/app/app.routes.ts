@@ -29,6 +29,7 @@ import { HistorialGraduaciones } from './Componentes/historial-graduaciones/hist
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { authClienteGuard } from './guards/auth-cliente-guard';
 import { RestablecerContrasenaComponent } from './Componentes/restablecer-contrasena/restablecer-contrasena';
+import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
 
 export const routes: Routes = [
   {
@@ -77,6 +78,7 @@ export const routes: Routes = [
           { path: 'pedido', component: PedidoComponent },
           { path: 'crear-pedido', component: CrearPedidoComponent },
           { path: 'pedido/:id', component: DetallePedidoComponent },
+          { path: 'pedidos/historial', component: HistorialPedidosComponent },
           { path: 'historial-graduaciones', component: HistorialGraduaciones }
         ]
       }

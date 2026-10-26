@@ -36,6 +36,25 @@ describe('AdminLayoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('ofrece Crear Pedido, Lista de Pedidos e Historial desde el menú Pedidos', () => {
+    const menus = fixture.nativeElement.querySelectorAll('.inventory-menu') as NodeListOf<HTMLElement>;
+    const menu = Array.from(menus)
+      .find(element => element.querySelector('button')?.textContent?.includes('Pedidos'));
+    expect(menu).toBeDefined();
+    const enlaces = Array.from(menu!.querySelectorAll('.inventory-submenu a')) as HTMLAnchorElement[];
+
+    expect(enlaces.map(enlace => enlace.textContent?.trim())).toEqual([
+      'Crear Pedido',
+      'Lista de Pedidos',
+      'Historial'
+    ]);
+    expect(enlaces.map(enlace => enlace.getAttribute('href'))).toEqual([
+      '/admin/panel/crear-pedido',
+      '/admin/panel/pedido',
+      '/admin/panel/pedidos/historial'
+    ]);
+  });
+
   it('crea y permite borrar una notificación de stock cuando cruza el mínimo', async () => {
     await vi.advanceTimersByTimeAsync(15_000);
     TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/Productos?termino=').flush([
