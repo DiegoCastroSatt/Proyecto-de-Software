@@ -4,6 +4,8 @@ import { Observable, map } from 'rxjs';
 import { BuscarProductoService } from '../buscar-producto/buscar-producto.service';
 
 export interface Venta {
+  rutCliente?: string | null;
+  nombreCliente?: string | null;
   idVenta: number;
   fecha: string;
   total: number;
@@ -11,6 +13,8 @@ export interface Venta {
 }
 
 export interface VentaCreada {
+  rutCliente?: string | null;
+  nombreCliente?: string | null;
   idVenta: number;
   fecha: string;
   total: number;
@@ -55,7 +59,7 @@ export class RegistroVentaService {
     return this.http.get<Venta[]>(this.url);
   }
 
-  crear(productos: ProductoVenta[]): Observable<VentaCreada> {
-    return this.http.post<VentaCreada>(this.url, { productos });
+  crear(productos: ProductoVenta[], rutCliente = ''): Observable<VentaCreada> {
+    return this.http.post<VentaCreada>(this.url, { productos, ...(rutCliente.trim() ? { rutCliente: rutCliente.trim() } : {}) });
   }
 }

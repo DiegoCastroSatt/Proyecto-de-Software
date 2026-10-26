@@ -1,3 +1,4 @@
+import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -5,7 +6,7 @@ import { PedidoService, ClienteOption } from '../pedido/pedido.service';
 
 @Component({
   selector: 'app-crear-pedido',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AutocompletadoRut],
   templateUrl: './crear-pedido.html',
   styleUrl: './crear-pedido.css'
 })
@@ -60,7 +61,7 @@ export class CrearPedidoComponent implements OnInit {
         this.isSubmitting.set(false);
         this.successMessage.set('Pedido guardado exitosamente.');
         this.pedidoForm.reset();
-        setTimeout(() => this.router.navigate(['/admin/pedido']), 2000);
+        setTimeout(() => this.router.navigate(['/admin/panel/pedido']), 2000);
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(

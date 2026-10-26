@@ -1,3 +1,6 @@
+import { AutocompletadoRutService } from '../../shared/components/autocompletado-rut/autocompletado-rut.service';
+import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
+import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
@@ -18,7 +21,7 @@ describe('Registro de ventas', () => {
     servicio.crear.mockReturnValue(of({ idVenta: 1, fecha: '', total: 200, productos: [] }));
     await TestBed.configureTestingModule({
       imports: [RegistroVentaComponent, VerVentasComponent],
-      providers: [provideRouter([]), { provide: RegistroVentaService, useValue: servicio }]
+      providers: [{ provide: AutocompletadoRutService, useValue: { buscarSugerencias: vi.fn(() => of([])) } },provideRouter([]), { provide: RegistroVentaService, useValue: servicio }]
     }).compileComponents();
   });
 
@@ -36,6 +39,23 @@ describe('Registro de ventas', () => {
     const registrar = () => Array.from(dom.querySelectorAll('button')).find(b => b.textContent?.includes('Registrar compra'))!;
     return { fixture, dom, agregar, registrar };
   }
+
+  it('envía el cliente seleccionado y limpia el RUT después de guardar', () => {
+    const { fixture, agregar, registrar } = preparar(); agregar('A');
+    const control = fixture.debugElement.query(By.directive(AutocompletadoRut)).componentInstance as AutocompletadoRut;
+    control.seleccionarSugerencia({ rut: '12.345.678-5', nombre: 'Ana', apellido: 'Pérez' }); fixture.detectChanges();
+    registrar().click(); fixture.detectChanges();
+    expect(servicio.crear).toHaveBeenCalledWith([{ codigoProducto: 'A', cantidad: 1 }], '12.345.678-5');
+    expect(control.value()).toBe('');
+  });
+
+  it('permite quitar el cliente y registrar una venta sin asociación', () => {
+    const { fixture, dom, agregar, registrar } = preparar(); agregar('A');
+    const control = fixture.debugElement.query(By.directive(AutocompletadoRut)).componentInstance as AutocompletadoRut;
+    control.seleccionarSugerencia({ rut: '12.345.678-5', nombre: 'Ana', apellido: 'Pérez' }); fixture.detectChanges();
+    Array.from(dom.querySelectorAll('button')).find(b => b.textContent?.includes('Quitar cliente'))!.click(); fixture.detectChanges();
+    registrar().click(); expect(servicio.crear).toHaveBeenCalledWith([{ codigoProducto: 'A', cantidad: 1 }], '');
+  });
 
   it('busca desde una letra y agrega la coincidencia por su código', async () => {
     const { fixture, dom } = preparar();
@@ -118,7 +138,7 @@ describe('Registro de ventas', () => {
 
   it('usa un único campo y conserva el envío directo del lector sin esperar las coincidencias', async () => {
     const { fixture, dom, agregar } = preparar();
-    expect(dom.querySelectorAll('input[type="text"], input:not([type])')).toHaveLength(1);
+    expect(dom.querySelector('form')!.querySelectorAll('input[type="text"], input:not([type])')).toHaveLength(1);
     agregar('A');
     await new Promise(resolve => setTimeout(resolve, 300)); fixture.detectChanges();
     expect(servicio.buscar).toHaveBeenCalledWith('A');
@@ -137,7 +157,7 @@ describe('Registro de ventas', () => {
     expect(dom.querySelectorAll('.linea').length).toBe(1);
     expect(dom.querySelector('.total')?.textContent).toContain('200');
     registrar().click();
-    expect(servicio.crear).toHaveBeenCalledWith([{ codigoProducto: 'A', cantidad: 2 }]);
+    expect(servicio.crear).toHaveBeenCalledWith([{ codigoProducto: 'A', cantidad: 2 }], '');
   });
 
   it('impide confirmar mientras quedan códigos pendientes', () => {

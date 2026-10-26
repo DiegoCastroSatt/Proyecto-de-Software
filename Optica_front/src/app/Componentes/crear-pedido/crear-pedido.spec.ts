@@ -1,3 +1,6 @@
+import { AutocompletadoRutService } from '../../shared/components/autocompletado-rut/autocompletado-rut.service';
+import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
+import { By } from '@angular/platform-browser';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -26,7 +29,7 @@ describe('CrearPedidoComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [CrearPedidoComponent],
-      providers: [
+      providers: [{ provide: AutocompletadoRutService, useValue: { buscarSugerencias: vi.fn(() => of([])) } },
         { provide: PedidoService, useValue: servicio },
         provideRouter([])
       ]
@@ -40,6 +43,17 @@ describe('CrearPedidoComponent', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('conecta la sugerencia seleccionada con el RUT enviado al crear el pedido', () => {
+    const control = fixture.debugElement.query(By.directive(AutocompletadoRut)).componentInstance as AutocompletadoRut;
+    control.seleccionarSugerencia({ rut: '12.345.678-5', nombre: 'Ana', apellido: 'Pérez' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance['pedidoForm'].controls.rut.value).toBe('12.345.678-5');
+    fixture.componentInstance['pedidoForm'].patchValue({ fecha: '2026-10-23', total: 1000 });
+    fixture.componentInstance['submitPedido']();
+    expect(servicio.crearPedido).toHaveBeenCalledWith(expect.objectContaining({ rut: '12.345.678-5' }));
+    fixture.detectChanges(); expect(control.value()).toBe('');
   });
 
   it('carga los clientes al iniciar', () => {
@@ -83,7 +97,7 @@ describe('CrearPedidoComponent', () => {
     expect(fixture.componentInstance['pedidoForm'].pristine).toBe(true);
 
     vi.advanceTimersByTime(2000);
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/pedido']);
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/panel/pedido']);
   });
 
   it('muestra el mensaje devuelto por la API cuando falla la creación', () => {

@@ -29,6 +29,18 @@ public class TestPedidos
     }
 
     [Theory]
+    [InlineData("123456785")]
+    [InlineData("12345678-5")]
+    [InlineData("12.345.678-5")]
+    public async Task Crear_ConservaElRutAlmacenadoDelClienteParaRespetarLaClaveForanea(string rutAlmacenado)
+    {
+        var repo = new RepositorioPedidos { Cliente = new Cliente { Rut = rutAlmacenado, Nombre = "Ana", Apellido = "Pérez" } };
+        await CrearServicio(repo).CrearPedidoAsync(new CreatePedidoDto { Rut = "12.345.678-5", Fecha = new DateTime(2026, 10, 24) });
+        Assert.Equal("123456785", repo.RutConsultado);
+        Assert.Equal(rutAlmacenado, repo.Guardado!.Rut);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("12.345.678-9")]
     [InlineData("abc")]

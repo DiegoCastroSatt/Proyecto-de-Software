@@ -112,8 +112,11 @@ public class TestPedidoRepository
         Assert.DoesNotContain(clientes, cliente => cliente.Estado == "Inactivo");
     }
 
-    [Fact]
-    public async Task ObtenerClienteActivoPorRut_NormalizaFormatoYRechazaInactivo()
+    [Theory]
+    [InlineData("123456785")]
+    [InlineData("12345678-5")]
+    [InlineData(" 12.345.678-5 ")]
+    public async Task ObtenerClienteActivoPorRut_NormalizaFormatoYRechazaInactivo(string rut)
     {
         await using var contexto = CrearContexto();
         contexto.Clientes.AddRange(
@@ -122,7 +125,9 @@ public class TestPedidoRepository
         await contexto.SaveChangesAsync();
         var repositorio = new PedidoRepository(contexto);
 
-        var activo = await repositorio.ObtenerClienteActivoPorRutAsync("123456785");
+        var activo = await repositorio.ObtenerClienteActivoPorRutAsync(rut);
+        var paraCorreo = await repositorio.ObtenerClientePorRutAsync(rut);
+        Assert.Equal("Ana", paraCorreo?.Nombre);
         var inactivo = await repositorio.ObtenerClienteActivoPorRutAsync("987654321");
 
         Assert.Equal("Ana", activo?.Nombre);

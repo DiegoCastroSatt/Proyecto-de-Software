@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Clientes.Services;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.Pedidos.Interfaces;
@@ -62,6 +63,7 @@ public class PedidoRepository : IPedidoRepository
 
     public async Task<Cliente?> ObtenerClienteActivoPorRutAsync(string rut)
     {
+        rut = RutChilenoValidator.Normalizar(rut);
         return await _context.Clientes
             .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut && c.Estado == "Activo")
             .OrderBy(c => c.IdCliente)
@@ -69,7 +71,10 @@ public class PedidoRepository : IPedidoRepository
     }
 
     public async Task<Cliente?> ObtenerClientePorRutAsync(string rut)
-        => await _context.Clientes.FirstOrDefaultAsync(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut);
+    {
+        rut = RutChilenoValidator.Normalizar(rut);
+        return await _context.Clientes.FirstOrDefaultAsync(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut);
+    }
 
     public async Task<Pedido> CrearPedidoAsync(Pedido pedido)
     {
