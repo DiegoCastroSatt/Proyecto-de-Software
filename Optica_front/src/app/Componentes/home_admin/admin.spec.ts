@@ -36,14 +36,18 @@ describe('AdminLayoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ofrece Crear, Lista e Historial desde el menú Pedidos', () => {
+  it('ofrece Crear Pedido, Lista de Pedidos e Historial desde el menú Pedidos', () => {
     const menus = fixture.nativeElement.querySelectorAll('.inventory-menu') as NodeListOf<HTMLElement>;
     const menu = Array.from(menus)
       .find(element => element.querySelector('button')?.textContent?.includes('Pedidos'));
     expect(menu).toBeDefined();
     const enlaces = Array.from(menu!.querySelectorAll('.inventory-submenu a')) as HTMLAnchorElement[];
 
-    expect(enlaces.map(enlace => enlace.textContent?.trim())).toEqual(['Crear', 'Lista', 'Historial']);
+    expect(enlaces.map(enlace => enlace.textContent?.trim())).toEqual([
+      'Crear Pedido',
+      'Lista de Pedidos',
+      'Historial'
+    ]);
     expect(enlaces.map(enlace => enlace.getAttribute('href'))).toEqual([
       '/admin/panel/crear-pedido',
       '/admin/panel/pedido',
