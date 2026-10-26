@@ -28,6 +28,7 @@ import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
 import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { authClienteGuard } from './guards/auth-cliente-guard';
+import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
 
 export const routes: Routes = [
   {
@@ -75,6 +76,7 @@ export const routes: Routes = [
           { path: 'pedido', component: PedidoComponent },
           { path: 'crear-pedido', component: CrearPedidoComponent },
           { path: 'pedido/:id', component: DetallePedidoComponent },
+          { path: 'pedidos/historial', component: HistorialPedidosComponent },
           { path: 'historial-graduaciones', component: HistorialGraduaciones }
         ]
       }
