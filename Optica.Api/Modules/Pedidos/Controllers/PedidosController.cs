@@ -77,5 +77,18 @@ public class PedidosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+    [HttpGet("cliente/{rut}")]
+    public async Task<IActionResult> GetPedidosPorRut(string rut)
+    {
+        try
+        {
+            var pedidos = await _pedidoService.ObtenerPedidosPorRutAsync(rut);
+            return Ok(pedidos);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
 
 }

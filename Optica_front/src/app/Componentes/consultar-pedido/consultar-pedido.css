@@ -1,0 +1,339 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+/* ─── Página general ─── */
+.consultar-page {
+  min-height: 60vh;
+  padding: clamp(32px, 6vw, 72px) clamp(20px, 5vw, 64px);
+  display: flex;
+  justify-content: center;
+}
+
+/* ══════════════════════════════════════════
+   SIN SESIÓN
+   ══════════════════════════════════════════ */
+.no-session {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 480px;
+  padding: 60px 32px;
+  animation: fadeIn 0.45s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.no-session-icon {
+  display: grid;
+  place-items: center;
+  width: 110px;
+  height: 110px;
+  margin-bottom: 28px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--color-fondo-panel), var(--color-fondo-reserva));
+  border: 1px solid var(--color-borde-tarjeta);
+  color: var(--color-principal);
+  box-shadow: 0 8px 32px var(--sombra-principal-08);
+}
+
+.no-session-title {
+  margin: 0 0 12px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-texto);
+}
+
+.no-session-message {
+  margin: 0 0 14px;
+  padding: 10px 24px;
+  border-radius: 6px;
+  background: var(--color-aviso-fondo);
+  color: var(--color-aviso-texto);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.no-session-hint {
+  margin: 0;
+  color: var(--color-texto-secundario);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  max-width: 38ch;
+}
+
+/* ══════════════════════════════════════════
+   CON SESIÓN — LISTA DE PEDIDOS
+   ══════════════════════════════════════════ */
+.pedidos-section {
+  width: min(820px, 100%);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.section-header {
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-acento-hover);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.section-header h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-texto);
+}
+
+.section-subtitle {
+  margin: 8px 0 0;
+  color: var(--color-texto-secundario);
+  font-size: 0.92rem;
+}
+
+/* ─── Estados de carga / error / vacío ─── */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--color-texto-secundario);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-borde-pedido);
+  border-top-color: var(--color-principal);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.error-icon {
+  color: var(--color-error);
+}
+
+.error-title {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--color-fondo-panel);
+  border: 1px dashed var(--color-borde-control);
+  border-radius: 8px;
+}
+
+.empty-icon {
+  color: var(--color-texto-placeholder);
+}
+
+.empty-title {
+  margin: 0;
+  color: var(--color-texto-secundario);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.empty-subtitle {
+  margin: 0;
+  color: var(--color-texto-placeholder);
+  font-size: 0.9rem;
+}
+
+/* ─── Lista de tarjetas de pedido ─── */
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pedido-card {
+  padding: 22px 26px;
+  background: var(--color-superficie-calida);
+  border: 1px solid var(--color-borde-pedido);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px var(--sombra-principal-08);
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+
+.pedido-card:hover {
+  border-color: var(--color-principal);
+  box-shadow: 0 8px 28px var(--sombra-principal-15);
+  transform: translateY(-2px);
+}
+
+/* ─── Encabezado de la tarjeta ─── */
+.pedido-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.pedido-id {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-texto);
+  letter-spacing: -0.01em;
+}
+
+.pedido-estado {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.pedido-estado[data-estado="Pendiente"] {
+  background: var(--color-estado-pendiente-fondo);
+  color: var(--color-estado-pendiente);
+}
+
+.pedido-estado[data-estado="En proceso"] {
+  background: var(--color-estado-proceso-fondo);
+  color: var(--color-estado-proceso);
+}
+
+.pedido-estado[data-estado="Listo"] {
+  background: var(--color-exito-fondo);
+  color: var(--color-exito);
+}
+
+.pedido-estado[data-estado="Entregado"] {
+  background: var(--color-estado-listo-fondo);
+  color: var(--color-estado-listo);
+}
+
+.pedido-estado[data-estado="Cancelado"] {
+  background: var(--color-estado-cancelado-fondo);
+  color: var(--color-estado-cancelado);
+}
+
+/* ─── Campos del pedido ─── */
+.pedido-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pedido-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pedido-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-texto-secundario);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pedido-field-icon {
+  flex-shrink: 0;
+  opacity: 0.65;
+}
+
+.pedido-value {
+  color: var(--color-texto);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.pedido-value--total {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--color-principal);
+  letter-spacing: -0.02em;
+}
+
+/* ─── Anotaciones ─── */
+.pedido-notes {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-borde-pedido);
+}
+
+.notes-text {
+  margin: 6px 0 0;
+  padding: 12px 16px;
+  background: var(--color-fondo-suave);
+  border: 1px solid var(--color-borde-pedido);
+  border-radius: 6px;
+  color: var(--color-texto);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── Responsivo ─── */
+@media (max-width: 600px) {
+  .consultar-page {
+    padding: 24px 16px;
+  }
+
+  .no-session {
+    padding: 40px 20px;
+  }
+
+  .no-session-icon {
+    width: 90px;
+    height: 90px;
+  }
+
+  .pedido-card {
+    padding: 18px 20px;
+  }
+
+  .pedido-grid {
+    grid-template-columns: 1fr;
+  }
+}

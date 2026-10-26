@@ -22,6 +22,7 @@ import { authAdminGuard } from './guards/auth-admin-guard';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
 import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
+import { ConsultarPedidoComponent } from './Componentes/consultar-pedido/consultar-pedido';
 
 export const routes: Routes = [
   {
@@ -33,7 +34,8 @@ export const routes: Routes = [
       { path: 'reservas', component: ReservaComponent },
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
       { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
-      { path: 'productos', component: BuscarProductoCliente } 
+      { path: 'productos', component: BuscarProductoCliente },
+      { path: 'consultar-pedido', component: ConsultarPedidoComponent }
     ]
   },
 

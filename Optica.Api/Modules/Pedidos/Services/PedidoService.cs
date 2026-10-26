@@ -163,4 +163,14 @@ public class PedidoService : IPedidoService
             return "Fallida";
         }
     }
+    public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosPorRutAsync(string rut)
+    {
+        if (!RutChilenoValidator.EsValido(rut))
+        {
+            throw new ArgumentException("El RUT o su dígito verificador no es válido.");
+        }
+
+        var rutNormalizado = RutChilenoValidator.Normalizar(rut);
+        return await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(rutNormalizado);
+    }
 }

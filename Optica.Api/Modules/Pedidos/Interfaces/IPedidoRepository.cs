@@ -16,4 +16,5 @@ public interface IPedidoRepository
     Task<Pedido?> ObtenerPedidoPorIdParaActualizarAsync(int id) => ObtenerPedidoPorIdAsync(id);
     Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id);
     Task ActualizarPedidoAsync(Pedido pedido);
+    Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetallePorRutAsync(string rut);
 }
