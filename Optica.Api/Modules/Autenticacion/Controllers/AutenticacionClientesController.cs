@@ -83,6 +83,78 @@ public sealed class AutenticacionClientesController(
         }
     }
 
+    [AllowAnonymous]
+    [HttpPost("recuperacion/solicitar")]
+    public async Task<IActionResult> SolicitarRecuperacion(
+        [FromBody] SolicitarRecuperacionClienteRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var aceptada = await autenticacion.SolicitarRecuperacionAsync(
+                request.Correo,
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                cancellationToken);
+
+            if (!aceptada)
+            {
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    new { mensaje = "Espera unos momentos antes de volver a solicitar un enlace." });
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Falló la solicitud de recuperación de cliente ({TipoError}).", ex.GetType().Name);
+        }
+
+        // Respuesta genérica para mitigar la enumeración de cuentas
+        return Accepted(new
+        {
+            mensaje = "Si el correo corresponde a una cuenta activa registrada, te enviaremos un enlace con las instrucciones para restablecer tu contraseña."
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("recuperacion/confirmar")]
+    public async Task<IActionResult> ConfirmarRecuperacion(
+        [FromBody] ConfirmarRecuperacionClienteRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var confirmado = await autenticacion.ConfirmarRecuperacionAsync(
+                request.Token,
+                request.NuevaContrasena,
+                request.ConfirmarContrasena,
+                cancellationToken);
+
+            if (!confirmado)
+            {
+                return BadRequest(new { mensaje = "El enlace no es válido, ha expirado o ya fue utilizado." });
+            }
+
+            return Ok(new { mensaje = "Tu contraseña ha sido actualizada correctamente. Ya puedes iniciar sesión." });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Falló la actualización de contraseña del cliente ({TipoError}).", ex.GetType().Name);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { mensaje = "No se pudo actualizar la contraseña. Inténtalo nuevamente más tarde." });
+        }
+    }
+
     [Authorize(Policy = Politica)]
     [HttpGet("sesion")]
     public async Task<ActionResult<ClienteSesionResponse>> Sesion(CancellationToken cancellationToken)
