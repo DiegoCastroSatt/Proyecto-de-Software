@@ -41,6 +41,40 @@ public class PedidoService : IPedidoService
         });
     }
 
+    public async Task<IEnumerable<ClienteActivoDto>> BuscarClientesPorRutAsync(string rut)
+    {
+        var rutNormalizado = RutChilenoValidator.Normalizar(rut);
+        if (rutNormalizado.Length < 2 || rutNormalizado.Length > 9 ||
+            !rutNormalizado.All(char.IsAsciiLetterOrDigit))
+        {
+            return [];
+        }
+
+        var clientes = await _pedidoRepository.BuscarClientesPorRutAsync(rutNormalizado);
+        return clientes.Select(c => new ClienteActivoDto
+        {
+            Rut = c.Rut,
+            NombreCompleto = c.Nombre + " " + c.Apellido
+        });
+    }
+
+    public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosPorRutAsync(string rut)
+    {
+        if (!RutChilenoValidator.EsValido(rut))
+        {
+            throw new ArgumentException("El RUT o su dígito verificador no es válido.");
+        }
+
+        var rutNormalizado = RutChilenoValidator.Normalizar(rut);
+        var cliente = await _pedidoRepository.ObtenerClientePorRutAsync(rutNormalizado);
+        if (cliente == null)
+        {
+            throw new KeyNotFoundException("No se encontró un cliente con ese RUT.");
+        }
+
+        return await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(rutNormalizado);
+    }
+
     public async Task<PedidoResponseDto> CrearPedidoAsync(CreatePedidoDto dto)
     {
         if (!RutChilenoValidator.EsValido(dto.Rut))
@@ -57,7 +91,7 @@ public class PedidoService : IPedidoService
 
         var pedido = new Pedido
         {
-            Rut = rut,
+            Rut = cliente.Rut,
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
             Estado = dto.Estado,

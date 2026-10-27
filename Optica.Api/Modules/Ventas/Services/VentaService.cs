@@ -16,7 +16,14 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
             dto.Productos.Any(p => p is null || string.IsNullOrWhiteSpace(p.CodigoProducto) || p.Cantidad <= 0))
             throw new ArgumentException("Agrega al menos un código válido con cantidad mayor que cero.");
 
-        var venta = new Venta { Fecha = TimeZoneInfo.ConvertTime(reloj.GetUtcNow(), ZonaHoraria).DateTime };
+        int? clienteId = null;
+        if (!string.IsNullOrWhiteSpace(dto.RutCliente))
+        {
+            var rut = Optica.Api.Modules.Clientes.Services.RutChilenoValidator.Normalizar(dto.RutCliente);
+            clienteId = await repositorio.BuscarClienteActivo(rut)
+                ?? throw new ArgumentException("No se encontró un cliente activo con ese RUT. Selecciona uno de las sugerencias o deja el campo vacío.");
+        }
+        var venta = new Venta { ClienteId = clienteId, Fecha = TimeZoneInfo.ConvertTime(reloj.GetUtcNow(), ZonaHoraria).DateTime };
         foreach (var item in dto.Productos)
         {
             var codigo = item.CodigoProducto.Trim();

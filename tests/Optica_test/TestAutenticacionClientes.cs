@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging.Abstractions;
 using Optica.Api.Data;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Services;
 using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Notificaciones.Interfaces;
 using Xunit;
 
 namespace Optica.Ventas.Tests;
@@ -16,8 +18,16 @@ public sealed class TestAutenticacionClientes : IDisposable
         .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
         .Options);
 
-    private AutenticacionClienteService Servicio() =>
-        new(db, new PasswordHasher<CuentaCliente>());
+    private readonly EstadoRecuperacionCliente estadoRecuperacion = new();
+
+    private AutenticacionClienteService Servicio(IEmailService? emailService = null) =>
+        new(
+            db,
+            new PasswordHasher<CuentaCliente>(),
+            estadoRecuperacion,
+            emailService ?? new FakeEmailService(),
+            TimeProvider.System,
+            NullLogger<AutenticacionClienteService>.Instance);
 
     private static RegistroClienteRequest Registro(string rut = "12345678-5", string correo = "ana@example.test") => new()
     {
@@ -97,5 +107,63 @@ public sealed class TestAutenticacionClientes : IDisposable
         Assert.Empty(await db.Clientes.ToListAsync());
     }
 
+    [Fact]
+    public async Task Recuperacion_SolicitarYConfirmar_ActualizaContrasena()
+    {
+        await Servicio().RegistrarAsync(Registro(), CancellationToken.None);
+
+        var fakeEmail = new FakeEmailService();
+        var servicio = Servicio(fakeEmail);
+
+        var solicitada = await servicio.SolicitarRecuperacionAsync("ana@example.test", "127.0.0.1", CancellationToken.None);
+        Assert.True(solicitada);
+        Assert.NotNull(fakeEmail.UltimoCuerpoHtml);
+
+        // Extraer el token del HTML generado
+        var marcador = "token=";
+        var indiceToken = fakeEmail.UltimoCuerpoHtml.IndexOf(marcador, StringComparison.Ordinal);
+        Assert.True(indiceToken >= 0);
+        var finToken = fakeEmail.UltimoCuerpoHtml.IndexOfAny(['"', '&', '\'', ' '], indiceToken);
+        var token = fakeEmail.UltimoCuerpoHtml[(indiceToken + marcador.Length)..finToken];
+
+        var confirmada = await servicio.ConfirmarRecuperacionAsync(token, "NuevaClave999!", "NuevaClave999!", CancellationToken.None);
+        Assert.True(confirmada);
+
+        // Verificar que puede iniciar sesión con la nueva clave
+        var login = await servicio.IniciarSesionAsync(
+            new LoginClienteRequest { Correo = "ana@example.test", Contrasena = "NuevaClave999!" }, CancellationToken.None);
+        Assert.True(login.CredencialesValidas);
+    }
+
     public void Dispose() => db.Dispose();
+
+    private sealed class FakeEmailService : IEmailService
+    {
+        public string? UltimoCuerpoHtml { get; private set; }
+
+        public Task<ResultadoEnvioCorreo> EnviarConResultadoAsync(
+            string destinatario,
+            string asunto,
+            string cuerpoHtml,
+            CancellationToken cancellationToken,
+            bool importante = false)
+        {
+            UltimoCuerpoHtml = cuerpoHtml;
+            return Task.FromResult(new ResultadoEnvioCorreo(true));
+        }
+
+        public Task<bool> EnviarAsync(
+            string? destinatario,
+            string asunto,
+            string cuerpoHtml,
+            CancellationToken cancellationToken,
+            bool importante = false,
+            byte[]? adjuntoBytes = null,
+            string? nombreArchivoAdjunto = null,
+            string? tipoContenidoAdjunto = null)
+        {
+            UltimoCuerpoHtml = cuerpoHtml;
+            return Task.FromResult(true);
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Clientes.Services;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.Pedidos.Interfaces;
@@ -51,8 +52,18 @@ public class PedidoRepository : IPedidoRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Cliente>> BuscarClientesPorRutAsync(string rut)
+    {
+        return await _context.Clientes
+            .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper().Contains(rut))
+            .OrderBy(c => c.Rut)
+            .Take(10)
+            .ToListAsync();
+    }
+
     public async Task<Cliente?> ObtenerClienteActivoPorRutAsync(string rut)
     {
+        rut = RutChilenoValidator.Normalizar(rut);
         return await _context.Clientes
             .Where(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut && c.Estado == "Activo")
             .OrderBy(c => c.IdCliente)
@@ -60,7 +71,10 @@ public class PedidoRepository : IPedidoRepository
     }
 
     public async Task<Cliente?> ObtenerClientePorRutAsync(string rut)
-        => await _context.Clientes.FirstOrDefaultAsync(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut);
+    {
+        rut = RutChilenoValidator.Normalizar(rut);
+        return await _context.Clientes.FirstOrDefaultAsync(c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut);
+    }
 
     public async Task<Pedido> CrearPedidoAsync(Pedido pedido)
     {
@@ -113,6 +127,27 @@ public class PedidoRepository : IPedidoRepository
                 _context.Clientes,
                 p => p.Rut,
                 c => c.Rut,
+                (p, c) => new PedidoResponseDto
+                {
+                    IdPedido = p.IdPedido,
+                    NombreCliente = c.Nombre + " " + c.Apellido,
+                    Fecha = p.Fecha,
+                    Estado = p.Estado,
+                    Total = p.Total,
+                    Anotaciones = p.Anotaciones
+                })
+            .OrderByDescending(p => p.Fecha)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetallePorRutAsync(string rut)
+    {
+        return await _context.Pedidos
+            .Where(p => p.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut)
+            .Join(
+                _context.Clientes,
+                p => p.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
+                c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
                 (p, c) => new PedidoResponseDto
                 {
                     IdPedido = p.IdPedido,

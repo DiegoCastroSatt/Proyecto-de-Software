@@ -13,8 +13,9 @@
 
             <div class="form-group">
               <label for="rut">RUT del Cliente</label>
-              <input id="rut" type="text" formControlName="rut" class="form-control" placeholder="12345678-9"
-                autocomplete="off" />
+              <app-autocompletado-rut [value]="pedidoForm.controls.rut.value ?? ''"
+                (valueChange)="pedidoForm.controls.rut.setValue($event)"
+                (blurred)="pedidoForm.controls.rut.markAsTouched()" />
 
               @if (hasError('rut', 'required')) {
               <span class="error-text">El RUT es obligatorio</span>

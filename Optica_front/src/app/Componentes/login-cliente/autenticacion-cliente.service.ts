@@ -22,6 +22,10 @@ export interface ResultadoRegistroCliente {
   mensaje: string;
 }
 
+export interface RespuestaRecuperacionCliente {
+  mensaje: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AutenticacionClienteService {
   private readonly http = inject(HttpClient);
@@ -35,6 +39,20 @@ export class AutenticacionClienteService {
 
   registrar(datos: RegistroCliente): Observable<ResultadoRegistroCliente> {
     return this.http.post<ResultadoRegistroCliente>(`${this.apiUrl}/registro`, datos, { withCredentials: true });
+  }
+
+  solicitarRecuperacion(correo: string): Observable<RespuestaRecuperacionCliente> {
+    return this.http.post<RespuestaRecuperacionCliente>(
+      `${this.apiUrl}/recuperacion/solicitar`,
+      { correo }
+    );
+  }
+
+  confirmarRecuperacion(token: string, nuevaContrasena: string, confirmarContrasena: string): Observable<RespuestaRecuperacionCliente> {
+    return this.http.post<RespuestaRecuperacionCliente>(
+      `${this.apiUrl}/recuperacion/confirmar`,
+      { token, nuevaContrasena, confirmarContrasena }
+    );
   }
 
   verificarSesion(): Observable<ClienteSesion> {

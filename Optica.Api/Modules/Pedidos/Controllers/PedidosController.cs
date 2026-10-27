@@ -22,11 +22,36 @@ public class PedidosController : ControllerBase
         return Ok(pedidos);
     }
 
+    [HttpGet("clientes/buscar")]
+    public async Task<IActionResult> BuscarClientesPorRut([FromQuery] string rut)
+    {
+        var clientes = await _pedidoService.BuscarClientesPorRutAsync(rut);
+        return Ok(clientes);
+    }
+
     [HttpGet("clientes")]
     public async Task<IActionResult> GetClientes()
     {
         var clientes = await _pedidoService.ObtenerClientesActivosAsync();
         return Ok(clientes);
+    }
+
+    [HttpGet("cliente/{rut}")]
+    public async Task<IActionResult> GetPedidosPorRut(string rut)
+    {
+        try
+        {
+            var pedidos = await _pedidoService.ObtenerPedidosPorRutAsync(rut);
+            return Ok(pedidos);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensaje = ex.Message });
+        }
     }
 
     [HttpGet("{id}")]

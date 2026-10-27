@@ -19,6 +19,8 @@ export class LoginCliente implements OnDestroy {
   private readonly router = inject(Router);
   @ViewChild('registroDialog') private registroDialog?: ElementRef<HTMLElement>;
   @ViewChild('registroTrigger') private registroTrigger?: ElementRef<HTMLButtonElement>;
+  @ViewChild('recuperarDialog') private recuperarDialog?: ElementRef<HTMLElement>;
+  @ViewChild('recuperarTrigger') private recuperarTrigger?: ElementRef<HTMLButtonElement>;
 
   correo = '';
   contrasena = '';
@@ -36,6 +38,13 @@ export class LoginCliente implements OnDestroy {
   registro: RegistroCliente = {
     nombre: '', apellido: '', rut: '', correo: '', telefono: '', contrasena: '', confirmarContrasena: ''
   };
+
+  // --- Estado para recuperación de contraseña ---
+  modalRecuperarAbierto = signal(false);
+  recuperacionEnviada = signal(false);
+  correoRecuperacion = '';
+  errorRecuperar = signal('');
+  cargandoRecuperar = signal(false);
 
   iniciarSesion(): void {
     this.errorLogin.set('');
@@ -90,16 +99,66 @@ export class LoginCliente implements OnDestroy {
     }
   }
 
+  abrirRecuperar(): void {
+    this.modalRecuperarAbierto.set(true);
+    this.recuperacionEnviada.set(false);
+    this.errorRecuperar.set('');
+    this.correoRecuperacion = this.correo.trim();
+    this.overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => this.recuperarDialog?.nativeElement.querySelector<HTMLInputElement>('#recuperar-correo')?.focus());
+  }
+
+  cerrarRecuperar(): void {
+    if (this.cargandoRecuperar()) return;
+    this.modalRecuperarAbierto.set(false);
+    document.body.style.overflow = this.overflowAnterior;
+    setTimeout(() => this.recuperarTrigger?.nativeElement.focus());
+  }
+
+  enviarRecuperacion(): void {
+    if (this.cargandoRecuperar()) return;
+    this.errorRecuperar.set('');
+
+    const correo = this.correoRecuperacion.trim();
+    if (!correo) {
+      this.errorRecuperar.set('Ingresa tu correo electrónico.');
+      return;
+    }
+    if (!this.correoValido(correo)) {
+      this.errorRecuperar.set('Ingresa un correo electrónico válido.');
+      return;
+    }
+
+    this.cargandoRecuperar.set(true);
+    this.autenticacion.solicitarRecuperacion(correo).subscribe({
+      next: () => {
+        this.cargandoRecuperar.set(false);
+        this.recuperacionEnviada.set(true);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.cargandoRecuperar.set(false);
+        if (error.status === 429) {
+          this.errorRecuperar.set('Espera unos momentos antes de volver a solicitar un enlace.');
+        } else {
+          this.errorRecuperar.set('No se pudo enviar la solicitud. Inténtalo nuevamente más tarde.');
+        }
+      }
+    });
+  }
+
   @HostListener('document:keydown', ['$event'])
   controlarTeclado(evento: KeyboardEvent): void {
-    if (!this.modalRegistroAbierto()) return;
+    if (!this.modalRegistroAbierto() && !this.modalRecuperarAbierto()) return;
     if (evento.key === 'Escape') {
       evento.preventDefault();
-      this.cerrarRegistro();
+      if (this.modalRegistroAbierto()) this.cerrarRegistro();
+      else this.cerrarRecuperar();
       return;
     }
     if (evento.key !== 'Tab') return;
-    const elementos = Array.from(this.registroDialog?.nativeElement.querySelectorAll<HTMLElement>(
+    const dialog = this.modalRegistroAbierto() ? this.registroDialog : this.recuperarDialog;
+    const elementos = Array.from(dialog?.nativeElement.querySelectorAll<HTMLElement>(
       'button:not(:disabled), input:not(:disabled)'
     ) ?? []);
     if (!elementos.length) return;
@@ -179,6 +238,6 @@ export class LoginCliente implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.modalRegistroAbierto()) document.body.style.overflow = this.overflowAnterior;
+    if (this.modalRegistroAbierto() || this.modalRecuperarAbierto()) document.body.style.overflow = this.overflowAnterior;
   }
 }

@@ -1,3 +1,4 @@
+import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
 import { Component, signal, computed, ElementRef, ViewChild, AfterViewInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, timer, of, switchMap, catchError, map } from 'rxjs';
@@ -8,7 +9,7 @@ import { RegistroVentaService, ProductoCaja } from './registro-venta.service';
 
 @Component({
   selector: 'app-registro-venta',
-  imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
+  imports: [ReactiveFormsModule, DecimalPipe, RouterLink, AutocompletadoRut],
   templateUrl: './registro-venta.html',
   styleUrl: './registro-venta.css'
 })
@@ -34,6 +35,7 @@ export class RegistroVentaComponent implements AfterViewInit {
     this.formulario.controls.codigoProducto.setValue(producto.codigoProducto);
     this.agregar();
   }
+  protected readonly rutCliente = signal('');
   protected readonly productos = signal<ProductoCaja[]>([]);
   @ViewChild('codigo') private codigoInput?: ElementRef<HTMLInputElement>;
   protected readonly pendientes = signal(0);
@@ -152,10 +154,10 @@ export class RegistroVentaComponent implements AfterViewInit {
     this.guardando.set(true);
     this.error.set('');
     this.mensaje.set('');
-    this.servicio.crear(this.productos().map(({ codigoProducto, cantidad }) => ({ codigoProducto, cantidad }))).subscribe({
+    this.servicio.crear(this.productos().map(({ codigoProducto, cantidad }) => ({ codigoProducto, cantidad })), this.rutCliente().trim()).subscribe({
       next: venta => {
         this.mensaje.set('Venta #' + venta.idVenta + ' registrada correctamente.');
-        this.productos.set([]);
+        this.productos.set([]); this.rutCliente.set('');
         this.formulario.patchValue({ codigoProducto: '', cantidad: 1 });
         this.guardando.set(false);
         this.enfocar();
