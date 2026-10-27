@@ -132,6 +132,20 @@ public sealed class AutenticacionClienteService(
         if (string.IsNullOrWhiteSpace(token)) return false;
         var hashToken = HashToken(token);
         var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
+        if (!db.Database.IsRelational())
+        {
+            var cuentaEnMemoria = await db.CuentasCliente.SingleOrDefaultAsync(c =>
+                c.TokenConfirmacionHash == hashToken && c.Estado == "PendienteConfirmacion"
+                    && c.TokenConfirmacionExpiraUtc > ahora, cancellationToken);
+            if (cuentaEnMemoria is null) return false;
+            cuentaEnMemoria.Estado = "Activa";
+            cuentaEnMemoria.TokenConfirmacionHash = null;
+            cuentaEnMemoria.TokenConfirmacionExpiraUtc = null;
+            cuentaEnMemoria.UltimoCorreoConfirmacionUtc = null;
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
         var actualizadas = await db.CuentasCliente
             .Where(c => c.TokenConfirmacionHash == hashToken
                 && c.Estado == "PendienteConfirmacion"
