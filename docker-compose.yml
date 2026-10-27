@@ -39,6 +39,7 @@ services:
       Correo__Remitente: ${SMTP_FROM:-}
       Correo__NombreRemitente: ${SMTP_FROM_NAME:-Centro Óptico San Francisco}
       Correo__UrlBaseApi: ${EMAIL_API_BASE_URL:-http://localhost:8080}
+      Correo__UrlBaseFrontend: ${EMAIL_FRONTEND_BASE_URL:-http://localhost:4200}
       Correo__UsarTls: ${SMTP_USE_TLS:-true}
       DataProtection__KeysPath: /var/opt/optica-dp-keys
     depends_on:

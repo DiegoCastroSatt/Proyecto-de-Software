@@ -117,8 +117,11 @@ public class OpticaDbContext : DbContext
             entity.Property(c => c.Correo).HasColumnName("correo").HasMaxLength(100).IsRequired();
             entity.Property(c => c.CorreoNormalizado).HasColumnName("correo_normalizado").HasMaxLength(100).IsRequired();
             entity.Property(c => c.ContrasenaHash).HasColumnName("contrasena_hash").HasMaxLength(500).IsRequired();
-            entity.Property(c => c.Estado).HasColumnName("estado").HasMaxLength(12).IsRequired();
+            entity.Property(c => c.Estado).HasColumnName("estado").HasMaxLength(24).IsRequired();
             entity.Property(c => c.FechaCreacion).HasColumnName("fecha_creacion");
+            entity.Property(c => c.TokenConfirmacionHash).HasColumnName("token_confirmacion_hash").HasMaxLength(64);
+            entity.Property(c => c.TokenConfirmacionExpiraUtc).HasColumnName("token_confirmacion_expira_utc");
+            entity.Property(c => c.UltimoCorreoConfirmacionUtc).HasColumnName("ultimo_correo_confirmacion_utc");
             entity.HasIndex(c => c.IdCliente).IsUnique();
             entity.HasIndex(c => c.CorreoNormalizado).IsUnique();
             entity.HasOne(c => c.Cliente)
@@ -282,6 +285,8 @@ public class OpticaDbContext : DbContext
             entity.ToTable("ventas");
             entity.HasKey(v => v.IdVenta);
             entity.Property(v => v.IdVenta).HasColumnName("id_venta");
+            entity.Property(v => v.ClienteId).HasColumnName("id_cliente");
+            entity.HasOne(v => v.Cliente).WithMany().HasForeignKey(v => v.ClienteId).OnDelete(DeleteBehavior.SetNull);
             entity.Property(v => v.Fecha).HasColumnName("fecha");
             entity.Property(v => v.Total).HasColumnName("total").HasPrecision(10, 2);
             entity.HasMany(v => v.Detalles).WithOne().HasForeignKey(d => d.VentaId);

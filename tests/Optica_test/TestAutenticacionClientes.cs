@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,6 +20,7 @@ public sealed class TestAutenticacionClientes : IDisposable
         .Options);
 
     private readonly EstadoRecuperacionCliente estadoRecuperacion = new();
+    private readonly RelojManual reloj = new(DateTimeOffset.UtcNow);
 
     private AutenticacionClienteService Servicio(IEmailService? emailService = null) =>
         new(
@@ -26,8 +28,12 @@ public sealed class TestAutenticacionClientes : IDisposable
             new PasswordHasher<CuentaCliente>(),
             estadoRecuperacion,
             emailService ?? new FakeEmailService(),
-            TimeProvider.System,
-            NullLogger<AutenticacionClienteService>.Instance);
+            reloj,
+            NullLogger<AutenticacionClienteService>.Instance,
+            new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Correo:UrlBaseFrontend"] = "http://localhost:4200"
+            }).Build());
 
     private static RegistroClienteRequest Registro(string rut = "12345678-5", string correo = "ana@example.test") => new()
     {
@@ -41,16 +47,25 @@ public sealed class TestAutenticacionClientes : IDisposable
     };
 
     [Fact]
-    public async Task Registrar_CreaClienteYGuardaHashDeContrasena()
+    public async Task Registrar_CreaCuentaPendienteYGuardaHashDeContrasena()
     {
-        var resultado = await Servicio().RegistrarAsync(Registro(), CancellationToken.None);
+        var fakeEmail = new FakeEmailService();
+        var resultado = await Servicio(fakeEmail).RegistrarAsync(Registro(), CancellationToken.None);
 
         Assert.True(resultado.Registrado);
+        Assert.True(resultado.CorreoConfirmacionEnviado);
         var cliente = await db.Clientes.SingleAsync();
         var cuenta = await db.CuentasCliente.SingleAsync();
         Assert.Equal(cliente.IdCliente, cuenta.IdCliente);
+        Assert.Equal("PendienteConfirmacion", cuenta.Estado);
+        Assert.NotNull(cuenta.TokenConfirmacionHash);
         Assert.NotEqual("Optica123!", cuenta.ContrasenaHash);
         Assert.StartsWith("AQAAAA", cuenta.ContrasenaHash);
+
+        var token = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
+        Assert.True(await Servicio(fakeEmail).ConfirmarCuentaAsync(token, CancellationToken.None));
+        Assert.Equal("Activa", (await db.CuentasCliente.SingleAsync()).Estado);
+        Assert.False(await Servicio(fakeEmail).ConfirmarCuentaAsync(token, CancellationToken.None));
     }
 
     [Fact]
@@ -82,7 +97,10 @@ public sealed class TestAutenticacionClientes : IDisposable
     [Fact]
     public async Task IniciarSesion_RechazaClaveIncorrectaYAceptaLaCorrecta()
     {
-        await Servicio().RegistrarAsync(Registro(), CancellationToken.None);
+        var fakeEmail = new FakeEmailService();
+        await Servicio(fakeEmail).RegistrarAsync(Registro(), CancellationToken.None);
+        var token = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
+        await Servicio().ConfirmarCuentaAsync(token, CancellationToken.None);
         var servicio = Servicio();
 
         var incorrecta = await servicio.IniciarSesionAsync(
@@ -93,6 +111,17 @@ public sealed class TestAutenticacionClientes : IDisposable
         Assert.False(incorrecta.CredencialesValidas);
         Assert.True(correcta.CredencialesValidas);
         Assert.Equal("Ana Pérez", correcta.Sesion?.Nombre);
+    }
+
+    [Fact]
+    public async Task IniciarSesion_RechazaCuentaHastaConfirmarCorreo()
+    {
+        await Servicio().RegistrarAsync(Registro(), CancellationToken.None);
+
+        var resultado = await Servicio().IniciarSesionAsync(
+            new LoginClienteRequest { Correo = "ana@example.test", Contrasena = "Optica123!" }, CancellationToken.None);
+
+        Assert.False(resultado.CredencialesValidas);
     }
 
     [Fact]
@@ -108,11 +137,53 @@ public sealed class TestAutenticacionClientes : IDisposable
     }
 
     [Fact]
+    public async Task ConfirmarCuenta_RechazaTokenExpiradoSinActivarLaCuenta()
+    {
+        var fakeEmail = new FakeEmailService();
+        await Servicio(fakeEmail).RegistrarAsync(Registro(), CancellationToken.None);
+        var cuenta = await db.CuentasCliente.SingleAsync();
+        cuenta.TokenConfirmacionExpiraUtc = reloj.GetUtcNow().UtcDateTime.AddSeconds(-1);
+        await db.SaveChangesAsync();
+        var token = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
+
+        var resultado = await Servicio(fakeEmail).ConfirmarCuentaAsync(token, CancellationToken.None);
+
+        Assert.False(resultado);
+        Assert.Equal("PendienteConfirmacion", (await db.CuentasCliente.SingleAsync()).Estado);
+    }
+
+    [Fact]
+    public async Task Registro_SiFallaCorreoConservaCuentaPendienteYPuedeReenviar()
+    {
+        var emailFallido = new FakeEmailService { Exito = false };
+        var resultadoRegistro = await Servicio(emailFallido).RegistrarAsync(Registro(), CancellationToken.None);
+        var cuenta = await db.CuentasCliente.SingleAsync();
+        Assert.True(resultadoRegistro.Registrado);
+        Assert.False(resultadoRegistro.CorreoConfirmacionEnviado);
+        Assert.Equal("PendienteConfirmacion", cuenta.Estado);
+
+        cuenta.UltimoCorreoConfirmacionUtc = reloj.GetUtcNow().UtcDateTime.AddMinutes(-2);
+        var tokenAnteriorHash = cuenta.TokenConfirmacionHash;
+        await db.SaveChangesAsync();
+        var emailReenviado = new FakeEmailService();
+        await Servicio(emailReenviado).ReenviarConfirmacionAsync("ANA@example.test", CancellationToken.None);
+
+        Assert.Contains("confirmar-cuenta?token=", emailReenviado.UltimoCuerpoHtml);
+        var tokenNuevoHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(ExtraerToken(emailReenviado.UltimoCuerpoHtml!, "confirmar-cuenta?token="))))
+            .ToLowerInvariant();
+        Assert.NotEqual(tokenAnteriorHash, tokenNuevoHash);
+        Assert.Equal(tokenNuevoHash, cuenta.TokenConfirmacionHash);
+    }
+
+    [Fact]
     public async Task Recuperacion_SolicitarYConfirmar_ActualizaContrasena()
     {
-        await Servicio().RegistrarAsync(Registro(), CancellationToken.None);
-
         var fakeEmail = new FakeEmailService();
+        await Servicio(fakeEmail).RegistrarAsync(Registro(), CancellationToken.None);
+        var tokenConfirmacion = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
+        await Servicio().ConfirmarCuentaAsync(tokenConfirmacion, CancellationToken.None);
+
         var servicio = Servicio(fakeEmail);
 
         var solicitada = await servicio.SolicitarRecuperacionAsync("ana@example.test", "127.0.0.1", CancellationToken.None);
@@ -120,11 +191,7 @@ public sealed class TestAutenticacionClientes : IDisposable
         Assert.NotNull(fakeEmail.UltimoCuerpoHtml);
 
         // Extraer el token del HTML generado
-        var marcador = "token=";
-        var indiceToken = fakeEmail.UltimoCuerpoHtml.IndexOf(marcador, StringComparison.Ordinal);
-        Assert.True(indiceToken >= 0);
-        var finToken = fakeEmail.UltimoCuerpoHtml.IndexOfAny(['"', '&', '\'', ' '], indiceToken);
-        var token = fakeEmail.UltimoCuerpoHtml[(indiceToken + marcador.Length)..finToken];
+        var token = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "token=");
 
         var confirmada = await servicio.ConfirmarRecuperacionAsync(token, "NuevaClave999!", "NuevaClave999!", CancellationToken.None);
         Assert.True(confirmada);
@@ -135,11 +202,27 @@ public sealed class TestAutenticacionClientes : IDisposable
         Assert.True(login.CredencialesValidas);
     }
 
+    private static string ExtraerToken(string html, string marcador)
+    {
+        var indiceToken = html.IndexOf(marcador, StringComparison.Ordinal);
+        Assert.True(indiceToken >= 0);
+        var inicio = indiceToken + marcador.Length;
+        var finToken = html.IndexOfAny(['"', '&', '\'', ' '], inicio);
+        if (finToken < 0) finToken = html.Length;
+        return Uri.UnescapeDataString(html[inicio..finToken]);
+    }
+
+    private sealed class RelojManual(DateTimeOffset ahora) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => ahora;
+    }
+
     public void Dispose() => db.Dispose();
 
     private sealed class FakeEmailService : IEmailService
     {
         public string? UltimoCuerpoHtml { get; private set; }
+        public bool Exito { get; init; } = true;
 
         public Task<ResultadoEnvioCorreo> EnviarConResultadoAsync(
             string destinatario,
@@ -149,7 +232,7 @@ public sealed class TestAutenticacionClientes : IDisposable
             bool importante = false)
         {
             UltimoCuerpoHtml = cuerpoHtml;
-            return Task.FromResult(new ResultadoEnvioCorreo(true));
+            return Task.FromResult(new ResultadoEnvioCorreo(Exito));
         }
 
         public Task<bool> EnviarAsync(
@@ -163,7 +246,7 @@ public sealed class TestAutenticacionClientes : IDisposable
             string? tipoContenidoAdjunto = null)
         {
             UltimoCuerpoHtml = cuerpoHtml;
-            return Task.FromResult(true);
+            return Task.FromResult(Exito);
         }
     }
 }

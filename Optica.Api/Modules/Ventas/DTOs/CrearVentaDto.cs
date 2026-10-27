@@ -4,6 +4,9 @@ namespace Optica.Api.Modules.Ventas.DTOs;
 
 public class CrearVentaDto
 {
+    [MaxLength(13)]
+    public string? RutCliente { get; set; }
+
     [Required, MinLength(1)]
     public List<ProductoVentaDto> Productos { get; set; } = [];
 }

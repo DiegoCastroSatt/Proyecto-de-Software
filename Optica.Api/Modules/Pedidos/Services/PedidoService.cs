@@ -91,7 +91,7 @@ public class PedidoService : IPedidoService
 
         var pedido = new Pedido
         {
-            Rut = rut,
+            Rut = cliente.Rut,
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
             Estado = dto.Estado,

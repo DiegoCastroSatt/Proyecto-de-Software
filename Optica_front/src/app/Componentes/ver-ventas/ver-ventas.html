@@ -89,7 +89,10 @@
       <div class="historial">
         @for (venta of ventas(); track venta.idVenta) {
         <article class="venta-historial">
-          <div><strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span></div>
+          <div><strong>Venta #{{ venta.idVenta }}</strong><span>{{ venta.fecha }}</span>
+            @if (venta.rutCliente) { <small>{{ venta.nombreCliente }} · RUT {{ venta.rutCliente }}</small> }
+            @else { <small>Sin cliente vinculado</small> }
+          </div>
           <div class="productos-historial">
             @for (producto of venta.productos; track producto.productoId) { <span>{{ producto.nombre }} × {{
               producto.cantidad }}</span> }

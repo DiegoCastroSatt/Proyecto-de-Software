@@ -38,6 +38,12 @@
           <span aria-hidden="true">→</span>
         </button>
       </form>
+      <p class="registro-invitacion">¿No recibiste el correo de confirmación?
+        <button type="button" class="registro-enlace" [disabled]="reenviandoConfirmacionLogin()"
+          (click)="reenviarConfirmacionDesdeLogin()">
+          {{ reenviandoConfirmacionLogin() ? 'Solicitando…' : 'Reenviar correo' }}
+        </button>
+      </p>
       <p class="registro-invitacion">¿No tienes cuenta?
         <button #registroTrigger type="button" class="registro-enlace" (click)="abrirRegistro()">Regístrate</button>
       </p>
@@ -69,11 +75,12 @@
           <p id="recuperar-descripcion" class="registro-descripcion">
             Ingresa tu correo registrado. Te enviaremos un enlace de duración limitada (15 minutos) para definir una nueva contraseña.
           </p>
-          <form class="registro-formulario" (submit)="enviarRecuperacion(); $event.preventDefault()" novalidate>
+          <form class="registro-formulario" (ngSubmit)="enviarRecuperacion()" novalidate>
             <div class="form-field">
               <label for="recuperar-correo">Correo electrónico</label>
               <input type="email" id="recuperar-correo" name="correoRecuperacion" [(ngModel)]="correoRecuperacion"
-                autocomplete="email" maxlength="100" required placeholder="ejemplo@correo.cl">
+                autocomplete="email" maxlength="100" required placeholder="ejemplo@correo.cl"
+                [disabled]="cargandoRecuperar()">
             </div>
 
             @if (errorRecuperar()) {
@@ -82,7 +89,8 @@
 
             <div class="registro-acciones">
               <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
-              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()">
+              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()"
+                (click)="enviarRecuperacion()">
                 {{ cargandoRecuperar() ? 'Enviando enlace…' : 'Enviar enlace' }}
               </button>
             </div>
@@ -105,14 +113,19 @@
             [disabled]="cargandoRegistro()" (click)="cerrarRegistro()">×</button>
         </header>
         <p id="registro-descripcion" class="registro-descripcion">
-          Completa tus datos para crear tu acceso personal. Si ya tienes tus datos registrados en el centro,
-          el equipo deberá verificar tu identidad antes de activar una cuenta.
+          Completa tus datos para crear tu acceso personal. Te enviaremos un correo para confirmar tu dirección y activar la cuenta.
         </p>
 
         @if (registroExitoso()) {
           <div class="registro-confirmacion" role="status">
             <h3>Cuenta creada correctamente</h3>
-            <p>Ya puedes iniciar sesión con tu correo y contraseña.</p>
+            <p>{{ registroMensaje() }}</p>
+            @if (!confirmacionReenviada()) {
+              <button type="button" class="registro-cancelar" [disabled]="reenviandoConfirmacion()"
+                (click)="reenviarCorreoConfirmacion()">
+                {{ reenviandoConfirmacion() ? 'Solicitando…' : 'Reenviar correo de confirmación' }}
+              </button>
+            }
             <button type="button" class="registro-crear" (click)="cerrarRegistro()">Ir a iniciar sesión</button>
           </div>
         } @else {

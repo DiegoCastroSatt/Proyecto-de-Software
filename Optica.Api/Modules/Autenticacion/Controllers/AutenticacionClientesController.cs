@@ -29,7 +29,7 @@ public sealed class AutenticacionClientesController(
         {
             var (sesion, credencialesValidas) = await autenticacion.IniciarSesionAsync(request, cancellationToken);
             if (!credencialesValidas || sesion is null)
-                return Unauthorized(new { mensaje = "Correo o contraseña incorrectos. Si no tienes cuenta, regístrate. Si tus datos ya están registrados en el centro, contacta al personal para verificar o activar tu acceso." });
+                return Unauthorized(new { mensaje = "Correo o contraseña incorrectos. Si no tienes cuenta, regístrate; si acabas de crearla, confirma tu correo." });
 
             var identidad = new ClaimsIdentity(new[]
             {
@@ -69,7 +69,13 @@ public sealed class AutenticacionClientesController(
                 return BadRequest(new { mensaje = "No se pudo completar el registro." });
 
             return StatusCode(StatusCodes.Status201Created,
-                new { mensaje = "Tu cuenta fue creada correctamente. Ya puedes iniciar sesión." });
+                new
+                {
+                    mensaje = resultado.CorreoConfirmacionEnviado
+                        ? "Cuenta creada. Revisa tu correo y confirma la cuenta antes de iniciar sesión. El enlace vence en 24 horas."
+                        : "Cuenta creada, pero no se pudo enviar el correo de confirmación. Solicita que se reenvíe desde esta pantalla antes de iniciar sesión.",
+                    correoConfirmacionEnviado = resultado.CorreoConfirmacionEnviado
+                });
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -81,6 +87,31 @@ public sealed class AutenticacionClientesController(
             return StatusCode(StatusCodes.Status500InternalServerError,
                 new { mensaje = "No se pudo crear la cuenta. Inténtalo nuevamente más tarde." });
         }
+    }
+
+    [AllowAnonymous]
+    [HttpPost("registro/confirmar")]
+    public async Task<IActionResult> ConfirmarCuenta(
+        [FromBody] ConfirmarCuentaClienteRequest request,
+        CancellationToken cancellationToken)
+    {
+        var confirmada = await autenticacion.ConfirmarCuentaAsync(request.Token, cancellationToken);
+        if (!confirmada)
+            return BadRequest(new { mensaje = "El enlace no es válido, venció o ya fue utilizado. Solicita un nuevo correo de confirmación." });
+        return Ok(new { mensaje = "Tu correo fue confirmado y la cuenta ya está activa. Ya puedes iniciar sesión." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("registro/confirmacion/reenviar")]
+    public async Task<IActionResult> ReenviarConfirmacion(
+        [FromBody] ReenviarConfirmacionClienteRequest request,
+        CancellationToken cancellationToken)
+    {
+        await autenticacion.ReenviarConfirmacionAsync(request.Correo, cancellationToken);
+        return Accepted(new
+        {
+            mensaje = "Si existe una cuenta pendiente para ese correo, enviaremos un nuevo enlace. Revisa tu bandeja de entrada y spam."
+        });
     }
 
     [AllowAnonymous]

@@ -56,3 +56,74 @@ button.secundario { background: var(--color-superficie); color: var(--color-prin
 .coincidencias button { width: 100%; display: grid; gap: 6px; text-align: left; overflow-wrap: anywhere; background: var(--color-superficie); color: var(--color-texto); border: 1px solid var(--color-borde-ventas); padding: 12px; }
 .coincidencias button:focus-visible { outline: 3px solid var(--color-acento); outline-offset: -3px; }
 .coincidencias button:disabled { opacity: .6; cursor: not-allowed; }
+
+.cliente-venta { min-width: 0; margin: 0; padding: 0; border: 0; }
+.cliente-venta legend { padding: 0; margin-bottom: 8px; color: var(--color-principal); font-weight: 600; }
+.cliente-venta button { margin-top: 12px; padding: 8px 12px; background: transparent; color: var(--color-principal); border: 1px solid var(--color-principal); }
+.cliente-venta button:hover { background: var(--color-fondo); }
+
+/* Apariencia del RUT solo dentro de esta pantalla. */
+:host ::ng-deep app-autocompletado-rut {
+  display: block;
+  min-width: 0;
+  font: inherit;
+}
+
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut { position: relative; }
+
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--color-borde-control);
+  border-radius: 4px;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__input::placeholder { color: var(--color-texto-secundario); opacity: 1; }
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__input:hover:not(:disabled) { border-color: var(--color-principal); }
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__input:focus {
+  outline: none;
+  border-color: var(--color-principal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-principal) 12%, transparent);
+}
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__input:disabled { background: var(--color-fondo); opacity: .7; cursor: not-allowed; }
+
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 6px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-control);
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-principal) 14%, transparent);
+}
+
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__item + .autocompletado-rut__item { border-top: 1px solid var(--color-fondo); }
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__item:hover { background: var(--color-fondo); }
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__rut { color: var(--color-principal); font-weight: 600; }
+:host ::ng-deep app-autocompletado-rut .autocompletado-rut__nombre { color: var(--color-texto-ventas); font-size: .9rem; }

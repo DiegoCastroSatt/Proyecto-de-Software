@@ -9,5 +9,8 @@ public sealed class CuentaCliente
     public string ContrasenaHash { get; set; } = string.Empty;
     public string Estado { get; set; } = "Activa";
     public DateTime FechaCreacion { get; set; }
+    public string? TokenConfirmacionHash { get; set; }
+    public DateTime? TokenConfirmacionExpiraUtc { get; set; }
+    public DateTime? UltimoCorreoConfirmacionUtc { get; set; }
     public Cliente? Cliente { get; set; }
 }

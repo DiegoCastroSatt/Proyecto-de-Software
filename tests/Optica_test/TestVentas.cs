@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Optica.Api.Data;
+using Optica.Api.Modules.Clientes.Models;
+using Optica.Api.Modules.Ventas.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Ventas.Controllers;
 using Optica.Api.Modules.Ventas.DTOs;
@@ -14,6 +18,50 @@ public class TestVentas
     private readonly ITestOutputHelper salida;
 
     public TestVentas(ITestOutputHelper salida) => this.salida = salida;
+
+    [Fact]
+    public async Task Repositorio_ConsultaSoloClientesActivosYDevuelveSuAsociacionEnElHistorial()
+    {
+        await using var db = new OpticaDbContext(new DbContextOptionsBuilder<OpticaDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var activo = new Cliente { Rut = "12.345.678-5", Nombre = "Ana", Apellido = "Pérez", Estado = "Activo" };
+        var inactivo = new Cliente { Rut = "11.111.111-1", Nombre = "Pedro", Estado = "Inactivo" };
+        db.Clientes.AddRange(activo, inactivo); await db.SaveChangesAsync();
+        var repositorio = new VentaRepository(db);
+        Assert.Equal(activo.IdCliente, await repositorio.BuscarClienteActivo("123456785"));
+        Assert.Null(await repositorio.BuscarClienteActivo("111111111"));
+        Assert.Null(await repositorio.BuscarClienteActivo("999999999"));
+        db.Ventas.AddRange(new Venta { ClienteId = activo.IdCliente }, new Venta()); await db.SaveChangesAsync();
+        var historial = await repositorio.Listar();
+        Assert.Contains(historial, v => v.RutCliente == activo.Rut && v.NombreCliente == "Ana Pérez");
+        Assert.Contains(historial, v => v.RutCliente == null && v.NombreCliente == null);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public async Task Crear_PermiteVentaSinCliente(string? rut)
+    {
+        var servicio = CrearServicio(out var repositorio); var solicitud = Solicitud(("A", 1)); solicitud.RutCliente = rut;
+        await servicio.Crear(solicitud); Assert.Null(repositorio.UltimaVenta!.ClienteId);
+    }
+
+    [Theory]
+    [InlineData("12.345.678-5")]
+    [InlineData("12345678-5")]
+    public async Task Crear_VinculaLaVentaAlClientePorRutNormalizado(string rut)
+    {
+        var servicio = CrearServicio(out var repositorio); var solicitud = Solicitud(("A", 1)); solicitud.RutCliente = rut;
+        await servicio.Crear(solicitud); Assert.Equal(7, repositorio.UltimaVenta!.ClienteId);
+    }
+
+    [Fact]
+    public async Task Crear_NoGuardaSiElRutNoCorrespondeAUnClienteActivo()
+    {
+        var servicio = CrearServicio(out var repositorio); var solicitud = Solicitud(("A", 1)); solicitud.RutCliente = "no existe";
+        await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(solicitud)); Assert.Equal(0, repositorio.Guardadas);
+    }
 
     [Fact]
     public async Task Crear_AgrupaProductosRepetidosYCalculaElTotal()
@@ -238,6 +286,7 @@ public class TestVentas
 
 public sealed class RepositorioPrueba : IVentaRepository
 {
+    public Task<int?> BuscarClienteActivo(string rutNormalizado) => Task.FromResult<int?>(rutNormalizado == "123456785" ? 7 : null);
     public int Guardadas { get; private set; }
     public Venta? UltimaVenta { get; private set; }
     public IReadOnlyList<VentaResponseDto> Historial { get; set; } = [];

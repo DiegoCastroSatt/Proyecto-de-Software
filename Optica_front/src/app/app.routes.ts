@@ -31,6 +31,7 @@ import { authClienteGuard } from './guards/auth-cliente-guard';
 import { RestablecerContrasenaComponent } from './Componentes/restablecer-contrasena/restablecer-contrasena';
 import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
 import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
+import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
 
 export const routes: Routes = [
   {
@@ -40,6 +41,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
       { path: 'cliente/login', component: LoginCliente },
+      { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
       { path: 'cliente/restablecer-contrasena', component: RestablecerContrasenaComponent },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
