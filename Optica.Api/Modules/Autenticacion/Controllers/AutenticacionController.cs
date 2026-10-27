@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,8 @@ namespace Optica.Api.Modules.Autenticacion.Controllers;
 [Route("api/[controller]")]
 public sealed class AutenticacionController(
     IAutenticacionAdministradorService autenticacionAdministradorService,
-    ILogger<AutenticacionController> logger) : ControllerBase
+    ILogger<AutenticacionController> logger,
+    AccesoService acceso) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("admin")]
@@ -25,18 +27,14 @@ public sealed class AutenticacionController(
     {
         var administrador = await autenticacionAdministradorService.IniciarSesionAsync(
             request,
-            cancellationToken);
+            cancellationToken) ?? await acceso.IniciarTrabajadorAsync(request, cancellationToken);
 
         if (administrador is null)
         {
             return Unauthorized(new { mensaje = "Nombre de usuario o contraseña incorrectos." });
         }
 
-        var identidad = new ClaimsIdentity(new[] {
-            new Claim(ClaimTypes.NameIdentifier, administrador.IdAdministrador.ToString()),
-            new Claim(ClaimTypes.Name, administrador.Nombre)
-        }, CookieAuthenticationDefaults.AuthenticationScheme);
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identidad));
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, AccesoService.CrearPrincipal(administrador));
         return Ok(administrador);
     }
 
@@ -102,10 +100,15 @@ public sealed class AutenticacionController(
         }
     }
 
+    [Authorize(Policy = PermisosAcceso.Personal)]
     [HttpGet("admin/sesion")]
-    public ActionResult<LoginAdministradorResponse> Sesion() => Ok(new LoginAdministradorResponse(
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!), User.Identity!.Name!));
+    public async Task<ActionResult<LoginAdministradorResponse>> Sesion(CancellationToken ct)
+    {
+        var sesion = await acceso.ObtenerSesionAsync(User, ct);
+        return sesion is null ? Unauthorized() : Ok(sesion);
+    }
 
+    [Authorize(Policy = PermisosAcceso.Personal)]
     [HttpPost("admin/salir")]
     public async Task<IActionResult> Salir()
     {

@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Mvc;
 
+[Authorize(Policy = "recetas")]
 [ApiController]
 [Route("api/[controller]")]
 public class RecetasController : ControllerBase
