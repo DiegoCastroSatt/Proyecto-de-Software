@@ -1,0 +1,32 @@
+.gestion-marcos { max-width: 1120px; margin: auto; padding: 28px 20px; color: #1d4a47; }
+h1 { font-size: 2rem; margin: 4px 0 12px; } h2 { font-size: 1.2rem; } h3 { margin: 0 0 8px; }
+p { line-height: 1.5; } .eyebrow { text-transform: uppercase; font-size: .8rem; letter-spacing: .1em; }
+input:not([type=checkbox]) { width: 100%; box-sizing: border-box; border: 1px solid #7b9691; padding: 10px; border-radius: 6px; font: inherit; }
+small { line-height: 1.5; color: #49645e; } fieldset { border: 1px solid #d4ded9; border-radius: 8px; padding: 14px; } legend { padding: 0 8px; }
+button { font: inherit; cursor: pointer; background: #fff; color: #1d4a47; border: 1px solid #718f86; border-radius: 6px; padding: 10px 16px; }
+button:disabled { opacity: .55; cursor: default; } button:focus-visible, input:focus-visible { outline: 3px solid #bf8542; outline-offset: 3px; }
+.primario { background: #1d4a47; color: white; justify-self: start; } .peligro { color: #9a2929; border-color: #b66161; }
+.mensaje { padding: 14px; border-radius: 8px; background: #e5f1e8; } .error { background: #fff0ed; color: #922d20; }
+.titulo-lista { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lista { list-style: none; padding: 0; display: grid; gap: 12px; }
+.lista li { display: flex; align-items: center; gap: 24px; padding: 20px; border: 1px solid #d4ded9; border-radius: 10px; background: #fff; }
+.lista img { object-fit: contain; background: #f3f5f0; border-radius: 8px; padding: 12px; }
+.detalle { flex: 1; } .detalle p { margin: 4px 0; } .etiqueta { display: inline-block; font-size: .8rem; background: #e5f1e8; padding: 5px 9px; margin-top: 6px; border-radius: 20px; }
+.apagado { background: #ececec; color: #555; } .inactivo { border-style: dashed !important; } .acciones { display: flex; flex-wrap: wrap; gap: 10px; max-width: 340px; }
+.confirmacion { padding: 12px; background: #fff4f1; border-radius: 8px; } .confirmacion button { margin-right: 8px; } .confirmacion p { margin-top: 0; }
+@media (max-width: 760px) { .lista li { flex-wrap: wrap; gap: 16px; } .acciones { width: 100%; max-width: none; } .gestion-marcos { padding: 16px 8px; } }
+
+
+.encabezado-inventario { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.boton-inventario { display: inline-block; background: var(--color-principal); color: var(--color-superficie); padding: 12px 18px; border-radius: 4px; text-decoration: none; }
+.boton-inventario:hover { background: var(--color-principal-hover); }
+.boton-inventario:focus-visible { outline: 3px solid #bf8542; outline-offset: 3px; }
+
+.lista > li { flex-wrap: wrap; } .vinculos { width: 100%; box-sizing: border-box; }
+.productos-vinculables { list-style: none; padding: 0; max-height: 340px; overflow-y: auto; border: 1px solid #d4ded9; border-radius: 8px; margin: 16px 0; }
+.productos-vinculables li { display: block; padding: 12px; border: 0; border-bottom: 1px solid #d4ded9; border-radius: 0; }
+.productos-vinculables label { display: flex; gap: 12px; align-items: flex-start; } .productos-vinculables small { display: block; margin-top: 5px; } .traslado { color: #8a4c12; }
+.acciones-vinculos { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.busqueda-marcos { display: grid; gap: 8px; margin: 16px 0; } .campo-busqueda { display: flex; gap: 10px; align-items: center; } .campo-busqueda input { flex: 1; min-width: 0; }
+@media (max-width: 600px) { .campo-busqueda { flex-wrap: wrap; } .campo-busqueda input { flex-basis: 100%; } }

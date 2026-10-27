@@ -1,0 +1,16 @@
+.crear-marco { max-width: 1120px; margin: auto; padding: 28px 20px; color: var(--color-principal); }
+h1 { font-size: 2rem; margin: 4px 0 12px; } h2 { font-size: 1.2rem; }
+p, small { line-height: 1.5; } small { color: var(--color-texto-secundario); }
+.eyebrow { text-transform: uppercase; font-size: .8rem; letter-spacing: .1em; }
+.encabezado { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.crear { display: grid; gap: 18px; margin: 24px 0; padding: 24px; background: var(--color-superficie); border: 1px solid var(--color-borde-control); border-radius: 12px; }
+.campos label { display: grid; gap: 8px; }
+input:not([type=checkbox]) { width: 100%; box-sizing: border-box; border: 1px solid var(--color-borde-control); padding: 10px; border-radius: 6px; font: inherit; background: var(--color-superficie); color: var(--color-texto); }
+fieldset, .cargar-ilustracion { border: 1px solid var(--color-borde-control); border-radius: 8px; padding: 14px; }
+legend { padding: 0 8px; } .rostros { display: flex; flex-wrap: wrap; gap: 18px; } .rostros label { display: flex; gap: 7px; align-items: center; }
+.cargar-ilustracion summary { cursor: pointer; } .cargar-ilustracion label { display: grid; gap: 8px; margin: 14px 0; }
+button, .boton { font: inherit; cursor: pointer; border: 1px solid var(--color-principal); border-radius: 6px; padding: 10px 16px; background: var(--color-principal); color: var(--color-superficie); text-decoration: none; }
+button:disabled { opacity: .55; cursor: default; } .primario { justify-self: start; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--color-acento); outline-offset: 3px; }
+.mensaje { padding: 14px; border-radius: 8px; background: var(--color-fondo); } .error { color: #922d20; background: #fff0ed; }
+@media (max-width: 760px) { .crear-marco { padding: 16px 8px; } .crear { padding: 16px; } }

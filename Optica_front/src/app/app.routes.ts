@@ -1,3 +1,6 @@
+import { CrearMarcoComponent } from './Componentes/crear-marco/crear-marco';
+import { GestionRostrosComponent } from './Componentes/gestion-rostros/gestion-rostros';
+import { GestionMarcosComponent } from './Componentes/gestion-marcos/gestion-marcos';
 import { ProbadorMarcosComponent } from './Componentes/probador-marcos/probador-marcos';
 import { RecomendadorMarcosComponent } from './Componentes/recomendador-marcos/recomendador-marcos';
 import { VerVentasComponent } from './Componentes/ver-ventas/ver-ventas';
@@ -19,9 +22,12 @@ import { DetallePedidoComponent } from './Componentes/detalle-pedido/detalle-ped
 import { ClientesComponent } from './Componentes/clientes/clientes';
 import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { authAdminGuard } from './guards/auth-admin-guard';
+import { LoginCliente } from './Componentes/login-cliente/login-cliente';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
 import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
+import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
+import { authClienteGuard } from './guards/auth-cliente-guard';
 import { ConsultarPedidoComponent } from './Componentes/consultar-pedido/consultar-pedido';
 
 export const routes: Routes = [
@@ -30,19 +36,22 @@ export const routes: Routes = [
     component: ClienteLayoutComponent,
     children: [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+      { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
+      { path: 'cliente/login', component: LoginCliente },
+      { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
       { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
       { path: 'productos', component: BuscarProductoCliente },
-      { path: 'consultar-pedido', component: ConsultarPedidoComponent }
+      { path: 'cliente/consultar-pedido', component: ConsultarPedidoComponent }
     ]
   },
 
   {
     path: 'admin',
     children: [
-      {path: '', component: LoginAdmin},
+      { path: '', component: LoginAdmin },
       {
         path: 'panel',
         component: AdminLayoutComponent,
@@ -56,6 +65,10 @@ export const routes: Routes = [
           { path: 'clientes', component: ClientesComponent },
           { path: 'productos', component: BuscarProductoAdmin },
           { path: 'stock', component: ConsultarStock },
+          { path: 'marcos', component: GestionMarcosComponent },
+          { path: 'marcos/crear', component: CrearMarcoComponent },
+          { path: 'marcos/rostros', component: GestionRostrosComponent },
+          { path: 'rostros', redirectTo: 'marcos/rostros', pathMatch: 'full' },
           { path: 'ventas', component: RegistroVentaComponent },
           { path: 'ventas/historial', component: VerVentasComponent },
           { path: 'recetas', component: RegistroRecetaComponent },

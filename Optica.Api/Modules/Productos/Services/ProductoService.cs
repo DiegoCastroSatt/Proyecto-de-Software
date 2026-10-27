@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Marcos;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.Productos.Models;
 
@@ -159,6 +160,7 @@ public class ProductoService : IProductoService
     private static ProductoResponseDto Mapear(Producto producto) => new()
     {
         Id = producto.IdProducto,
+        IdTipoMarco = producto.IdTipoMarco,
         Codigo = producto.Codigo,
         Nombre = producto.Nombre,
         Marca = producto.Marca,

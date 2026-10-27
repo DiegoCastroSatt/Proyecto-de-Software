@@ -6,4 +6,6 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   templateUrl: './app.html'
 })
-export class App { }
+export class App {
+  readonly anioActual = new Date().getFullYear();
+}

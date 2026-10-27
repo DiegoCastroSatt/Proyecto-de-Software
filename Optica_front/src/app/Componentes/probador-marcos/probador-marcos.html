@@ -19,10 +19,10 @@
           @if (foto()) {
             <img class="foto" [src]="foto()" alt="Tu fotografía para probar marcos" />
           }
-          @if (ajuste(); as posicion) {
+          @if (seleccionado() && ajuste(); as posicion) {
             <img
               class="marco"
-              [src]="'/images/probador/' + seleccionado() + '.svg?v=negro-1'"
+              [src]="imagenMarco(modeloActual!.id)"
               [alt]="'Marco ' + nombreModelo"
               [style.left.%]="posicion.x"
               [style.top.%]="posicion.y"
@@ -84,17 +84,24 @@
         <span class="eyebrow">01 · Elige tu estilo</span>
         <h2 id="titulo-modelos">¿Cuál va contigo?</h2>
       </div>
+      @if (cargandoModelos()) {
+        <p role="status">Consultando marcos disponibles…</p>
+      } @else if (errorModelos()) {
+        <p class="error" role="alert">{{ errorModelos() }}</p>
+      } @else if (!modelos().length) {
+        <p role="status">No hay tipos de marco disponibles para probar en este momento.</p>
+      }
       <div class="modelos" role="group" aria-label="Modelos de marcos compatibles">
-        @for (modelo of modelos; track modelo.id) {
+        @for (modelo of modelos(); track modelo.id) {
           <button
             class="modelo"
             type="button"
-            [class.seleccionado]="seleccionado() === modelo.id"
-            [attr.aria-pressed]="seleccionado() === modelo.id"
-            (click)="seleccionado.set(modelo.id)"
+            [class.seleccionado]="seleccionado() === modelo.codigo"
+            [attr.aria-pressed]="seleccionado() === modelo.codigo"
+            (click)="seleccionado.set(modelo.codigo)"
           >
             <img
-              [src]="'/images/probador/' + modelo.id + '.svg?v=negro-1'"
+              [src]="imagenMarco(modelo.id)"
               alt=""
               width="120"
               height="60"

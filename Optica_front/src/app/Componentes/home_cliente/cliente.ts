@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
 
 @Component({
   selector: 'app-cliente',
@@ -7,4 +8,6 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   templateUrl: './cliente.html',
   styleUrl: './cliente.css'
 })
-export class ClienteLayoutComponent {}
+export class ClienteLayoutComponent {
+  protected readonly authService = inject(AutenticacionClienteService);
+}

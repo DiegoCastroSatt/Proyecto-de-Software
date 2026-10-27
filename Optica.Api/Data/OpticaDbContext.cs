@@ -1,3 +1,5 @@
+using Optica.Api.Modules.Rostros;
+using Optica.Api.Modules.Marcos;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Catalogos.Models;
@@ -18,6 +20,8 @@ public class OpticaDbContext : DbContext
 
     public DbSet<Cliente> Clientes => Set<Cliente>();
 
+    public DbSet<CuentaCliente> CuentasCliente => Set<CuentaCliente>();
+
     public DbSet<Reserva> Reservas => Set<Reserva>();
 
     public DbSet<Horario> Horarios => Set<Horario>();
@@ -27,6 +31,12 @@ public class OpticaDbContext : DbContext
     public DbSet<Graduacion> Graduaciones => Set<Graduacion>();
 
     public DbSet<Administrador> Administradores => Set<Administrador>();
+
+    public DbSet<TipoRostro> TiposRostro => Set<TipoRostro>();
+
+    public DbSet<FormaLente> FormasLente => Set<FormaLente>();
+
+    public DbSet<TipoMarco> TiposMarco => Set<TipoMarco>();
 
     public DbSet<Producto> Productos => Set<Producto>();
 
@@ -50,6 +60,12 @@ public class OpticaDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<FormaLente>().HasIndex(f => f.Codigo).IsUnique();
+        modelBuilder.Entity<FormaLente>().HasIndex(f => f.NombreNormalizado).IsUnique();
+        modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Codigo).IsUnique();
+        modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Nombre).IsUnique();
+        modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Codigo).IsUnique();
+        modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Nombre).IsUnique();
 
         modelBuilder.Entity<Cliente>(entity =>
         {
@@ -90,6 +106,25 @@ public class OpticaDbContext : DbContext
 
             entity.Property(c => c.FechaRegistro)
                 .HasColumnName("fecha_registro");
+        });
+
+        modelBuilder.Entity<CuentaCliente>(entity =>
+        {
+            entity.ToTable("cuentas_cliente");
+            entity.HasKey(c => c.IdCuenta);
+            entity.Property(c => c.IdCuenta).HasColumnName("id_cuenta");
+            entity.Property(c => c.IdCliente).HasColumnName("id_cliente");
+            entity.Property(c => c.Correo).HasColumnName("correo").HasMaxLength(100).IsRequired();
+            entity.Property(c => c.CorreoNormalizado).HasColumnName("correo_normalizado").HasMaxLength(100).IsRequired();
+            entity.Property(c => c.ContrasenaHash).HasColumnName("contrasena_hash").HasMaxLength(500).IsRequired();
+            entity.Property(c => c.Estado).HasColumnName("estado").HasMaxLength(12).IsRequired();
+            entity.Property(c => c.FechaCreacion).HasColumnName("fecha_creacion");
+            entity.HasIndex(c => c.IdCliente).IsUnique();
+            entity.HasIndex(c => c.CorreoNormalizado).IsUnique();
+            entity.HasOne(c => c.Cliente)
+                .WithOne()
+                .HasForeignKey<CuentaCliente>(c => c.IdCliente)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Reserva>(entity =>
@@ -226,6 +261,8 @@ public class OpticaDbContext : DbContext
             entity.ToTable("productos");
             entity.HasKey(p => p.IdProducto);
             entity.Property(p => p.IdProducto).HasColumnName("id_producto");
+            entity.Property(p => p.IdTipoMarco).HasColumnName("id_tipo_marco");
+            entity.HasOne<TipoMarco>().WithMany().HasForeignKey(p => p.IdTipoMarco).OnDelete(DeleteBehavior.SetNull);
             entity.Property(p => p.Codigo).HasColumnName("codigo").HasMaxLength(30).IsRequired();
             entity.Property(p => p.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
             entity.Property(p => p.Marca).HasColumnName("marca").HasMaxLength(60);

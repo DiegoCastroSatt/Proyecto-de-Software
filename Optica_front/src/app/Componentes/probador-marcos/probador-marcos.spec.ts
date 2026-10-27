@@ -1,3 +1,5 @@
+import { of } from 'rxjs';
+import { DisponibilidadMarcosService } from '../../shared/services/disponibilidad-marcos.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { vi, afterEach } from 'vitest';
@@ -11,6 +13,7 @@ describe('ProbadorMarcosComponent', () => {
     TestBed.configureTestingModule({
       imports: [ProbadorMarcosComponent],
       providers: [
+        { provide: DisponibilidadMarcosService, useValue: { consultar: () => of(['rectangular', 'redondo', 'aviador'].map((codigo, i) => ({ id: i + 1, codigo, nombre: codigo === 'aviador' ? 'Aviador' : codigo, categoria: codigo, activo: true, rostros: ['ovalado'], stock: 1 }))) } },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { queryParamMap: convertToParamMap({ modelo }) } },
