@@ -30,6 +30,7 @@ import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { authClienteGuard } from './guards/auth-cliente-guard';
 import { RestablecerContrasenaComponent } from './Componentes/restablecer-contrasena/restablecer-contrasena';
 import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
+import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 
 export const routes: Routes = [
   {
@@ -45,7 +46,8 @@ export const routes: Routes = [
       { path: 'reservas', component: ReservaComponent },
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
       { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
-      { path: 'productos', component: BuscarProductoCliente } 
+      { path: 'productos', component: BuscarProductoCliente },
+      { path: 'mis-recetas', component: MisRecetas, canActivate: [authClienteGuard] }
     ]
   },
 
