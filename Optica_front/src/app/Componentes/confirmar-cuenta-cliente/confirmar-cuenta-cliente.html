@@ -1,0 +1,25 @@
+<main class="confirmar-contenedor">
+  <section class="confirmar-tarjeta" aria-live="polite">
+    <header class="confirmar-cabecera">
+      <span class="marca-eyebrow">CENTRO ÓPTICO SAN FRANCISCO</span>
+      @if (estado() === 'cargando') {
+        <h1>Confirmando tu correo</h1>
+      } @else if (estado() === 'exito') {
+        <h1>Cuenta activada</h1>
+      } @else {
+        <h1>Enlace no disponible</h1>
+      }
+    </header>
+
+    @if (estado() === 'cargando') {
+      <p class="confirmar-mensaje">Estamos validando el enlace de confirmación.</p>
+    } @else {
+      <div class="confirmar-estado" [class.exito]="estado() === 'exito'" [class.error]="estado() === 'error'">
+        <p>{{ mensaje() }}</p>
+        <button type="button" class="btn-principal" (click)="irAlLogin()">
+          {{ estado() === 'exito' ? 'Ir a iniciar sesión' : 'Volver al inicio de sesión' }}
+        </button>
+      </div>
+    }
+  </section>
+</main>
