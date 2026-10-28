@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  min-height: 80vh;
+  padding: 40px 20px;
+}
+
+.confirmar-contenedor {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.confirmar-tarjeta {
+  box-sizing: border-box;
+  width: min(100%, 480px);
+  padding: clamp(24px, 5vw, 40px);
+  border-top: 4px solid var(--color-acento, #176b6c);
+  background: var(--color-superficie-login, #fff);
+  color: var(--color-texto-login, #18333c);
+  box-shadow: 0 16px 40px rgb(10 31 35 / 8%);
+}
+
+.marca-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-acento-login, #176b6c);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.confirmar-cabecera h1 {
+  margin: 0 0 16px;
+  color: var(--color-texto-profundo, #18333c);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.confirmar-mensaje,
+.confirmar-estado p {
+  margin: 0 0 24px;
+  color: var(--color-texto-login, #4a636a);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.btn-principal {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-bottom: 3px solid var(--color-acento, #135556);
+  border-radius: 2px;
+  background: var(--color-principal, #176b6c);
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.btn-principal:hover { background: var(--color-principal-oscuro, #0f4f50); }

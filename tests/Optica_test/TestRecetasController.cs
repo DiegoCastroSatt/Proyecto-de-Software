@@ -188,5 +188,12 @@ public class TestRecetasController
                 return Task.FromException<List<RecetaHistorialDto>>(ErrorAlObtenerHistorial);
             return Task.FromResult(Historial);
         }
+
+        public Task<List<RecetaHistorialDto>> ObtenerHistorialPorClienteId(int clienteId)
+        {
+            if (ErrorAlObtenerHistorial is not null)
+                return Task.FromException<List<RecetaHistorialDto>>(ErrorAlObtenerHistorial);
+            return Task.FromResult(Historial);
+        }
     }
 }

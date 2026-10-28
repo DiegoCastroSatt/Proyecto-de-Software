@@ -17,6 +17,7 @@ import { ProductoComponent } from './Componentes/registro-producto/registro-prod
 import { RegistroVentaComponent } from './Componentes/registro-venta/registro-venta';
 import { AdminLayoutComponent } from './Componentes/home_admin/admin';
 import { ClienteLayoutComponent } from './Componentes/home_cliente/cliente';
+import { PortalClienteComponent } from './Componentes/portal-cliente/portal-cliente';
 import { InicioClienteComponent } from './Componentes/inicio-cliente/inicio-cliente';
 import { GestionHorariosComponent } from './Componentes/gestion-horarios/gestion-horarios';
 import { RegistroRecetaComponent } from './Componentes/registro-receta/registro-receta';
@@ -35,6 +36,8 @@ import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { authClienteGuard } from './guards/auth-cliente-guard';
 import { RestablecerContrasenaComponent } from './Componentes/restablecer-contrasena/restablecer-contrasena';
 import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
+import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
+import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
 
 export const routes: Routes = [
   {
@@ -44,14 +47,17 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
       { path: 'cliente/login', component: LoginCliente },
+      { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
       { path: 'cliente/restablecer-contrasena', component: RestablecerContrasenaComponent },
+      { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
       { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
       { path: 'productos', component: BuscarProductoCliente },
-    ],
+      { path: 'mis-recetas', component: MisRecetas, canActivate: [authClienteGuard] }
+    ]
   },
 
   {

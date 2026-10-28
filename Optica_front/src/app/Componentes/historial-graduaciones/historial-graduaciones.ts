@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
 import { ClienteService, Cliente } from '../clientes/cliente.service';
 import { GraduacionHistorial, HistorialGraduacionesService, RecetaHistorial } from './historial-graduaciones.service';
+import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 interface FilaComparacion {
   campo: string;
@@ -27,7 +28,7 @@ interface GrupoComparacionOjo {
 export class HistorialGraduaciones implements OnInit {
   private readonly route = inject(ActivatedRoute);
   protected readonly verRecetas = this.route.snapshot.data['verRecetas'] === true;
-  protected readonly apiBase = 'http://localhost:8080';
+  protected readonly apiBase = obtenerOrigenApi();
 
   private readonly clienteService = inject(ClienteService);
   protected readonly clientes = signal<Cliente[]>([]);

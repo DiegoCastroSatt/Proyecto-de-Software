@@ -30,12 +30,16 @@ export class LoginCliente implements OnDestroy {
   errorLogin = signal('');
   mensajeLogin = signal('');
   cargandoLogin = signal(false);
+  reenviandoConfirmacionLogin = signal(false);
   sesionIniciada = signal(false);
 
   modalRegistroAbierto = signal(false);
   registroExitoso = signal(false);
+  registroMensaje = signal('');
   errorRegistro = signal('');
   cargandoRegistro = signal(false);
+  reenviandoConfirmacion = signal(false);
+  confirmacionReenviada = signal(false);
   camposTocados = signal(false);
   private overflowAnterior = '';
   registro: RegistroCliente = {
@@ -67,7 +71,7 @@ export class LoginCliente implements OnDestroy {
         this.contrasena = '';
         const retorno = this.route.snapshot.queryParamMap.get('returnUrl');
         const destino = resultado.tipoUsuario === 'Cliente'
-          ? '/cliente/en-trabajo'
+          ? '/cliente/inicio'
           : retorno && (retorno === '/admin/panel' || retorno.startsWith('/admin/panel/'))
             ? retorno : '/admin/panel';
         void this.router.navigateByUrl(destino);
@@ -75,8 +79,30 @@ export class LoginCliente implements OnDestroy {
       error: (error: HttpErrorResponse) => {
         this.cargandoLogin.set(false);
         this.errorLogin.set(error.status === 401
-          ? 'No fue posible iniciar sesión. Revisa tus datos. Si no tienes cuenta, regístrate; si tus datos ya están registrados en el centro, contacta al personal para verificar o activar tu acceso.'
+          ? 'No fue posible iniciar sesión. Revisa tus datos. Si no tienes cuenta, regístrate; si acabas de crearla, confirma tu correo.'
           : 'No se pudo conectar con el servidor. Inténtalo nuevamente más tarde.');
+      }
+    });
+  }
+
+  reenviarConfirmacionDesdeLogin(): void {
+    if (this.reenviandoConfirmacionLogin()) return;
+    const correo = this.correo.trim();
+    if (!this.correoValido(correo)) {
+      this.errorLogin.set('Ingresa primero un correo válido para solicitar la confirmación.');
+      return;
+    }
+    this.errorLogin.set('');
+    this.mensajeLogin.set('');
+    this.reenviandoConfirmacionLogin.set(true);
+    this.autenticacion.reenviarConfirmacion(correo).subscribe({
+      next: (respuesta) => {
+        this.reenviandoConfirmacionLogin.set(false);
+        this.mensajeLogin.set(respuesta.mensaje);
+      },
+      error: () => {
+        this.reenviandoConfirmacionLogin.set(false);
+        this.errorLogin.set('No se pudo solicitar el reenvío. Inténtalo nuevamente más tarde.');
       }
     });
   }
@@ -84,6 +110,8 @@ export class LoginCliente implements OnDestroy {
   abrirRegistro(): void {
     this.modalRegistroAbierto.set(true);
     this.registroExitoso.set(false);
+    this.registroMensaje.set('');
+    this.confirmacionReenviada.set(false);
     this.errorRegistro.set('');
     this.camposTocados.set(false);
     this.registro = { nombre: '', apellido: '', rut: '', correo: '', telefono: '', contrasena: '', confirmarContrasena: '' };
@@ -99,7 +127,7 @@ export class LoginCliente implements OnDestroy {
     setTimeout(() => this.registroTrigger?.nativeElement.focus());
     if (this.registroExitoso()) {
       this.correo = this.registro.correo;
-      this.mensajeLogin.set('Tu cuenta fue creada correctamente. Ya puedes iniciar sesión.');
+      this.mensajeLogin.set('Confirma tu correo electrónico antes de iniciar sesión.');
       this.errorLogin.set('');
     }
   }
@@ -186,8 +214,9 @@ export class LoginCliente implements OnDestroy {
 
     this.cargandoRegistro.set(true);
     this.autenticacion.registrar(this.registro).subscribe({
-      next: () => {
+      next: (respuesta) => {
         this.cargandoRegistro.set(false);
+        this.registroMensaje.set(respuesta.mensaje);
         this.registroExitoso.set(true);
       },
       error: (error: HttpErrorResponse) => {
@@ -197,6 +226,22 @@ export class LoginCliente implements OnDestroy {
           : error.status === 409
             ? 'Ya existe un registro para esos datos. Contacta al personal para verificar o activar tu acceso.'
             : 'No se pudo crear la cuenta. Revisa los datos e inténtalo nuevamente.');
+      }
+    });
+  }
+
+  reenviarCorreoConfirmacion(): void {
+    if (this.reenviandoConfirmacion() || !this.registro.correo.trim()) return;
+    this.reenviandoConfirmacion.set(true);
+    this.autenticacion.reenviarConfirmacion(this.registro.correo.trim()).subscribe({
+      next: (respuesta) => {
+        this.reenviandoConfirmacion.set(false);
+        this.confirmacionReenviada.set(true);
+        this.registroMensaje.set(respuesta.mensaje);
+      },
+      error: () => {
+        this.reenviandoConfirmacion.set(false);
+        this.registroMensaje.set('No se pudo solicitar el reenvío. Inténtalo nuevamente más tarde.');
       }
     });
   }

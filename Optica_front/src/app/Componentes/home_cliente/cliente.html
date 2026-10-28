@@ -1,23 +1,50 @@
 <div class="client-shell">
   <header class="client-header">
-    <a class="brand" routerLink="/inicio" aria-label="Centro Óptico San Francisco, inicio">
+    <a class="brand" [routerLink]="autenticacion.cliente() ? '/cliente/inicio' : '/inicio'" aria-label="Centro Óptico San Francisco, inicio">
       <img class="brand-logo" src="/assets/images/favicon-san-francisco-transparente.png" alt="Óptica San Francisco" width="1254" height="1254">
     </a>
 
     <nav aria-label="Navegación del cliente">
-      <a routerLink="/inicio" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+      <a [routerLink]="autenticacion.cliente() ? '/cliente/inicio' : '/inicio'" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
       <a routerLink="/reservas" routerLinkActive="is-active">Agendar reserva</a>
-      <a routerLink="/recomendador-marcos" routerLinkActive="is-active">Recomendador de marcos</a>
-      <a routerLink="/probador-marcos" routerLinkActive="is-active">Probar marcos</a>
+      @if (autenticacion.cliente()) {
+        <details class="client-tools" #herramientas (keydown.escape)="herramientas.open = false">
+          <summary routerLinkActive="is-active">Probador y simulador</summary>
+          <div class="client-tools-options">
+            <a routerLink="/recomendador-marcos" routerLinkActive="is-active" (click)="herramientas.open = false">Recomendador de marcos</a>
+            <a routerLink="/probador-marcos" routerLinkActive="is-active" (click)="herramientas.open = false">Probar marcos</a>
+          </div>
+        </details>
+      } @else {
+        <a routerLink="/recomendador-marcos" routerLinkActive="is-active">Recomendador de marcos</a>
+        <a routerLink="/probador-marcos" routerLinkActive="is-active">Probar marcos</a>
+      }
       <a routerLink="/productos" routerLinkActive="is-active">Productos</a>
+      @if (autenticacion.cliente()) {
+        <a routerLink="/cliente/en-trabajo" routerLinkActive="is-active">Mis recetas</a>
+      }
     </nav>
-    <a class="login-button" routerLink="/logincliente">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <circle cx="12" cy="8" r="3.5" />
-        <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
-      </svg>
-      <span>Iniciar sesión</span>
-    </a>
+    @if (autenticacion.cliente(); as cliente) {
+      <details class="client-account">
+        <summary class="client-welcome">Bienvenido, {{ cliente.nombre }}</summary>
+        <div class="client-account-options">
+          <button type="button" (click)="cerrarSesion()" [disabled]="cerrandoSesion()">
+            {{ cerrandoSesion() ? 'Cerrando sesión…' : 'Cerrar sesión' }}
+          </button>
+          @if (errorSesion()) {
+            <p role="alert">{{ errorSesion() }}</p>
+          }
+        </div>
+      </details>
+    } @else {
+      <a class="login-button" routerLink="/logincliente">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+        </svg>
+        <span>Iniciar sesión</span>
+      </a>
+    }
   </header>
 
   <main class="client-content">

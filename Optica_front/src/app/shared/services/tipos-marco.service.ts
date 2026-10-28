@@ -1,6 +1,7 @@
 import { FormaLenteDiseno } from '../../Componentes/diseno/diseno-marco';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { obtenerOrigenApi } from './api-origin';
 
 export interface TipoMarco {
   id: number;
@@ -16,7 +17,7 @@ export interface ProductoVinculableMarco {
   id: number; codigo: string; nombre: string; categoria: string; marca: string;
   stock: number; estado: string; idTipoMarco: number | null;
 }
-export function imagenMarco(id: number): string { return `http://localhost:8080/api/Marcos/${id}/imagen`; }
+export function imagenMarco(id: number): string { return `${obtenerOrigenApi()}/api/Marcos/${id}/imagen`; }
 
 @Injectable({ providedIn: 'root' })
 export class TiposMarcoService {

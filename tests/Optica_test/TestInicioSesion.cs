@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -26,7 +27,7 @@ public sealed class TestInicioSesion : IDisposable
             new PasswordHasher<Administrador>(), new EstadoRecuperacionAdministrador(), correo,
             TimeProvider.System, NullLogger<AutenticacionAdministradorService>.Instance);
         var clientes = new AutenticacionClienteService(db, new PasswordHasher<CuentaCliente>(),
-            new EstadoRecuperacionCliente(), correo, TimeProvider.System, NullLogger<AutenticacionClienteService>.Instance);
+            new EstadoRecuperacionCliente(), correo, TimeProvider.System, NullLogger<AutenticacionClienteService>.Instance, new ConfigurationBuilder().Build());
         return new(db, admin, new AccesoService(db, new PasswordHasher<Trabajador>()), clientes);
     }
 

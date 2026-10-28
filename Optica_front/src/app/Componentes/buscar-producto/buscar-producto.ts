@@ -3,6 +3,7 @@ import { Component, Input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { BuscarProductoService, Producto, ProductoEditable } from './buscar-producto.service';
+import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
   selector: 'app-busqueda-producto',
@@ -205,7 +206,7 @@ export class BuscarProductoComponent implements OnInit {
 
     return rutaImagen.startsWith('http://') || rutaImagen.startsWith('https://')
       ? rutaImagen
-      : `http://localhost:8080${rutaImagen.startsWith('/') ? '' : '/'}${rutaImagen}`;
+      : `${obtenerOrigenApi()}${rutaImagen.startsWith('/') ? '' : '/'}${rutaImagen}`;
   }
 
   protected guardarCambios(): void {

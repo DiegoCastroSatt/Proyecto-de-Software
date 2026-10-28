@@ -6,3 +6,7 @@ public sealed record ConfirmarRecuperacionClienteRequest(
     string Token,
     string NuevaContrasena,
     string ConfirmarContrasena);
+
+public sealed record ConfirmarCuentaClienteRequest(string Token);
+
+public sealed record ReenviarConfirmacionClienteRequest(string Correo);

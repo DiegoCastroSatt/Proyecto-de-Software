@@ -48,7 +48,7 @@ export class LoginAdmin {
         sessionStorage.removeItem('isAdmin');
 
         const destino = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/admin/panel';
-        void this.router.navigateByUrl(resultado.tipoUsuario === 'Cliente' ? '/cliente/en-trabajo'
+        void this.router.navigateByUrl(resultado.tipoUsuario === 'Cliente' ? '/cliente/inicio'
           : destino === '/admin/panel' || destino.startsWith('/admin/panel/') ? destino : '/admin/panel');
       },
       error: (error: HttpErrorResponse) => {
