@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { Router, provideRouter } from '@angular/router';
 
 import { LoginCliente } from './login-cliente';
 import { AutenticacionClienteService } from './autenticacion-cliente.service';
@@ -25,12 +26,21 @@ describe('LoginCliente', () => {
     servicio.reenviarConfirmacion.mockReturnValue(of({ mensaje: 'Si existe una cuenta pendiente, enviaremos un enlace.' }));
     await TestBed.configureTestingModule({
       imports: [LoginCliente],
-      providers: [{ provide: AutenticacionClienteService, useValue: servicio }]
+      providers: [provideRouter([]), { provide: AutenticacionClienteService, useValue: servicio }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginCliente);
     component = fixture.componentInstance;
     await fixture.whenStable();
+  });
+
+  it('abre el inicio privado cuando inicia sesión correctamente', () => {
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    component.correo = 'ana@example.test';
+    component.contrasena = 'Clave123!';
+    component.iniciarSesion();
+    expect(navegar).toHaveBeenCalledWith('/cliente/inicio');
+    expect(component.contrasena).toBe('');
   });
 
   it('should create', () => {
