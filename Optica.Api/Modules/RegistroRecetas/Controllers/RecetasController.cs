@@ -1,4 +1,7 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Optica.Api.Modules.Autenticacion.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -30,6 +33,17 @@ public class RecetasController : ControllerBase
         {
             return BadRequest(new { mensaje = ex.Message });
         }
+    }
+
+    [Authorize(Policy = AutenticacionClientesController.Politica)]
+    [HttpGet("mis-recetas")]
+    public async Task<IActionResult> ObtenerMisRecetas()
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente))
+            return Unauthorized();
+
+        var historial = await _recetaService.ObtenerHistorialPorClienteId(idCliente);
+        return Ok(historial);
     }
 
     [HttpGet("{id:int}")]

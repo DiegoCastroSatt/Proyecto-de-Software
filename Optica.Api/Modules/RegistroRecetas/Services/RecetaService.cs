@@ -202,6 +202,18 @@ public class RecetaService : IRecetaService
 
         var recetas = await _recetaRepository.ObtenerRecetasPorClienteId(cliente.IdCliente);
 
+        return MapearHistorial(recetas);
+    }
+
+    public async Task<List<RecetaHistorialDto>> ObtenerHistorialPorClienteId(int clienteId)
+    {
+        var recetas = await _recetaRepository.ObtenerRecetasPorClienteId(clienteId);
+
+        return MapearHistorial(recetas);
+    }
+
+    private static List<RecetaHistorialDto> MapearHistorial(List<Receta> recetas)
+    {
         return recetas.Select(r => new RecetaHistorialDto
         {
             ImagenUrl = r.ImagenPath,

@@ -22,10 +22,17 @@ export interface RecetaHistorial {
 export class HistorialGraduacionesService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8080/api/Recetas/historial';
+  private readonly misRecetasUrl = 'http://localhost:8080/api/Recetas/mis-recetas';
 
   obtenerHistorial(rut: string): Observable<RecetaHistorial[]> {
     return this.http.get<RecetaHistorial[]>(this.apiUrl, {
       params: { rut },
+      withCredentials: true,
+    });
+  }
+
+  obtenerMisRecetas(): Observable<RecetaHistorial[]> {
+    return this.http.get<RecetaHistorial[]>(this.misRecetasUrl, {
       withCredentials: true,
     });
   }
