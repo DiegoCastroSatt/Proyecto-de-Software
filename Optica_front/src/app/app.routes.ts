@@ -47,8 +47,9 @@ export const routes: Routes = [
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
       { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
       { path: 'productos', component: BuscarProductoCliente },
-      { path: 'cliente/consultar-pedido', component: ConsultarPedidoComponent }
+      { path: 'consultar-pedido', component: ConsultarPedidoComponent }
     ]
+
   },
 
   {

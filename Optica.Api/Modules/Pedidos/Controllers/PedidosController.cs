@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Pedidos.DTOs;
 using Optica.Api.Modules.Pedidos.Interfaces;
@@ -36,6 +37,7 @@ public class PedidosController : ControllerBase
         return Ok(clientes);
     }
 
+    [AllowAnonymous]
     [HttpGet("cliente/{rut}")]
     public async Task<IActionResult> GetPedidosPorRut(string rut)
     {
@@ -102,18 +104,5 @@ public class PedidosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
-    [HttpGet("cliente/{rut}")]
-    public async Task<IActionResult> GetPedidosPorRut(string rut)
-    {
-        try
-        {
-            var pedidos = await _pedidoService.ObtenerPedidosPorRutAsync(rut);
-            return Ok(pedidos);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { mensaje = ex.Message });
-        }
-    }
-
 }
+

@@ -220,7 +220,8 @@ public sealed class AutenticacionClienteService(
     public static ClienteSesionResponse CrearSesion(CuentaCliente cuenta) => new(
         cuenta.IdCliente,
         $"{cuenta.Cliente?.Nombre} {cuenta.Cliente?.Apellido}".Trim(),
-        cuenta.Correo);
+        cuenta.Correo,
+        cuenta.Cliente?.Rut ?? string.Empty);
 
     public static string NormalizarCorreo(string correo) => correo.Trim().ToUpperInvariant();
 

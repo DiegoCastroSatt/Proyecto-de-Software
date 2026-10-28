@@ -1,41 +1,32 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { PedidoService, PedidoResponse } from '../pedido/pedido.service';
+import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
 
 @Component({
   selector: 'app-consultar-pedido',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe],
   templateUrl: './consultar-pedido.html',
   styleUrl: './consultar-pedido.css'
 })
 export class ConsultarPedidoComponent implements OnInit {
+  private readonly pedidoService = inject(PedidoService);
+  private readonly authService = inject(AutenticacionClienteService);
+
   /** RUT del cliente con sesión activa. null = sin sesión. */
   protected readonly rutCliente = signal<string | null>(null);
-
   protected readonly pedidos = signal<PedidoResponse[]>([]);
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  constructor(private readonly pedidoService: PedidoService) {}
-
   ngOnInit(): void {
-    // TODO: obtener el RUT del servicio de autenticación de cliente cuando esté implementado.
-    // Ejemplo: this.rutCliente.set(this.authService.getRutCliente());
-    const rut = this.obtenerRutSesion();
-    this.rutCliente.set(rut);
-
-    if (rut) {
-      this.cargarPedidos(rut);
+    const sesionCliente = this.authService.cliente();
+    if (sesionCliente?.rut) {
+      this.rutCliente.set(sesionCliente.rut);
+      this.cargarPedidos(sesionCliente.rut);
+    } else {
+      this.rutCliente.set(null);
     }
-  }
-
-  /**
-   * Stub que simula la obtención del RUT del cliente con sesión.
-   * Retorna null porque aún no existe la funcionalidad de login de cliente.
-   */
-  private obtenerRutSesion(): string | null {
-    return null;
   }
 
   private cargarPedidos(rut: string): void {
@@ -54,3 +45,4 @@ export class ConsultarPedidoComponent implements OnInit {
     });
   }
 }
+
