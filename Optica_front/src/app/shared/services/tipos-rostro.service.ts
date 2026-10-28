@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { obtenerOrigenApi } from './api-origin';
 
 export interface TipoRostro {
   id: number; codigo: string; nombre: string; rasgos: string; consejo: string;
   activo: boolean; rutaImagen: string | null; marcos: number[];
 }
 export function imagenRostro(rostro: TipoRostro): string {
-  return rostro.rutaImagen ?? `http://localhost:8080/api/Rostros/${rostro.id}/imagen`;
+  return rostro.rutaImagen ?? `${obtenerOrigenApi()}/api/Rostros/${rostro.id}/imagen`;
 }
 @Injectable({ providedIn: 'root' })
 export class TiposRostroService {

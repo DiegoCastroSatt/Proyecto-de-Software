@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HistorialGraduacionesService, RecetaHistorial } from '../historial-graduaciones/historial-graduaciones.service';
+import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
   selector: 'app-mis-recetas',
@@ -9,7 +10,7 @@ import { HistorialGraduacionesService, RecetaHistorial } from '../historial-grad
   styleUrl: './mis-recetas.css',
 })
 export class MisRecetas implements OnInit {
-  protected readonly apiBase = 'http://localhost:8080';
+  protected readonly apiBase = obtenerOrigenApi();
   private readonly historialService = inject(HistorialGraduacionesService);
 
   protected readonly recetas = signal<RecetaHistorial[]>([]);

@@ -3,6 +3,7 @@ import { Component, DestroyRef, OnInit, afterNextRender, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { BuscarProductoService, Producto } from '../buscar-producto/buscar-producto.service';
+import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
   selector: 'app-inicio-cliente',
@@ -54,6 +55,6 @@ export class InicioClienteComponent implements OnInit {
   }
 
   protected imagenUrl(ruta: string): string {
-    return /^https?:\/\//i.test(ruta) ? ruta : `http://localhost:8080${ruta.startsWith('/') ? '' : '/'}${ruta}`;
+    return /^https?:\/\//i.test(ruta) ? ruta : `${obtenerOrigenApi()}${ruta.startsWith('/') ? '' : '/'}${ruta}`;
   }
 }
