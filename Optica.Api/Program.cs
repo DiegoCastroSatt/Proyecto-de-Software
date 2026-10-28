@@ -46,7 +46,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
+        policy.SetIsOriginAllowed(IsAllowedFrontendOrigin)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -176,7 +176,7 @@ app.Use(async (context, next) =>
             || context.Request.Path.StartsWithSegments("/api/Autenticacion/cliente")))
     {
         var origin = context.Request.Headers.Origin.ToString();
-        if (origin != "http://localhost:4200" && origin != "http://localhost:4300"
+        if (!IsAllowedFrontendOrigin(origin)
             && origin != $"{context.Request.Scheme}://{context.Request.Host}")
         {
             context.Response.StatusCode = 403;
@@ -200,3 +200,18 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
 });
 
 app.Run();
+
+static bool IsAllowedFrontendOrigin(string origin)
+{
+    if (origin is "http://localhost:4200" or "http://localhost:4300")
+        return true;
+
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+        || uri.Scheme != Uri.UriSchemeHttps
+        || !uri.IsDefaultPort)
+        return false;
+
+    const string sufijoTunnel = "-4200.brs.devtunnels.ms";
+    return uri.Host.EndsWith(sufijoTunnel, StringComparison.OrdinalIgnoreCase)
+        && uri.Host.Length > sufijoTunnel.Length;
+}

@@ -4,6 +4,7 @@ import { Validators } from '@angular/forms';
 import { Graduacion, RegistrarRecetaService } from './registro-receta.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
+import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
   selector: 'app-registro-receta',
@@ -17,7 +18,7 @@ export class RegistroRecetaComponent implements OnInit {
   protected readonly isLoading = signal(false);
   protected readonly cargaFallida = signal(false);
   protected readonly imagenActual = signal<string | null>(null);
-  protected readonly apiBase = 'http://localhost:8080';
+  protected readonly apiBase = obtenerOrigenApi();
   protected readonly rutOriginal = signal('');
   protected readonly modo = signal<'escrita' | 'imagen'>('escrita');
   protected readonly isSubmitting = signal(false);
