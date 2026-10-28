@@ -1,0 +1,50 @@
+<section class="portal" aria-labelledby="portal-titulo">
+  <header class="portal-heading">
+    <div>
+      <p class="eyebrow">Tu espacio personal</p>
+      <h1 id="portal-titulo">Portal del cliente</h1>
+    </div>
+    <span class="session-badge"><span aria-hidden="true"></span> Sesión iniciada</span>
+  </header>
+
+  <div class="overview">
+    <section class="welcome" aria-labelledby="bienvenida-titulo">
+      <p class="eyebrow">Qué bueno verte de nuevo</p>
+      <h2 id="bienvenida-titulo">Hola, {{ primerNombre() }}.</h2>
+      <p>Tu próxima mirada empieza aquí. Agenda tu atención o encuentra los lentes que van contigo.</p>
+      <a class="primary-link" routerLink="/reservas">Agendar una reserva <span aria-hidden="true">↗</span></a>
+      <svg class="welcome-art" viewBox="0 0 240 120" fill="none" aria-hidden="true">
+        <rect x="14" y="30" width="85" height="62" rx="25"/>
+        <rect x="141" y="30" width="85" height="62" rx="25"/>
+        <path d="M99 51Q120 38 141 51M14 47L2 42M226 47L238 42"/>
+      </svg>
+    </section>
+
+    <aside class="account" aria-labelledby="cuenta-titulo">
+      <h2 id="cuenta-titulo">Tu cuenta</h2>
+      <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
+      <p class="account-name">{{ cliente()?.nombre }}</p>
+      <p class="account-email">{{ cliente()?.correo }}</p>
+      <p class="account-note">Este es tu espacio en Centro Óptico San Francisco.</p>
+    </aside>
+  </div>
+
+  <section class="tools" aria-labelledby="accesos-titulo">
+    <div class="section-heading">
+      <h2 id="accesos-titulo">¿Qué te gustaría hacer hoy?</h2>
+      <p>Todo a un clic de distancia.</p>
+    </div>
+    <div class="cards">
+      @for (acceso of accesos; track acceso.ruta) {
+        <a class="tool-card" [routerLink]="acceso.ruta">
+          <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path [attr.d]="acceso.icono"/></svg></span>
+          <span class="tool-label">{{ acceso.etiqueta }}</span>
+          <h3>{{ acceso.titulo }}</h3>
+          <p>{{ acceso.descripcion }}</p>
+          <span class="card-arrow" aria-hidden="true">↗</span>
+        </a>
+      }
+    </div>
+  </section>
+  <p class="portal-note">Cuidamos tu visión, acompañamos tu estilo.</p>
+</section>

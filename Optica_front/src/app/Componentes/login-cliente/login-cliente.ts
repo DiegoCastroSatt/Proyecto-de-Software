@@ -69,7 +69,7 @@ export class LoginCliente implements OnDestroy {
         this.cargandoLogin.set(false);
         this.sesionIniciada.set(true);
         this.contrasena = '';
-        void this.router.navigateByUrl('/cliente/en-trabajo');
+        void this.router.navigateByUrl('/cliente/inicio');
       },
       error: (error: HttpErrorResponse) => {
         this.cargandoLogin.set(false);
