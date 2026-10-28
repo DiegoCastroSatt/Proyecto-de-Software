@@ -1,3 +1,5 @@
+import { Router, provideRouter } from '@angular/router';
+import { InicioSesionService } from '../../shared/services/inicio-sesion.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
@@ -17,16 +19,26 @@ describe('LoginCliente', () => {
 
   beforeEach(async () => {
     vi.resetAllMocks();
-    servicio.iniciarSesion.mockReturnValue(of({ idCliente: 1, nombre: 'Ana Pérez', correo: 'ana@example.test' }));
+    servicio.iniciarSesion.mockReturnValue(of({ tipoUsuario: 'Cliente', cliente: { idCliente: 1, nombre: 'Ana Pérez', correo: 'ana@example.test' }, personal: null }));
     servicio.registrar.mockReturnValue(of({ mensaje: 'Cuenta creada.' }));
     await TestBed.configureTestingModule({
       imports: [LoginCliente],
-      providers: [{ provide: AutenticacionClienteService, useValue: servicio }]
+      providers: [provideRouter([]), { provide: AutenticacionClienteService, useValue: servicio }, { provide: InicioSesionService, useValue: servicio }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginCliente);
     component = fixture.componentInstance;
     await fixture.whenStable();
+  });
+
+  it.each(['Administrador', 'Trabajador', 'Cliente'])('redirige según el tipo %s validado por el servidor', (tipoUsuario) => {
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    servicio.iniciarSesion.mockReturnValueOnce(of({ tipoUsuario }));
+    component.correo = tipoUsuario === 'Administrador' ? 'admin' : 'cuenta@example.test';
+    component.contrasena = 'ClaveDePrueba123!';
+    component.iniciarSesion();
+    expect(navegar).toHaveBeenCalledWith(tipoUsuario === 'Cliente' ? '/cliente/en-trabajo' : '/admin/panel');
+    expect(component.contrasena).toBe('');
   });
 
   it('should create', () => {

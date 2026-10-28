@@ -1,3 +1,4 @@
+import { InicioSesionService } from '../../shared/services/inicio-sesion.service';
 import { Component, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -30,19 +31,25 @@ export class LoginAdmin {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private autenticacionAdmin: AutenticacionAdminService
-  ) {}
+    private autenticacionAdmin: AutenticacionAdminService,
+    private inicioSesion: InicioSesionService
+  ) {
+    if (this.route.snapshot.queryParamMap.get('claveActualizada') === '1')
+      this.exito.set('Contraseña actualizada. Inicia sesión con tu nueva contraseña.');
+  }
 
   onLogin(): void{
     this.error.set('');
     this.exito.set('');
 
-    this.autenticacionAdmin.iniciarSesion(this.usuario, this.contrasena).subscribe({
-      next: () => {
+    this.inicioSesion.iniciarSesion(this.usuario.trim(), this.contrasena).subscribe({
+      next: (resultado) => {
+        this.contrasena = '';
         sessionStorage.removeItem('isAdmin');
 
         const destino = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/admin/panel';
-        void this.router.navigateByUrl(destino === '/admin/panel' || destino.startsWith('/admin/panel/') ? destino : '/admin/panel');
+        void this.router.navigateByUrl(resultado.tipoUsuario === 'Cliente' ? '/cliente/en-trabajo'
+          : destino === '/admin/panel' || destino.startsWith('/admin/panel/') ? destino : '/admin/panel');
       },
       error: (error: HttpErrorResponse) => {
         this.error.set(error.status === 401
