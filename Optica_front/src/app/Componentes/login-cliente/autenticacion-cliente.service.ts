@@ -22,6 +22,7 @@ export interface RegistroCliente {
 
 export interface ResultadoRegistroCliente {
   mensaje: string;
+  correoConfirmacionEnviado: boolean;
 }
 
 export interface RespuestaRecuperacionCliente {
@@ -41,6 +42,14 @@ export class AutenticacionClienteService {
 
   registrar(datos: RegistroCliente): Observable<ResultadoRegistroCliente> {
     return this.http.post<ResultadoRegistroCliente>(`${this.apiUrl}/registro`, datos, { withCredentials: true });
+  }
+
+  confirmarCuenta(token: string): Observable<RespuestaRecuperacionCliente> {
+    return this.http.post<RespuestaRecuperacionCliente>(`${this.apiUrl}/registro/confirmar`, { token });
+  }
+
+  reenviarConfirmacion(correo: string): Observable<RespuestaRecuperacionCliente> {
+    return this.http.post<RespuestaRecuperacionCliente>(`${this.apiUrl}/registro/confirmacion/reenviar`, { correo });
   }
 
   solicitarRecuperacion(correo: string): Observable<RespuestaRecuperacionCliente> {

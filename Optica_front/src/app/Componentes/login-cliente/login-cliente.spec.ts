@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { Router, provideRouter } from '@angular/router';
 
 import { LoginCliente } from './login-cliente';
 import { AutenticacionClienteService } from './autenticacion-cliente.service';
@@ -11,6 +12,8 @@ describe('LoginCliente', () => {
   const servicio = {
     iniciarSesion: vi.fn(),
     registrar: vi.fn(),
+    solicitarRecuperacion: vi.fn(),
+    reenviarConfirmacion: vi.fn(),
     verificarSesion: vi.fn(),
     cerrarSesion: vi.fn()
   };
@@ -19,9 +22,11 @@ describe('LoginCliente', () => {
     vi.resetAllMocks();
     servicio.iniciarSesion.mockReturnValue(of({ idCliente: 1, nombre: 'Ana Pérez', correo: 'ana@example.test' }));
     servicio.registrar.mockReturnValue(of({ mensaje: 'Cuenta creada.' }));
+    servicio.solicitarRecuperacion.mockReturnValue(of({ mensaje: 'Solicitud aceptada.' }));
+    servicio.reenviarConfirmacion.mockReturnValue(of({ mensaje: 'Si existe una cuenta pendiente, enviaremos un enlace.' }));
     await TestBed.configureTestingModule({
       imports: [LoginCliente],
-      providers: [{ provide: AutenticacionClienteService, useValue: servicio }]
+      providers: [provideRouter([]), { provide: AutenticacionClienteService, useValue: servicio }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginCliente);
@@ -29,12 +34,22 @@ describe('LoginCliente', () => {
     await fixture.whenStable();
   });
 
+  it('abre el inicio privado cuando inicia sesión correctamente', () => {
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    component.correo = 'ana@example.test';
+    component.contrasena = 'Clave123!';
+    component.iniciarSesion();
+    expect(navegar).toHaveBeenCalledWith('/cliente/inicio');
+    expect(component.contrasena).toBe('');
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   it('abre y cierra el modal de registro sin enviar datos', () => {
-    const botonRegistro = fixture.nativeElement.querySelector('.registro-enlace') as HTMLButtonElement;
+    const botonRegistro = fixture.nativeElement.querySelectorAll('.registro-invitacion')[1]
+      .querySelector('button') as HTMLButtonElement;
     botonRegistro.click();
     fixture.detectChanges();
 
@@ -47,7 +62,7 @@ describe('LoginCliente', () => {
   });
 
   it('no envía el registro si los campos obligatorios son inválidos', () => {
-    fixture.nativeElement.querySelector('.registro-enlace').click();
+    fixture.nativeElement.querySelectorAll('.registro-invitacion')[1].querySelector('button').click();
     fixture.detectChanges();
     (fixture.nativeElement.querySelector('.registro-crear') as HTMLButtonElement).click();
     fixture.detectChanges();
@@ -65,5 +80,17 @@ describe('LoginCliente', () => {
     fixture.detectChanges();
 
     expect(component.errorLogin()).toContain('Si no tienes cuenta');
+  });
+
+  it('envía una solicitud de recuperación al pulsar el botón del modal', () => {
+    component.correo = 'ana@example.test';
+    fixture.nativeElement.querySelector('.enlace-secundario').click();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.registro-crear') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(servicio.solicitarRecuperacion).toHaveBeenCalledWith('ana@example.test');
+    expect(fixture.nativeElement.textContent).toContain('Enlace enviado');
   });
 });

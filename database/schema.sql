@@ -23,8 +23,11 @@ CREATE TABLE cuentas_cliente (
     correo VARCHAR(100) NOT NULL,
     correo_normalizado VARCHAR(100) NOT NULL UNIQUE,
     contrasena_hash VARCHAR(500) NOT NULL,
-    estado VARCHAR(12) NOT NULL DEFAULT 'Activa',
+    estado VARCHAR(24) NOT NULL DEFAULT 'Activa',
     fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    token_confirmacion_hash CHAR(64) NULL,
+    token_confirmacion_expira_utc DATETIME NULL,
+    ultimo_correo_confirmacion_utc DATETIME NULL,
     CONSTRAINT fk_cuentas_cliente_cliente FOREIGN KEY (id_cliente)
         REFERENCES clientes(id_cliente) ON DELETE RESTRICT
 );

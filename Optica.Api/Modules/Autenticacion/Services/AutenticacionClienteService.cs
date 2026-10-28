@@ -19,10 +19,11 @@ public sealed class AutenticacionClienteService(
     EstadoRecuperacionCliente estadoRecuperacion,
     IEmailService emailService,
     TimeProvider proveedorTiempo,
-    ILogger<AutenticacionClienteService> logger)
+    ILogger<AutenticacionClienteService> logger,
+    IConfiguration configuracion)
 {
     private const string NombreCentro = "Centro Óptico San Francisco";
-    private const string UrlBaseFrontend = "http://localhost:4200";
+    private static readonly TimeSpan VigenciaConfirmacion = TimeSpan.FromHours(24);
 
     public async Task<(ClienteSesionResponse? Sesion, bool CredencialesValidas)> IniciarSesionAsync(
         LoginClienteRequest request, CancellationToken cancellationToken)
@@ -102,14 +103,22 @@ public sealed class AutenticacionClienteService(
                 IdCliente = cliente.IdCliente,
                 Correo = correo,
                 CorreoNormalizado = correoNormalizado,
-                Estado = "Activa",
+                Estado = "PendienteConfirmacion",
                 FechaCreacion = DateTime.UtcNow
             };
             cuenta.ContrasenaHash = passwordHasher.HashPassword(cuenta, request.Contrasena);
+            var token = CrearTokenConfirmacion();
+            cuenta.TokenConfirmacionHash = HashToken(token);
+            cuenta.TokenConfirmacionExpiraUtc = DateTime.UtcNow.Add(VigenciaConfirmacion);
+            cuenta.UltimoCorreoConfirmacionUtc = DateTime.UtcNow;
             db.CuentasCliente.Add(cuenta);
             await db.SaveChangesAsync(cancellationToken);
             await transaccion.CommitAsync(cancellationToken);
-            return ResultadoRegistroCliente.Exitoso();
+
+            var correoEnviado = await EnviarCorreoConfirmacionAsync(cuenta, cliente.Nombre, token, cancellationToken);
+            if (!correoEnviado)
+                logger.LogWarning("La cuenta de cliente {ClienteId} quedó pendiente de confirmación; no se pudo enviar el correo.", cliente.IdCliente);
+            return ResultadoRegistroCliente.Exitoso(correoEnviado);
         }
         catch (DbUpdateException ex) when (EsDuplicadoMySql(ex))
         {
@@ -117,6 +126,87 @@ public sealed class AutenticacionClienteService(
             return ResultadoRegistroCliente.Conflicto();
         }
     }
+
+    public async Task<bool> ConfirmarCuentaAsync(string token, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return false;
+        var hashToken = HashToken(token);
+        var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
+        if (!db.Database.IsRelational())
+        {
+            var cuentaEnMemoria = await db.CuentasCliente.SingleOrDefaultAsync(c =>
+                c.TokenConfirmacionHash == hashToken && c.Estado == "PendienteConfirmacion"
+                    && c.TokenConfirmacionExpiraUtc > ahora, cancellationToken);
+            if (cuentaEnMemoria is null) return false;
+            cuentaEnMemoria.Estado = "Activa";
+            cuentaEnMemoria.TokenConfirmacionHash = null;
+            cuentaEnMemoria.TokenConfirmacionExpiraUtc = null;
+            cuentaEnMemoria.UltimoCorreoConfirmacionUtc = null;
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        var actualizadas = await db.CuentasCliente
+            .Where(c => c.TokenConfirmacionHash == hashToken
+                && c.Estado == "PendienteConfirmacion"
+                && c.TokenConfirmacionExpiraUtc > ahora)
+            .ExecuteUpdateAsync(update => update
+                .SetProperty(c => c.Estado, "Activa")
+                .SetProperty(c => c.TokenConfirmacionHash, (string?)null)
+                .SetProperty(c => c.TokenConfirmacionExpiraUtc, (DateTime?)null)
+                .SetProperty(c => c.UltimoCorreoConfirmacionUtc, (DateTime?)null), cancellationToken);
+        return actualizadas == 1;
+    }
+
+    public async Task ReenviarConfirmacionAsync(string correoIngresado, CancellationToken cancellationToken)
+    {
+        var correoNormalizado = NormalizarCorreo(correoIngresado);
+        var cuenta = await db.CuentasCliente.Include(c => c.Cliente)
+            .SingleOrDefaultAsync(c => c.CorreoNormalizado == correoNormalizado
+                && c.Estado == "PendienteConfirmacion", cancellationToken);
+        var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
+        if (cuenta?.Cliente is null || (cuenta.UltimoCorreoConfirmacionUtc is { } ultimo
+            && ahora - ultimo < TimeSpan.FromMinutes(1))) return;
+
+        var token = CrearTokenConfirmacion();
+        cuenta.TokenConfirmacionHash = HashToken(token);
+        cuenta.TokenConfirmacionExpiraUtc = ahora.Add(VigenciaConfirmacion);
+        cuenta.UltimoCorreoConfirmacionUtc = ahora;
+        await db.SaveChangesAsync(cancellationToken);
+        var enviado = await EnviarCorreoConfirmacionAsync(cuenta, cuenta.Cliente.Nombre, token, cancellationToken);
+        if (!enviado)
+            logger.LogWarning("No se pudo reenviar la confirmación de la cuenta de cliente {ClienteId}.", cuenta.IdCliente);
+    }
+
+    private async Task<bool> EnviarCorreoConfirmacionAsync(
+        CuentaCliente cuenta, string nombre, string token, CancellationToken cancellationToken)
+    {
+        var baseFrontend = (configuracion["Correo:UrlBaseFrontend"] ?? "http://localhost:4200").TrimEnd('/');
+        var enlace = $"{baseFrontend}/cliente/confirmar-cuenta?token={Uri.EscapeDataString(token)}";
+        var enlaceHtml = HtmlEncoder.Default.Encode(enlace);
+        var nombreHtml = HtmlEncoder.Default.Encode(nombre);
+        var cuerpoHtml = $"""
+            <!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;font-family:Arial,sans-serif;color:#18333c">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px"><tr><td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border-radius:14px;padding:32px">
+            <tr><td><p style="margin:0 0 8px;color:#176b6c;font-weight:bold">{NombreCentro}</p>
+            <h1 style="font-size:24px">Confirma tu correo electrónico</h1>
+            <p>Hola {nombreHtml}, para activar tu cuenta confirma que tienes acceso a este correo.</p>
+            <p style="margin:24px 0"><a href="{enlaceHtml}" style="background:#176b6c;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block">Confirmar mi cuenta</a></p>
+            <p>Este enlace vence en 24 horas y solo puede utilizarse una vez.</p>
+            <p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>
+            <p style="color:#63777c">{NombreCentro}</p></td></tr></table></td></tr></table></body></html>
+            """;
+        var resultado = await emailService.EnviarConResultadoAsync(
+            cuenta.Correo, $"Confirma tu cuenta - {NombreCentro}", cuerpoHtml, cancellationToken, importante: true);
+        return resultado.Exitoso;
+    }
+
+    private static string CrearTokenConfirmacion() =>
+        Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
+
+    private static string HashToken(string token) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token.Trim()))).ToLowerInvariant();
 
     public async Task<bool> SolicitarRecuperacionAsync(
         string correoIngresado,
@@ -138,7 +228,8 @@ public sealed class AutenticacionClienteService(
             return true;
 
         var token = estadoRecuperacion.GenerarToken();
-        var enlace = $"{UrlBaseFrontend}/cliente/restablecer-contrasena?token={Uri.EscapeDataString(token)}";
+        var baseFrontend = (configuracion["Correo:UrlBaseFrontend"] ?? "http://localhost:4200").TrimEnd('/');
+        var enlace = $"{baseFrontend}/cliente/restablecer-contrasena?token={Uri.EscapeDataString(token)}";
 
         var asunto = $"Recuperación de contraseña - {NombreCentro}";
         var enlaceHtml = HtmlEncoder.Default.Encode(enlace);
@@ -157,8 +248,6 @@ public sealed class AutenticacionClienteService(
                 </a>
             </p>
             <p>Este enlace vence en 15 minutos y solo puede utilizarse una vez.</p>
-            <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
-            <p style="word-break:break-all;color:#176b6c;font-size:13px">{enlaceHtml}</p>
             <p>Si tú no solicitaste este cambio, puedes ignorar este mensaje; tu contraseña seguirá siendo la misma.</p>
             <p style="color:#63777c">{NombreCentro}</p></td></tr></table></td></tr></table></body></html>
             """;
@@ -240,9 +329,9 @@ public sealed class AutenticacionClienteService(
     }
 }
 
-public sealed record ResultadoRegistroCliente(bool Registrado, string? Error, bool ConflictoExistente)
+public sealed record ResultadoRegistroCliente(bool Registrado, string? Error, bool ConflictoExistente, bool CorreoConfirmacionEnviado)
 {
-    public static ResultadoRegistroCliente Exitoso() => new(true, null, false);
-    public static ResultadoRegistroCliente Invalido(string error) => new(false, error, false);
-    public static ResultadoRegistroCliente Conflicto() => new(false, null, true);
+    public static ResultadoRegistroCliente Exitoso(bool correoEnviado) => new(true, null, false, correoEnviado);
+    public static ResultadoRegistroCliente Invalido(string error) => new(false, error, false, false);
+    public static ResultadoRegistroCliente Conflicto() => new(false, null, true, false);
 }
