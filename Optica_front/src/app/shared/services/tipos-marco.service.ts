@@ -22,7 +22,7 @@ export function imagenMarco(id: number): string { return `${obtenerOrigenApi()}/
 @Injectable({ providedIn: 'root' })
 export class TiposMarcoService {
   private readonly http = inject(HttpClient);
-  private readonly url = 'http://localhost:8080/api/Marcos';
+  private readonly url = `${obtenerOrigenApi()}/api/Marcos`;
   listarFormas() { return this.http.get<FormaLenteDiseno[]>(`${this.url}/formas-lente`); }
   listar() { return this.http.get<TipoMarco[]>(this.url); }
   disponibles() { return this.http.get<TipoMarco[]>(`${this.url}/disponibles`); }

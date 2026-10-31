@@ -12,7 +12,7 @@ export function imagenRostro(rostro: TipoRostro): string {
 @Injectable({ providedIn: 'root' })
 export class TiposRostroService {
   private readonly http = inject(HttpClient);
-  private readonly url = 'http://localhost:8080/api/Rostros';
+  private readonly url = `${obtenerOrigenApi()}/api/Rostros`;
   listar() { return this.http.get<TipoRostro[]>(this.url); }
   activos() { return this.http.get<TipoRostro[]>(`${this.url}/activos`); }
   crear(datos: { nombre: string; rasgos: string; consejo: string; imagen: File; marcos: number[] }) {

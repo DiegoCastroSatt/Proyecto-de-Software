@@ -46,7 +46,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
     {
-        policy.SetIsOriginAllowed(IsAllowedFrontendOrigin)
+        policy.SetIsOriginAllowed(origen => IsAllowedFrontendOrigin(origen, builder.Configuration))
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -176,7 +176,7 @@ app.Use(async (context, next) =>
             || context.Request.Path.StartsWithSegments("/api/Autenticacion/cliente")))
     {
         var origin = context.Request.Headers.Origin.ToString();
-        if (!IsAllowedFrontendOrigin(origin)
+        if (!IsAllowedFrontendOrigin(origin, builder.Configuration)
             && origin != $"{context.Request.Scheme}://{context.Request.Host}")
         {
             context.Response.StatusCode = 403;
@@ -201,9 +201,13 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
 
 app.Run();
 
-static bool IsAllowedFrontendOrigin(string origin)
+static bool IsAllowedFrontendOrigin(string origin, IConfiguration configuration)
 {
     if (origin is "http://localhost:4200" or "http://localhost:4300")
+        return true;
+
+    var origenesConfigurados = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    if (origenesConfigurados.Contains(origin, StringComparer.OrdinalIgnoreCase))
         return true;
 
     if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)
