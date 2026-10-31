@@ -1,0 +1,58 @@
+<section class="cuenta" aria-labelledby="titulo-clave">
+  <p class="eyebrow">Mi cuenta</p>
+  <h1 id="titulo-clave">Cambiar contraseña</h1>
+  <p>
+    Elige una nueva contraseña de al menos 12 caracteres. Después tendrás que iniciar sesión
+    nuevamente.
+  </p>
+  <form [formGroup]="formulario" (ngSubmit)="guardar()">
+    <fieldset [disabled]="guardando()">
+      <legend class="oculto">Contraseñas de tu cuenta</legend>
+      <label for="clave-actual">Contraseña actual</label
+      ><input
+        id="clave-actual"
+        type="password"
+        formControlName="contrasenaActual"
+        autocomplete="current-password"
+        maxlength="255"
+        required
+      />
+      <label for="clave-nueva">Nueva contraseña</label
+      ><input
+        id="clave-nueva"
+        type="password"
+        formControlName="nuevaContrasena"
+        autocomplete="new-password"
+        minlength="12"
+        maxlength="255"
+        required
+      />
+      <label for="clave-confirmada">Confirmar nueva contraseña</label
+      ><input
+        id="clave-confirmada"
+        type="password"
+        formControlName="confirmarContrasena"
+        autocomplete="new-password"
+        maxlength="255"
+        required
+      />
+    </fieldset>
+    @if (formulario.touched && formulario.invalid) {
+      <p class="error" role="alert">
+        Completa la contraseña actual y una nueva de al menos 12 caracteres, con su confirmación
+        idéntica.
+      </p>
+    }
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+    <div class="acciones">
+      <button type="submit" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Guardar contraseña' }}
+      </button>
+      @if (!guardando()) {
+        <a routerLink="/admin/panel">Cancelar</a>
+      }
+    </div>
+  </form>
+</section>

@@ -1,5 +1,6 @@
 using Optica.Api.Modules.Rostros;
 using Optica.Api.Modules.Marcos;
+using Optica.Api.Modules.Accesos;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Catalogos.Models;
@@ -57,6 +58,8 @@ public class OpticaDbContext : DbContext
 
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
+    public DbSet<Trabajador> Trabajadores => Set<Trabajador>();
+    public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -66,6 +69,28 @@ public class OpticaDbContext : DbContext
         modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Nombre).IsUnique();
         modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Codigo).IsUnique();
         modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Nombre).IsUnique();
+        modelBuilder.Entity<RolTrabajador>(e =>
+        {
+            e.ToTable("roles_trabajadores"); e.HasKey(r => r.IdRol);
+            e.Property(r => r.IdRol).HasColumnName("id_rol");
+            e.Property(r => r.Nombre).HasColumnName("nombre").HasMaxLength(60).IsRequired();
+            e.Property(r => r.PermisosJson).HasColumnName("permisos_json").HasColumnType("longtext").IsRequired();
+            e.HasIndex(r => r.Nombre).IsUnique();
+        });
+        modelBuilder.Entity<Trabajador>(e =>
+        {
+            e.ToTable("trabajadores"); e.HasKey(t => t.IdTrabajador);
+            e.Property(t => t.IdTrabajador).HasColumnName("id_trabajador");
+            e.Property(t => t.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            e.Property(t => t.Correo).HasColumnName("correo").HasMaxLength(100).IsRequired();
+            e.Property(t => t.Contrasena).HasColumnName("contrasena").HasMaxLength(255).IsRequired();
+            e.Property(t => t.Estado).HasColumnName("estado").HasMaxLength(8).IsRequired();
+            e.Property(t => t.IdRol).HasColumnName("id_rol");
+            e.Property(t => t.IdAdministradorCreador).HasColumnName("id_administrador_creador");
+            e.HasIndex(t => t.Correo).IsUnique();
+            e.HasOne(t => t.Rol).WithMany().HasForeignKey(t => t.IdRol).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Administrador>().WithMany().HasForeignKey(t => t.IdAdministradorCreador).OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<Cliente>(entity =>
         {

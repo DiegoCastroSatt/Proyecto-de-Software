@@ -1,0 +1,227 @@
+:host {
+  display: block;
+  color: #203d39;
+}
+.accesos {
+  max-width: 1160px;
+  margin: auto;
+  padding: 32px 24px;
+}
+h1 {
+  font-size: 2rem;
+  margin: 8px 0;
+}
+h2 {
+  font-size: 1.25rem;
+}
+h3 {
+  margin: 0 0 8px;
+}
+.eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+header p,
+.identidad p {
+  color: #526961;
+  line-height: 1.5;
+}
+.pestanas,
+.botones,
+.titulo-lista {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pestanas {
+  margin: 24px 0;
+}
+.pestanas [aria-pressed='true'],
+.primario {
+  background: #24534f;
+  color: white;
+  border-color: #24534f;
+}
+.titulo-lista {
+  justify-content: space-between;
+  margin: 24px 0;
+}
+button,
+input,
+select {
+  font: inherit;
+  border: 1px solid #b6c9be;
+  border-radius: 8px;
+  padding: 11px 14px;
+  background: white;
+  color: #203d39;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+button:hover {
+  filter: brightness(0.96);
+}
+:focus-visible {
+  outline: 3px solid #ac682e;
+  outline-offset: 3px;
+}
+.tarjeta {
+  background: white;
+  border: 1px solid #d6e1d9;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+}
+.formulario {
+  display: grid;
+  gap: 18px;
+}
+.formulario h2 {
+  margin: 0;
+}
+.formulario label,
+.acceso-trabajador label {
+  display: grid;
+  gap: 8px;
+}
+small,
+.aviso {
+  font-size: 0.82rem;
+  color: #64776d;
+  line-height: 1.6;
+}
+.formulario input,
+.formulario select {
+  width: 100%;
+  box-sizing: border-box;
+}
+fieldset {
+  border: 1px solid #d6e1d9;
+  border-radius: 10px;
+  padding: 16px;
+}
+legend {
+  font-weight: 600;
+}
+.formulario .permiso {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  margin: 14px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.permiso input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #24534f;
+}
+.roles-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) minmax(0, 2fr);
+  gap: 24px;
+}
+.acceso-trabajador {
+  display: flex;
+  gap: 14px;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.error,
+.exito {
+  padding: 12px 16px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+.error {
+  background: #fff1ec;
+  color: #a52b24;
+}
+.exito {
+  background: #e7f1e5;
+  color: #2f613b;
+}
+.identidad p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 750px) {
+  .roles-layout {
+    grid-template-columns: 1fr;
+  }
+  .acceso-trabajador {
+    display: grid;
+  }
+  .accesos {
+    padding: 24px 16px;
+  }
+  .tarjeta {
+    padding: 18px;
+  }
+}
+
+.selector-rol {
+  display: grid;
+  gap: 10px;
+}
+.fila-rol {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.fila-rol select {
+  flex: 1;
+  min-width: 0;
+}
+.fila-rol button {
+  flex-shrink: 0;
+}
+.resumen-permisos {
+  padding: 14px 16px;
+  background: #eff5ee;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.resumen-permisos ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+.permiso span {
+  display: grid;
+  gap: 3px;
+}
+.permiso strong {
+  font-size: 0.9rem;
+}
+.dialogo-rol {
+  width: min(620px, calc(100% - 32px));
+  max-height: 90vh;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  color: #203d39;
+  box-shadow: 0 20px 70px #0004;
+}
+.dialogo-rol::backdrop {
+  background: #132923aa;
+}
+.dialogo-rol .tarjeta {
+  margin: 0;
+  border: 0;
+}
+@media (max-width: 480px) {
+  .fila-rol {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

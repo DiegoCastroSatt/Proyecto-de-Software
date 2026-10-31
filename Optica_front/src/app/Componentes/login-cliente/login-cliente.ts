@@ -2,7 +2,8 @@ import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject, sign
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { InicioSesionService } from '../../shared/services/inicio-sesion.service';
 import { AutenticacionClienteService, RegistroCliente } from './autenticacion-cliente.service';
 import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
 
@@ -17,6 +18,8 @@ type CampoRegistro = keyof RegistroCliente;
 export class LoginCliente implements OnDestroy {
   private readonly autenticacion = inject(AutenticacionClienteService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly inicioSesion = inject(InicioSesionService);
   @ViewChild('registroDialog') private registroDialog?: ElementRef<HTMLElement>;
   @ViewChild('registroTrigger') private registroTrigger?: ElementRef<HTMLButtonElement>;
   @ViewChild('recuperarDialog') private recuperarDialog?: ElementRef<HTMLElement>;
@@ -51,25 +54,27 @@ export class LoginCliente implements OnDestroy {
   cargandoRecuperar = signal(false);
 
   iniciarSesion(): void {
+    if (this.cargandoLogin()) return;
     this.errorLogin.set('');
     this.mensajeLogin.set('');
     this.sesionIniciada.set(false);
     if (!this.correo.trim() || !this.contrasena) {
-      this.errorLogin.set('Ingresa tu correo electrónico y contraseña.');
-      return;
-    }
-    if (!this.correoValido(this.correo)) {
-      this.errorLogin.set('Ingresa un correo electrónico válido.');
+      this.errorLogin.set('Ingresa tu correo o usuario y contraseña.');
       return;
     }
 
     this.cargandoLogin.set(true);
-    this.autenticacion.iniciarSesion(this.correo.trim(), this.contrasena).subscribe({
-      next: () => {
+    this.inicioSesion.iniciarSesion(this.correo.trim(), this.contrasena).subscribe({
+      next: (resultado) => {
         this.cargandoLogin.set(false);
         this.sesionIniciada.set(true);
         this.contrasena = '';
-        void this.router.navigateByUrl('/cliente/inicio');
+        const retorno = this.route.snapshot.queryParamMap.get('returnUrl');
+        const destino = resultado.tipoUsuario === 'Cliente'
+          ? '/cliente/inicio'
+          : retorno && (retorno === '/admin/panel' || retorno.startsWith('/admin/panel/'))
+            ? retorno : '/admin/panel';
+        void this.router.navigateByUrl(destino);
       },
       error: (error: HttpErrorResponse) => {
         this.cargandoLogin.set(false);

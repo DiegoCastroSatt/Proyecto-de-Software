@@ -6,7 +6,7 @@ namespace Optica.Api.Modules.Autenticacion.DTOs;
 public sealed record LoginAdministradorRequest
 {
     /// <summary>Nombre de usuario único del administrador.</summary>
-    [Required, StringLength(60)]
+    [Required, StringLength(100)]
     public required string NombreUsuario { get; init; }
 
     /// <summary>Contraseña ingresada por el administrador.</summary>

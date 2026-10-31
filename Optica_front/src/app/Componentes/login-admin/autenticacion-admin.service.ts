@@ -1,10 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 export interface LoginAdministradorResponse {
   idAdministrador: number;
   nombre: string;
+  tipoUsuario?: 'Administrador' | 'Trabajador';
+  idTrabajador?: number;
+  rol?: string;
+  permisos?: string[];
 }
 
 export interface ResultadoRecuperacionAdministrador {
@@ -14,33 +18,76 @@ export interface ResultadoRecuperacionAdministrador {
 @Injectable({ providedIn: 'root' })
 export class AutenticacionAdminService {
   readonly administrador = signal<LoginAdministradorResponse | null>(null);
+  readonly esAdministrador = computed(() => {
+    const usuario = this.administrador();
+    return (
+      !!usuario &&
+      (usuario.tipoUsuario === 'Administrador' ||
+        (!usuario.tipoUsuario && usuario.idAdministrador > 0))
+    );
+  });
+  puede(permiso: string): boolean {
+    const usuario = this.administrador();
+    return (
+      this.esAdministrador() ||
+      (usuario?.tipoUsuario === 'Trabajador' && !!usuario.permisos?.includes(permiso))
+    );
+  }
+  esPersonal(): boolean {
+    const usuario = this.administrador();
+    return (
+      this.esAdministrador() ||
+      (usuario?.tipoUsuario === 'Trabajador' &&
+        Number.isInteger(usuario.idTrabajador) &&
+        usuario.idTrabajador! > 0)
+    );
+  }
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8080/api/Autenticacion/admin';
 
   iniciarSesion(nombreUsuario: string, contrasena: string): Observable<LoginAdministradorResponse> {
-    return this.http.post<LoginAdministradorResponse>(this.apiUrl, { nombreUsuario, contrasena }).pipe(tap(admin => this.administrador.set(admin)));
+    return this.http
+      .post<LoginAdministradorResponse>(this.apiUrl, { nombreUsuario, contrasena })
+      .pipe(tap((admin) => this.administrador.set(admin)));
   }
 
   solicitarRecuperacion(nombreUsuario: string): Observable<ResultadoRecuperacionAdministrador> {
     return this.http.post<ResultadoRecuperacionAdministrador>(
-      `${this.apiUrl}/recuperacion/solicitar`, { nombreUsuario });
+      `${this.apiUrl}/recuperacion/solicitar`,
+      { nombreUsuario },
+    );
   }
 
   confirmarRecuperacion(
     nombreUsuario: string,
     codigo: string,
     nuevaContrasena: string,
-    confirmarContrasena: string
+    confirmarContrasena: string,
   ): Observable<ResultadoRecuperacionAdministrador> {
     return this.http.post<ResultadoRecuperacionAdministrador>(
       `${this.apiUrl}/recuperacion/confirmar`,
-      { nombreUsuario, codigo, nuevaContrasena, confirmarContrasena });
+      { nombreUsuario, codigo, nuevaContrasena, confirmarContrasena },
+    );
   }
 
   verificarSesion(): Observable<LoginAdministradorResponse> {
-    return this.http.get<LoginAdministradorResponse>(`${this.apiUrl}/sesion`).pipe(tap(admin => this.administrador.set(admin)));
+    return this.http
+      .get<LoginAdministradorResponse>(`${this.apiUrl}/sesion`)
+      .pipe(tap((admin) => this.administrador.set(admin)));
+  }
+  cambiarContrasena(datos: {
+    contrasenaActual: string;
+    nuevaContrasena: string;
+    confirmarContrasena: string;
+  }): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(
+      'http://localhost:8080/api/CuentaTrabajador/contrasena',
+      datos,
+    );
   }
   cerrarSesion(): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/salir`, {}).pipe(tap(() => this.administrador.set(null)));
+    return this.http
+      .post<void>(`${this.apiUrl}/salir`, {})
+      .pipe(tap(() => this.administrador.set(null)));
   }
 }

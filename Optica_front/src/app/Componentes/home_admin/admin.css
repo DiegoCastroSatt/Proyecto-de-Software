@@ -108,7 +108,11 @@
   min-height: calc(100vh - 75px);
 }
 
-.sesion-admin { display: grid; gap: 8px; font-size: .8rem; }
+.sesion-admin {
+  display: grid;
+  gap: 8px;
+  font-size: 0.8rem;
+}
 .sesion-admin button {
   display: inline-flex;
   align-items: center;
@@ -123,7 +127,9 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 10px color-mix(in srgb, var(--color-texto) 30%, transparent);
-  transition: background 160ms ease, box-shadow 160ms ease;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sesion-admin button:hover {
@@ -311,3 +317,78 @@
     right: 20px;
   }
 }
+
+.menu-cuenta {
+  position: relative;
+  min-width: 150px;
+}
+.menu-cuenta summary {
+  padding: 12px 16px;
+  border: 1px solid #bf8542;
+  border-radius: 8px;
+  background: #e5c58d;
+  color: #1d4a47;
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+  white-space: nowrap;
+}
+.menu-cuenta summary::-webkit-details-marker {
+  display: none;
+}
+.menu-cuenta summary:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+.opciones-cuenta {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  min-width: 210px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #bf8542;
+  border-radius: 10px;
+  background: #1d4a47;
+  box-shadow: 0 8px 24px #0003;
+}
+.opciones-cuenta > span {
+  padding: 8px 12px;
+  color: #c6d8d1;
+  font-size: 0.8rem;
+}
+.opciones-cuenta a {
+  display: block;
+  padding: 12px;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.opciones-cuenta a:hover {
+  background: #e5c58d;
+  color: #1d4a47;
+}
+.opciones-cuenta button {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.menu-cuenta summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.nombre-cuenta {
+  display: grid;
+  gap: 3px;
+}
+.nombre-cuenta small {
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.sesion-admin { margin-left: auto; flex-shrink: 0; }
+.nombre-cuenta { max-width: 180px; white-space: normal; overflow-wrap: anywhere; }

@@ -1,6 +1,8 @@
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+[Authorize(Policy = "inventario")]
 [ApiController]
 [Route("api/[controller]")]
 public class ProductosController : ControllerBase

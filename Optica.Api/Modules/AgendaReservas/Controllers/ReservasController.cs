@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
@@ -5,6 +6,7 @@ using Optica.Api.Modules.AgendaReservas.DTOs;
 using Optica.Api.Modules.AgendaReservas.Models;
 using System.Text.Encodings.Web;
 
+[Authorize(Policy = "agenda")]
 [ApiController]
 [Route("api/[controller]")]
 public class ReservasController : ControllerBase
@@ -43,7 +45,7 @@ public class ReservasController : ControllerBase
         }));
     }
 
-    [Authorize]
+    [Authorize(Policy = "agenda")]
     [HttpGet("agenda")]
     public async Task<ActionResult<IReadOnlyList<Optica.Api.Modules.AgendaReservas.DTOs.ReservaAgendaResponseDto>>> ObtenerAgenda(
         [FromQuery] bool historialAtendidas = false,
@@ -53,7 +55,7 @@ public class ReservasController : ControllerBase
         return Ok(reservas);
     }
 
-    [Authorize]
+    [Authorize(Policy = "agenda")]
     [HttpPut("{id:int}/reprogramar")]
     public async Task<IActionResult> ReprogramarReserva(int id, ReprogramarReservaDto dto, CancellationToken cancellationToken)
     {
@@ -181,7 +183,7 @@ public class ReservasController : ControllerBase
         return Content(html, "text/html; charset=utf-8");
     }
 
-    [Authorize]
+    [Authorize(Policy = "agenda")]
     [HttpPost("{id:int}/cancelar")]
     public async Task<IActionResult> CancelarReserva(int id, CancellationToken cancellationToken)
     {

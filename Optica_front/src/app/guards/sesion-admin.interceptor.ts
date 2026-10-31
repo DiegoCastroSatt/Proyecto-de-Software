@@ -12,11 +12,28 @@ export const sesionAdminInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const sesion = inject(AutenticacionAdminService);
   const url = `${origenApi}${req.url.slice(origenLocal.length)}`;
-  return next(req.clone({ url, withCredentials: true })).pipe(catchError((error: HttpErrorResponse) => {
-    if (error.status === 401 && router.url.startsWith('/admin/panel')) {
-      sesion.administrador.set(null);
-      void router.navigate(['/admin'], { queryParams: { returnUrl: router.url } });
-    }
-    return throwError(() => error);
-  }));
+  return next(req.clone({ url, withCredentials: true })).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401 && router.url.startsWith('/admin/panel')) {
+        sesion.administrador.set(null);
+        void router.navigate(['/admin'], { queryParams: { returnUrl: router.url } });
+      }
+      if (
+        error.status === 403 &&
+        router.url.startsWith('/admin/panel') &&
+        !req.url.endsWith('/sesion')
+      ) {
+        sesion.verificarSesion().subscribe({
+          next: () => {
+            void router.navigate(['/admin/panel/sin-acceso']);
+          },
+          error: () => {
+            sesion.administrador.set(null);
+            void router.navigate(['/admin']);
+          },
+        });
+      }
+      return throwError(() => error);
+    }),
+  );
 };
