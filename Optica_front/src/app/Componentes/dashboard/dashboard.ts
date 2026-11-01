@@ -1,4 +1,4 @@
-import { AutenticacionAdminService } from '../login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';

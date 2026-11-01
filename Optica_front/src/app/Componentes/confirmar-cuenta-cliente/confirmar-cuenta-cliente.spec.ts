@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { ConfirmarCuentaClienteComponent } from './confirmar-cuenta-cliente';
-import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
 
 describe('ConfirmarCuentaClienteComponent', () => {
   let fixture: ComponentFixture<ConfirmarCuentaClienteComponent>;

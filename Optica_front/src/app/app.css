@@ -198,7 +198,7 @@ app-inicio-cliente,
   color: var(--color-error-catalogo);
 }
 :where(app-busqueda-producto) .image-picker input,
-:where(app-login-admin) .login-error[hidden] {
+:where(app-login) .login-error[hidden] {
   display: none;
 }
 app-crear-pedido,

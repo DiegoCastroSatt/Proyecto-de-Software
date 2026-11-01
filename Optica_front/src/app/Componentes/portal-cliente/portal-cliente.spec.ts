@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { PortalClienteComponent } from './portal-cliente';
-import { AutenticacionClienteService, ClienteSesion } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService, ClienteSesion } from '../../shared/services/autenticacion-cliente.service';
 
 describe('Portal del cliente', () => {
   const cliente = signal<ClienteSesion | null>(null);

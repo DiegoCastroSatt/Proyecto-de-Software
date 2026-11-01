@@ -6,6 +6,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Interfaces;
+using Optica.Api.Modules.Autenticacion.Services;
 
 namespace Optica.Api.Modules.Autenticacion.Controllers;
 
@@ -14,7 +15,8 @@ namespace Optica.Api.Modules.Autenticacion.Controllers;
 public sealed class AutenticacionController(
     IAutenticacionAdministradorService autenticacionAdministradorService,
     ILogger<AutenticacionController> logger,
-    AccesoService acceso) : ControllerBase
+    AccesoService acceso,
+    RecuperacionService recuperacion) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("admin")]
@@ -34,6 +36,7 @@ public sealed class AutenticacionController(
             return Unauthorized(new { mensaje = "Nombre de usuario o contraseña incorrectos." });
         }
 
+        await HttpContext.SignOutAsync(AutenticacionClientesController.Esquema);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, AccesoService.CrearPrincipal(administrador));
         return Ok(administrador);
     }
@@ -46,7 +49,7 @@ public sealed class AutenticacionController(
     {
         try
         {
-            var aceptada = await autenticacionAdministradorService.SolicitarRecuperacionAsync(
+            var aceptada = await recuperacion.SolicitarAsync(
                 request.NombreUsuario, HttpContext.Connection.RemoteIpAddress?.ToString(), cancellationToken);
             if (!aceptada)
                 return StatusCode(StatusCodes.Status429TooManyRequests,
@@ -76,7 +79,7 @@ public sealed class AutenticacionController(
     {
         try
         {
-            var confirmado = await autenticacionAdministradorService.ConfirmarRecuperacionAsync(
+            var confirmado = await recuperacion.ConfirmarAsync(
                 request.NombreUsuario, request.Codigo, request.NuevaContrasena,
                 request.ConfirmarContrasena, cancellationToken);
             if (!confirmado)

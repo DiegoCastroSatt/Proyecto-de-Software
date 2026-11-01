@@ -32,7 +32,7 @@ git clone <URL_DEL_REPOSITORIO>
 cd Proyecto_de_Software
 ```
 
-2. Crear el archivo `.env` a partir de `.env.example`:
+2. Crear el archivo `.env` a partir de `.env.example` y configurar tanto `MYSQL_ROOT_PASSWORD` como `RECOVERY_CODE_PEPPER`. El segundo debe ser un secreto aleatorio de al menos 32 bytes y debe ser idéntico en todas las instancias de la API. No lo guardes en archivos versionados ni lo compartas en registros.
 
 ```bash
 Copy-Item .env.example .env
@@ -78,8 +78,12 @@ npm start
 
 El frontend se abrira normalmente en `http://localhost:4200`.
 
-### Acceso del personal
+### Autenticación y actualización de una base existente
 
-Los clientes inician sesión con correo y el personal con nombre de usuario. En `/admin` se encuentra el acceso y la recuperación por código para administradores y trabajadores. Desde el diálogo de recuperación del acceso general también se puede abrir este flujo. El correo de recuperación puede coincidir con el de una cuenta de cliente.
+El formulario unificado está disponible en `/cliente/login` y `/admin`. Los clientes ingresan con RUT válido o correo; administradores y trabajadores, con su nombre de usuario. La recuperación pide RUT para clientes y nombre de usuario para personal, y envía un código de seis dígitos al correo registrado.
 
-La estructura completa, incluidos personal y roles, está en `database/schema.sql`; los datos de ejemplo están en `database/insert.sql`. Docker Compose aplica el esquema al inicializar un volumen nuevo de MySQL.
+La recuperación requiere `RECOVERY_CODE_PEPPER`; la API almacena solo un HMAC del código. Mantén ese secreto estable y compartido entre réplicas. Si falta o es menor de 32 bytes, la solicitud se responde de forma genérica y no se envía correo.
+
+Para una base nueva, la estructura completa, incluidas las tablas `desafios_recuperacion` y `limites_recuperacion`, está en `database/schema.sql`; Docker Compose aplica ese archivo solo al inicializar un volumen nuevo. Para una base existente que ya use `trabajador_optica`, revisa y aplica manualmente una sola vez `database/migrations/20261101_autenticacion_recuperacion.sql`. El script es aditivo y no migra ni modifica cuentas existentes. No lo ejecutes sobre una base cuyo esquema no se haya comprobado primero.
+
+Los datos de ejemplo están en `database/insert.sql`.

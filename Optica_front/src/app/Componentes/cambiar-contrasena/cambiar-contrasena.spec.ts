@@ -3,7 +3,7 @@ import { provideRouter, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { CambiarContrasenaComponent } from './cambiar-contrasena';
-import { AutenticacionAdminService } from '../login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 describe('Cambio de contraseña propio', () => {
   function crear() {
     const sesion = {

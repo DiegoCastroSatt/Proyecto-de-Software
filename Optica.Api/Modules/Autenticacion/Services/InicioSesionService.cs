@@ -1,6 +1,7 @@
 using Optica.Api.Modules.Accesos;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Interfaces;
+using Optica.Api.Modules.Clientes.Services;
 
 namespace Optica.Api.Modules.Autenticacion.Services;
 
@@ -14,7 +15,7 @@ public sealed class InicioSesionService(IAutenticacionAdministradorService admin
     {
         var identificador = request.Correo.Trim();
         // El correo identifica clientes; el nombre de usuario identifica exclusivamente personal.
-        if (identificador.Contains('@'))
+        if (identificador.Contains('@') || RutChilenoValidator.EsValido(identificador))
         {
             var (cliente, valida) = await clientes.IniciarSesionAsync(request, ct);
             return valida && cliente is not null ? new("Cliente", Cliente: cliente) : null;

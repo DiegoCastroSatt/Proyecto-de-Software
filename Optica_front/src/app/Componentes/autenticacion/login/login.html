@@ -15,7 +15,7 @@
       <h2 id="login-title">Iniciar sesión</h2>
       <form (ngSubmit)="iniciarSesion()" novalidate>
         <div class="form-field">
-          <label for="correo">Correo electrónico o usuario</label>
+          <label for="correo">RUT, correo electrónico o nombre de usuario</label>
           <input type="text" id="correo" name="correo" [(ngModel)]="correo" autocomplete="username"
             maxlength="100" required [disabled]="cargandoLogin() || sesionIniciada()">
         </div>
@@ -67,20 +67,46 @@
 
         @if (recuperacionEnviada()) {
           <div class="registro-confirmacion" role="status">
-            <h3>Enlace enviado</h3>
-            <p>Si la dirección corresponde a una cuenta activa registrada, te hemos enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada o spam.</p>
-            <button type="button" class="registro-crear" (click)="cerrarRecuperar()">Entendido</button>
+            @if (recuperacionCompletada()) {
+              <h3>Contraseña actualizada</h3>
+              <p>Ya puedes iniciar sesión con tu nueva contraseña.</p>
+              <button type="button" class="registro-crear" (click)="cerrarRecuperar()">Entendido</button>
+            } @else {
+              <h3>Revisa tu correo</h3>
+              <p>Si los datos corresponden a una cuenta activa, enviamos un código al correo registrado.</p>
+              <form class="registro-formulario" (ngSubmit)="confirmarCodigoRecuperacion()" novalidate>
+                <div class="form-field">
+                  <label for="codigo-recuperacion">Código de 6 dígitos</label>
+                  <input type="text" id="codigo-recuperacion" name="codigoRecuperacion" [(ngModel)]="codigoRecuperacion"
+                    inputmode="numeric" autocomplete="one-time-code" maxlength="6" required [disabled]="cargandoRecuperar()">
+                </div>
+                <div class="form-field">
+                  <label for="nueva-contrasena-recuperacion">Nueva contraseña</label>
+                  <input type="password" id="nueva-contrasena-recuperacion" name="nuevaContrasenaRecuperacion"
+                    [(ngModel)]="nuevaContrasenaRecuperacion" autocomplete="new-password" maxlength="255" required>
+                </div>
+                <div class="form-field">
+                  <label for="confirmar-contrasena-recuperacion">Confirmar contraseña</label>
+                  <input type="password" id="confirmar-contrasena-recuperacion" name="confirmarContrasenaRecuperacion"
+                    [(ngModel)]="confirmarContrasenaRecuperacion" autocomplete="new-password" maxlength="255" required>
+                </div>
+                @if (errorRecuperar()) { <p class="registro-error" role="alert">{{ errorRecuperar() }}</p> }
+                <div class="registro-acciones">
+                  <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
+                  <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()">{{ cargandoRecuperar() ? 'Validando…' : 'Cambiar contraseña' }}</button>
+                </div>
+              </form>
+            }
           </div>
         } @else {
           <p id="recuperar-descripcion" class="registro-descripcion">
-            Ingresa tu correo registrado. Te enviaremos un enlace de duración limitada (15 minutos) para definir una nueva contraseña.
+            Ingresa tu RUT si eres cliente, o tu nombre de usuario si eres parte del personal. Enviaremos un código al correo asociado.
           </p>
-          <p>¿Eres trabajador o administrador? <a routerLink="/admin" [queryParams]="{ recuperar: '1' }" (click)="cerrarRecuperar()">Recupera tu contraseña con tu nombre de usuario</a>.</p>
           <form class="registro-formulario" (ngSubmit)="enviarRecuperacion()" novalidate>
             <div class="form-field">
-              <label for="recuperar-correo">Correo electrónico</label>
-              <input type="email" id="recuperar-correo" name="correoRecuperacion" [(ngModel)]="correoRecuperacion"
-                autocomplete="email" maxlength="100" required placeholder="ejemplo@correo.cl"
+              <label for="recuperar-correo">RUT o nombre de usuario</label>
+              <input type="text" id="recuperar-correo" name="correoRecuperacion" [(ngModel)]="correoRecuperacion"
+                autocomplete="username" maxlength="100" required placeholder="12.345.678-9 o usuario"
                 [disabled]="cargandoRecuperar()">
             </div>
 
@@ -90,9 +116,8 @@
 
             <div class="registro-acciones">
               <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
-              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()"
-                (click)="enviarRecuperacion()">
-                {{ cargandoRecuperar() ? 'Enviando enlace…' : 'Enviar enlace' }}
+              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()">
+                {{ cargandoRecuperar() ? 'Enviando código…' : 'Enviar código' }}
               </button>
             </div>
           </form>

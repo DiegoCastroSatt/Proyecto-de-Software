@@ -1,19 +1,20 @@
 import { Router, provideRouter } from '@angular/router';
-import { InicioSesionService } from '../../shared/services/inicio-sesion.service';
+import { AutenticacionService } from '../../../shared/services/autenticacion.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
-import { LoginCliente } from './login-cliente';
-import { AutenticacionClienteService } from './autenticacion-cliente.service';
+import { LoginComponent } from './login';
+import { AutenticacionClienteService } from '../../../shared/services/autenticacion-cliente.service';
 
-describe('LoginCliente', () => {
-  let component: LoginCliente;
-  let fixture: ComponentFixture<LoginCliente>;
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
   const servicio = {
     iniciarSesion: vi.fn(),
     registrar: vi.fn(),
     solicitarRecuperacion: vi.fn(),
+    confirmarRecuperacion: vi.fn(),
     reenviarConfirmacion: vi.fn(),
     verificarSesion: vi.fn(),
     cerrarSesion: vi.fn()
@@ -24,13 +25,14 @@ describe('LoginCliente', () => {
     servicio.iniciarSesion.mockReturnValue(of({ tipoUsuario: 'Cliente', cliente: { idCliente: 1, nombre: 'Ana Pérez', correo: 'ana@example.test' }, personal: null }));
     servicio.registrar.mockReturnValue(of({ mensaje: 'Cuenta creada.' }));
     servicio.solicitarRecuperacion.mockReturnValue(of({ mensaje: 'Solicitud aceptada.' }));
+    servicio.confirmarRecuperacion.mockReturnValue(of({ mensaje: 'Contraseña actualizada.' }));
     servicio.reenviarConfirmacion.mockReturnValue(of({ mensaje: 'Si existe una cuenta pendiente, enviaremos un enlace.' }));
     await TestBed.configureTestingModule({
-      imports: [LoginCliente],
-      providers: [provideRouter([]), { provide: AutenticacionClienteService, useValue: servicio }, { provide: InicioSesionService, useValue: servicio }]
+      imports: [LoginComponent],
+      providers: [provideRouter([]), { provide: AutenticacionClienteService, useValue: servicio }, { provide: AutenticacionService, useValue: servicio }]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(LoginCliente);
+    fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
@@ -84,15 +86,18 @@ describe('LoginCliente', () => {
     expect(component.errorLogin()).toContain('Si no tienes cuenta');
   });
 
-  it('envía una solicitud de recuperación al pulsar el botón del modal', () => {
-    component.correo = 'ana@example.test';
-    fixture.nativeElement.querySelector('.enlace-secundario').click();
-    fixture.detectChanges();
+  it('envía una solicitud de recuperación por RUT y permite confirmar el código', () => {
+    component.correoRecuperacion = '12.345.678-5';
+    component.enviarRecuperacion();
 
-    (fixture.nativeElement.querySelector('.registro-crear') as HTMLButtonElement).click();
-    fixture.detectChanges();
-
-    expect(servicio.solicitarRecuperacion).toHaveBeenCalledWith('ana@example.test');
-    expect(fixture.nativeElement.textContent).toContain('Enlace enviado');
+    expect(servicio.solicitarRecuperacion).toHaveBeenCalledWith('12.345.678-5');
+    expect(component.recuperacionEnviada()).toBe(true);
+    component.codigoRecuperacion = '123456';
+    component.nuevaContrasenaRecuperacion = 'ClaveNueva123!';
+    component.confirmarContrasenaRecuperacion = 'ClaveNueva123!';
+    component.confirmarCodigoRecuperacion();
+    expect(servicio.confirmarRecuperacion).toHaveBeenCalledWith(expect.objectContaining({
+      identificador: '12.345.678-5', codigo: '123456'
+    }));
   });
 });

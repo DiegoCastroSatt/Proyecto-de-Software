@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { BuscarProductoComponent } from './buscar-producto';
 import { BuscarProductoService, Producto } from './buscar-producto.service';
 import { ResenasProductoService } from './resenas-producto.service';
-import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
 
 const productos: Producto[] = [
   {

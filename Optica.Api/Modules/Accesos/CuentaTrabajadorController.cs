@@ -28,6 +28,8 @@ public sealed class CuentaTrabajadorController(OpticaDbContext db, IPasswordHash
         if (request.NuevaContrasena == request.ContrasenaActual)
             return BadRequest(new { mensaje = "Elige una contraseña distinta de la actual." });
         trabajador.Contrasena = hasher.HashPassword(trabajador, request.NuevaContrasena);
+        await db.DesafiosRecuperacion.Where(d => d.IdPersonal == trabajador.IdTrabajador && d.Estado == "Pendiente")
+            .ExecuteUpdateAsync(u => u.SetProperty(d => d.Estado, "Invalidado"), ct);
         await db.SaveChangesAsync(ct);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Ok(new { mensaje = "Contraseña actualizada. Inicia sesión con tu nueva contraseña." });

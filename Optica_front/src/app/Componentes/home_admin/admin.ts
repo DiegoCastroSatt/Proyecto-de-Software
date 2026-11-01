@@ -1,4 +1,4 @@
-import { AutenticacionAdminService } from '../login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';

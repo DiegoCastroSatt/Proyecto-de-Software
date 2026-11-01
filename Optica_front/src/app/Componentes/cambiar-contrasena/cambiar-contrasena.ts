@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AutenticacionAdminService } from '../login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 @Component({
   selector: 'app-cambiar-contrasena',
   imports: [ReactiveFormsModule, RouterLink],

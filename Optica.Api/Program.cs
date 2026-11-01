@@ -94,8 +94,8 @@ builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
 builder.Services.AddScoped<InicioSesionService>();
-builder.Services.AddSingleton<EstadoRecuperacionAdministrador>();
-builder.Services.AddSingleton<EstadoRecuperacionCliente>();
+builder.Services.AddScoped<RecuperacionService>();
+builder.Services.AddHostedService<LimpiezaRecuperacionBackgroundService>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
 
@@ -155,9 +155,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Events.OnValidatePrincipal = async ctx =>
         {
             var db = ctx.HttpContext.RequestServices.GetRequiredService<OpticaDbContext>();
-            if (!int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)
-                || !await db.CuentasCliente.AnyAsync(c => c.IdCliente == idCliente
-                    && c.Estado == "Activa" && c.Cliente!.Estado == "Activo", ctx.HttpContext.RequestAborted))
+            var cuenta = int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)
+                ? await db.CuentasCliente.Include(c => c.Cliente).SingleOrDefaultAsync(c => c.IdCliente == idCliente
+                    && c.Estado == "Activa" && c.Cliente!.Estado == "Activo", ctx.HttpContext.RequestAborted)
+                : null;
+            var version = cuenta is null ? string.Empty : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(cuenta.ContrasenaHash)));
+            if (cuenta is null || ctx.Principal?.FindFirstValue(PermisosAcceso.VersionCredencial) != version)
             {
                 ctx.RejectPrincipal();
                 await ctx.HttpContext.SignOutAsync(AutenticacionClientesController.Esquema);

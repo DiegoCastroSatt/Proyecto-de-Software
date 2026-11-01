@@ -11,7 +11,7 @@ namespace Optica.Api.Modules.Autenticacion.Controllers;
 
 [ApiController]
 [Route("api/Autenticacion/login")]
-public sealed class InicioSesionController(InicioSesionService inicioSesion) : ControllerBase
+public sealed class InicioSesionController(InicioSesionService inicioSesion, RecuperacionService recuperacion) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost]
@@ -29,6 +29,7 @@ public sealed class InicioSesionController(InicioSesionService inicioSesion) : C
                 new Claim(ClaimTypes.NameIdentifier, cliente.IdCliente.ToString()),
                 new Claim(ClaimTypes.Name, cliente.Nombre),
                 new Claim(ClaimTypes.Email, cliente.Correo),
+                new Claim(PermisosAcceso.VersionCredencial, cliente.VersionCredencial),
                 new Claim(AutenticacionClientesController.ClaimTipo, "cliente")
             }, AutenticacionClientesController.Esquema);
             await HttpContext.SignInAsync(AutenticacionClientesController.Esquema, new ClaimsPrincipal(identidad));
@@ -37,5 +38,45 @@ public sealed class InicioSesionController(InicioSesionService inicioSesion) : C
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                 AccesoService.CrearPrincipal(resultado.Personal!));
         return Ok(resultado);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("/api/Autenticacion/recuperacion/solicitar")]
+    public async Task<IActionResult> SolicitarRecuperacion(SolicitarRecuperacionRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var aceptada = await recuperacion.SolicitarAsync(request.Identificador, HttpContext.Connection.RemoteIpAddress?.ToString(), ct);
+            return aceptada ? Accepted(new { mensaje = "Si los datos corresponden a una cuenta activa, enviaremos un código al correo registrado." })
+                : StatusCode(StatusCodes.Status429TooManyRequests, new { mensaje = "Espera antes de volver a solicitar un código." });
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            HttpContext.RequestServices.GetRequiredService<ILogger<InicioSesionController>>()
+                .LogError("Falló una solicitud de recuperación ({TipoError}).", ex.GetType().Name);
+            return Accepted(new { mensaje = "Si los datos corresponden a una cuenta activa, enviaremos un código al correo registrado." });
+        }
+    }
+
+    [AllowAnonymous]
+    [HttpPost("/api/Autenticacion/recuperacion/confirmar")]
+    public async Task<IActionResult> ConfirmarRecuperacion(ConfirmarRecuperacionRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var correcto = await recuperacion.ConfirmarAsync(request.Identificador, request.Codigo,
+                request.NuevaContrasena, request.ConfirmarContrasena, ct);
+            return correcto ? Ok(new { mensaje = "La contraseña se actualizó correctamente. Ya puedes iniciar sesión." })
+                : BadRequest(new { mensaje = "El código no es válido, expiró o ya no está disponible." });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { mensaje = ex.Message }); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            HttpContext.RequestServices.GetRequiredService<ILogger<InicioSesionController>>()
+                .LogError("Falló la actualización de contraseña ({TipoError}).", ex.GetType().Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo actualizar la contraseña." });
+        }
     }
 }

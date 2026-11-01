@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { AutenticacionAdminService } from '../Componentes/login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../shared/services/autenticacion-admin.service';
 import { obtenerOrigenApi } from '../shared/services/api-origin';
 
 export const sesionAdminInterceptor: HttpInterceptorFn = (req, next) => {

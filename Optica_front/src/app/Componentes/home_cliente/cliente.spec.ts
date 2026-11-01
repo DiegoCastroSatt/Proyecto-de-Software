@@ -5,7 +5,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 import { ClienteLayoutComponent } from './cliente';
-import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
+import { AutenticacionService } from '../../shared/services/autenticacion.service';
 
 const cliente = { idCliente: 1, nombre: 'Ana Pérez', correo: 'ana@example.test' };
 const urlSesion = 'http://localhost:8080/api/Autenticacion/cliente/sesion';
@@ -60,9 +61,8 @@ describe('ClienteLayoutComponent', () => {
     fixture.detectChanges();
     const http = TestBed.inject(HttpTestingController);
     http.expectOne(urlSesion).flush({}, { status: 401, statusText: 'Unauthorized' });
-    const servicio = TestBed.inject(AutenticacionClienteService);
-    servicio.iniciarSesion('ana@example.test', 'Clave123!').subscribe();
-    http.expectOne('http://localhost:8080/api/Autenticacion/cliente/login').flush(cliente);
+    TestBed.inject(AutenticacionService).iniciarSesion('ana@example.test', 'Clave123!').subscribe();
+    http.expectOne('http://localhost:8080/api/Autenticacion/login').flush({ tipoUsuario: 'Cliente', personal: null, cliente });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.client-account summary').textContent).toContain('Bienvenido, Ana Pérez');
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);

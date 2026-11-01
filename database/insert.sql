@@ -223,7 +223,7 @@ INSERT INTO detalle_venta
 
 
 INSERT INTO trabajador_optica (nombre, correo, contrasena, estado, nombre_usuario, tipo_usuario) VALUES
-('ale', 'admin@optica.cl', '1234', 'Activo', 'ale', 'Administrador');
+('ale', 'alejandro.gamergood@gmail.com', '1234', 'Activo', 'ale', 'Administrador');
 
 -- TIPOS DE MARCOS
 INSERT IGNORE INTO tipos_marco

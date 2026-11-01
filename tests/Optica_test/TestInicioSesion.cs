@@ -24,10 +24,9 @@ public sealed class TestInicioSesion : IDisposable
     {
         var correo = new CorreoPrueba();
         var admin = new AutenticacionAdministradorService(new AutenticacionAdministradorRepository(db),
-            new PasswordHasher<Trabajador>(), new EstadoRecuperacionAdministrador(), correo,
-            TimeProvider.System, NullLogger<AutenticacionAdministradorService>.Instance);
+            new PasswordHasher<Trabajador>());
         var clientes = new AutenticacionClienteService(db, new PasswordHasher<CuentaCliente>(),
-            new EstadoRecuperacionCliente(), correo, TimeProvider.System, NullLogger<AutenticacionClienteService>.Instance, new ConfigurationBuilder().Build());
+            correo, TimeProvider.System, NullLogger<AutenticacionClienteService>.Instance, new ConfigurationBuilder().Build());
         return new(admin, new AccesoService(db, new PasswordHasher<Trabajador>()), clientes);
     }
 
@@ -52,6 +51,7 @@ public sealed class TestInicioSesion : IDisposable
     [InlineData("admin", "Administrador")]
     [InlineData("equipo", "Trabajador")]
     [InlineData("Cliente@example.test", "Cliente")]
+    [InlineData("12.345.678-5", "Cliente")]
     public async Task ReconoceElTipoSoloDespuesDeValidarLaClave(string correo, string tipo)
     {
         await Preparar();
@@ -71,6 +71,13 @@ public sealed class TestInicioSesion : IDisposable
     {
         await Preparar();
         Assert.Null(await Servicio().IniciarAsync(new LoginClienteRequest { Correo = correo, Contrasena = "incorrecta" }, default));
+    }
+
+    [Fact]
+    public async Task RechazaRutInvalidoComoIdentificadorDeCliente()
+    {
+        await Preparar();
+        Assert.Null(await Servicio().IniciarAsync(new LoginClienteRequest { Correo = "12.345.678-0", Contrasena = Clave }, default));
     }
 
     [Fact]

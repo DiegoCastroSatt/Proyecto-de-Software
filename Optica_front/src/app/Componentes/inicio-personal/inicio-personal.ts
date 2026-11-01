@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AutenticacionAdminService } from '../login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 import { DashboardComponent } from '../dashboard/dashboard';
 @Component({
   selector: 'app-inicio-personal',

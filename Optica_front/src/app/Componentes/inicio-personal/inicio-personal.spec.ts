@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { InicioPersonalComponent, SinAccesoComponent } from './inicio-personal';
-import { AutenticacionAdminService } from '../login-admin/autenticacion-admin.service';
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 
 describe('Inicio del personal', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [

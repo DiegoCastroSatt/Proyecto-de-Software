@@ -1,4 +1,3 @@
-import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { CrearMarcoComponent } from './Componentes/crear-marco/crear-marco';
 import { GestionRostrosComponent } from './Componentes/gestion-rostros/gestion-rostros';
 import { GestionMarcosComponent } from './Componentes/gestion-marcos/gestion-marcos';
@@ -29,13 +28,12 @@ import { CrearPedidoComponent } from './Componentes/crear-pedido/crear-pedido';
 import { DetallePedidoComponent } from './Componentes/detalle-pedido/detalle-pedido';
 import { ClientesComponent } from './Componentes/clientes/clientes';
 import { authAdminGuard } from './guards/auth-admin-guard';
-import { LoginCliente } from './Componentes/login-cliente/login-cliente';
+import { LoginComponent } from './Componentes/autenticacion/login/login';
 import { DashboardComponent } from './Componentes/dashboard/dashboard';
 import { ConsultarStock } from './Componentes/consultar-stock/consultar-stock';
 import { HistorialGraduaciones } from './Componentes/historial-graduaciones/historial-graduaciones';
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { authClienteGuard } from './guards/auth-cliente-guard';
-import { RestablecerContrasenaComponent } from './Componentes/restablecer-contrasena/restablecer-contrasena';
 import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
 import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
@@ -47,9 +45,8 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
-      { path: 'cliente/login', component: LoginCliente },
+      { path: 'cliente/login', component: LoginComponent },
       { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
-      { path: 'cliente/restablecer-contrasena', component: RestablecerContrasenaComponent },
       { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
@@ -64,7 +61,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     children: [
-      { path: '', component: LoginAdmin },
+      { path: '', component: LoginComponent },
       {
         path: 'panel',
         component: AdminLayoutComponent,
