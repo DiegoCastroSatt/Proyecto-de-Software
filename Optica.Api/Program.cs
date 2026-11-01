@@ -43,11 +43,12 @@ if (!string.IsNullOrWhiteSpace(rutaClavesProteccion))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
     {
-        policy.SetIsOriginAllowed(IsAllowedFrontendOrigin)
+        policy.SetIsOriginAllowed(origen => IsAllowedFrontendOrigin(origen, builder.Configuration))
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -102,12 +103,16 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
+var mismoSitioCookie = builder.Environment.IsProduction()
+    ? SameSiteMode.None
+    : SameSiteMode.Strict;
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.Cookie.Name = "Optica.Admin";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()
             ? CookieSecurePolicy.Always
             : CookieSecurePolicy.SameAsRequest;
@@ -135,7 +140,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "Optica.Cliente";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()
             ? CookieSecurePolicy.Always
             : CookieSecurePolicy.SameAsRequest;
@@ -186,7 +191,7 @@ app.Use(async (context, next) =>
             || context.Request.Path.StartsWithSegments("/api/Autenticacion/cliente")))
     {
         var origin = context.Request.Headers.Origin.ToString();
-        if (!IsAllowedFrontendOrigin(origin)
+        if (!IsAllowedFrontendOrigin(origin, builder.Configuration)
             && origin != $"{context.Request.Scheme}://{context.Request.Host}")
         {
             context.Response.StatusCode = 403;
@@ -211,9 +216,13 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
 
 app.Run();
 
-static bool IsAllowedFrontendOrigin(string origin)
+static bool IsAllowedFrontendOrigin(string origin, IConfiguration configuration)
 {
     if (origin is "http://localhost:4200" or "http://localhost:4300")
+        return true;
+
+    var origenesConfigurados = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    if (origenesConfigurados.Contains(origin, StringComparer.OrdinalIgnoreCase))
         return true;
 
     if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)

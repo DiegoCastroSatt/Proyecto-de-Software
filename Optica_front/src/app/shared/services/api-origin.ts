@@ -8,7 +8,11 @@ export function obtenerOrigenApi(): string {
       const identificadorTunnel = hostname.slice(0, -sufijoTunnelFrontend.length);
       return `${protocol}//${identificadorTunnel}-8080.brs.devtunnels.ms`;
     }
+
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') return '';
   }
 
-  return 'http://localhost:8080';
+  return typeof window === 'undefined'
+    ? 'https://proyecto-de-software-0ghx.onrender.com'
+    : 'http://localhost:8080';
 }
