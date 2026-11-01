@@ -9,9 +9,7 @@ export function obtenerOrigenApi(): string {
       return `${protocol}//${identificadorTunnel}-8080.brs.devtunnels.ms`;
     }
 
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return 'https://proyecto-de-software-0ghx.onrender.com';
-    }
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') return '';
   }
 
   return typeof window === 'undefined'
