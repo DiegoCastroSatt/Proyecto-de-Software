@@ -3,6 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { BuscarProductoComponent } from './buscar-producto';
 import { BuscarProductoService, Producto } from './buscar-producto.service';
+import { ResenasProductoService } from './resenas-producto.service';
+import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
 
 const productos: Producto[] = [
   {
@@ -24,18 +26,33 @@ describe('BuscarProductoComponent', () => {
     buscar: ReturnType<typeof vi.fn>;
     actualizar: ReturnType<typeof vi.fn>;
   };
+  let resenasService: {
+    obtenerPorProducto: ReturnType<typeof vi.fn>;
+    obtenerMisProductos: ReturnType<typeof vi.fn>;
+    publicar: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     service = {
       buscar: vi.fn(() => of(productos)),
       actualizar: vi.fn((id: number, producto: Producto) => of({ ...productos[0], ...producto, id }))
     };
+    resenasService = {
+      obtenerPorProducto: vi.fn(() => of({ resumen: { promedio: 0, cantidad: 0 }, resenas: [] })),
+      obtenerMisProductos: vi.fn(() => of([])),
+      publicar: vi.fn(() => of({ id: 5, idProducto: 1, calificacion: 5, comentario: 'Muy cómodos', nombreCliente: 'Ana P.', fechaCreacionUtc: '2026-10-01T12:00:00Z' }))
+    };
 
     await TestBed.configureTestingModule({
       imports: [BuscarProductoComponent],
       providers: [
         FormBuilder,
-        { provide: BuscarProductoService, useValue: service }
+        { provide: BuscarProductoService, useValue: service },
+        { provide: ResenasProductoService, useValue: resenasService },
+        { provide: AutenticacionClienteService, useValue: {
+          cliente: () => null,
+          verificarSesion: () => throwError(() => new Error('sin sesión'))
+        } }
       ]
     }).compileComponents();
 
@@ -46,7 +63,7 @@ describe('BuscarProductoComponent', () => {
 
   it('carga productos y crea opciones unicas para categoria y color', () => {
     expect(component['productosVisibles']()).toEqual(productos);
-    expect(component['filtrosForm'].controls.estado.value).toBe('Disponible');
+    expect(component['filtrosForm'].controls.estado.value).toBe('');
     expect(component['categorias']()).toEqual(['Armazones', 'Lentes de sol']);
     expect(component['colores']()).toEqual(['Dorado', 'Negro']);
     expect(service.buscar).toHaveBeenCalledWith('');
@@ -118,5 +135,12 @@ describe('BuscarProductoComponent', () => {
 
     expect(component['error']()).toBe('No se pudo consultar el catálogo.');
     expect(component['cargando']()).toBe(false);
+  });
+
+  it('carga reseñas al abrir el detalle de un producto', () => {
+    component['abrirDetalle'](productos[0]);
+
+    expect(resenasService.obtenerPorProducto).toHaveBeenCalledWith(1);
+    expect(component['resumenResenas']()).toEqual({ promedio: 0, cantidad: 0 });
   });
 });

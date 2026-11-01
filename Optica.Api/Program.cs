@@ -25,6 +25,9 @@ using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
 using Optica.Api.Modules.Notificaciones.Interfaces;
 using Optica.Api.Modules.Notificaciones.Services;
+using Optica.Api.Modules.Resenas.Interfaces;
+using Optica.Api.Modules.Resenas.Repositories;
+using Optica.Api.Modules.Resenas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,6 +83,8 @@ builder.Services.AddScoped<IVentaRepository, VentaRepository>();
 builder.Services.AddScoped<IConsultaProductoVenta, ConsultaProductoVenta>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
+builder.Services.AddScoped<IResenaRepository, ResenaRepository>();
+builder.Services.AddScoped<IResenaService, ResenaService>();
 
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();

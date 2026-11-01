@@ -3,6 +3,8 @@ import { Component, Input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { BuscarProductoService, Producto, ProductoEditable } from './buscar-producto.service';
+import { ResenaProducto, ResenasProductoService } from './resenas-producto.service';
+import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
 import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
@@ -30,6 +32,14 @@ export class BuscarProductoComponent implements OnInit {
   protected readonly guardando = signal(false);
   protected readonly selectedImage = signal<File | null>(null);
   protected readonly imagePreview = signal('');
+  protected readonly resenas = signal<ResenaProducto[]>([]);
+  protected readonly resumenResenas = signal<{ promedio: number; cantidad: number }>({ promedio: 0, cantidad: 0 });
+  protected readonly productosResenables = signal(new Map<number, boolean>());
+  protected readonly cargandoResenas = signal(false);
+  protected readonly publicandoResena = signal(false);
+  protected readonly mensajeResena = signal('');
+  protected readonly errorResena = signal('');
+  protected readonly resenaForm;
 
   protected readonly busquedaForm;
   protected readonly filtrosForm;
@@ -37,7 +47,9 @@ export class BuscarProductoComponent implements OnInit {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly productoService: BuscarProductoService
+    private readonly productoService: BuscarProductoService,
+    private readonly resenasService: ResenasProductoService,
+    protected readonly autenticacion: AutenticacionClienteService
   ) {
     this.busquedaForm = this.formBuilder.nonNullable.group({ termino: [''] });
     this.filtrosForm = this.formBuilder.nonNullable.group({
@@ -60,13 +72,36 @@ export class BuscarProductoComponent implements OnInit {
       nuevoColor: [''],
       nuevaCategoria: ['']
     });
+    this.resenaForm = this.formBuilder.nonNullable.group({
+      calificacion: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
+      comentario: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(1000)]]
+    });
   }
 
   ngOnInit(): void {
+    if (!this.esAdministrador) {
+      this.filtrosForm.controls.estado.setValue('');
+      this.cargarSesionYProductosResenables();
+    }
     if (this.esAdministrador) {
       this.cargarCatalogos();
     }
     this.buscar();
+  }
+
+  private cargarSesionYProductosResenables(): void {
+    const cargarProductos = () => {
+      if (!this.autenticacion.cliente()) return;
+      this.resenasService.obtenerMisProductos().subscribe({
+        next: productos => this.productosResenables.set(new Map(productos.map(item => [item.idProducto, item.yaResenado]))),
+        error: () => this.productosResenables.set(new Map())
+      });
+    };
+    if (this.autenticacion.cliente()) {
+      cargarProductos();
+    } else {
+      this.autenticacion.verificarSesion().subscribe({ next: cargarProductos, error: () => {} });
+    }
   }
 
   private cargarCatalogos(): void {
@@ -137,6 +172,75 @@ export class BuscarProductoComponent implements OnInit {
     this.productoSeleccionado.set(producto);
     this.editando.set(false);
     this.productoForm.reset(producto);
+    this.mensajeResena.set('');
+    this.errorResena.set('');
+    this.resenaForm.reset({ calificacion: 0, comentario: '' });
+    if (!this.esAdministrador) this.cargarResenas(producto.id);
+  }
+
+  private cargarResenas(idProducto: number): void {
+    this.cargandoResenas.set(true);
+    this.resenasService.obtenerPorProducto(idProducto).subscribe({
+      next: resultado => {
+        this.resenas.set(resultado.resenas);
+        this.resumenResenas.set(resultado.resumen);
+        this.cargandoResenas.set(false);
+      },
+      error: () => {
+        this.errorResena.set('No se pudieron cargar las reseñas. Inténtalo nuevamente.');
+        this.cargandoResenas.set(false);
+      }
+    });
+  }
+
+  protected seleccionarCalificacion(calificacion: number): void {
+    this.resenaForm.controls.calificacion.setValue(calificacion);
+    this.resenaForm.controls.calificacion.markAsTouched();
+  }
+
+  protected puedeResenar(idProducto: number): boolean {
+    return this.autenticacion.cliente() !== null && this.productosResenables().has(idProducto)
+      && this.productosResenables().get(idProducto) === false;
+  }
+
+  protected yaReseno(idProducto: number): boolean {
+    return this.productosResenables().get(idProducto) === true;
+  }
+
+  protected publicarResena(idProducto: number): void {
+    if (this.resenaForm.invalid || !this.puedeResenar(idProducto) || this.publicandoResena()) {
+      this.resenaForm.markAllAsTouched();
+      return;
+    }
+    const { calificacion, comentario } = this.resenaForm.getRawValue();
+    this.publicandoResena.set(true);
+    this.errorResena.set('');
+    this.mensajeResena.set('');
+    this.resenasService.publicar(idProducto, calificacion, comentario.trim()).subscribe({
+      next: resena => {
+        this.resenas.update(items => [resena, ...items]);
+        this.resumenResenas.update(resumen => ({
+          cantidad: resumen.cantidad + 1,
+          promedio: Math.round(((resumen.promedio * resumen.cantidad + calificacion) / (resumen.cantidad + 1)) * 10) / 10
+        }));
+        this.productosResenables.update(items => new Map(items).set(idProducto, true));
+        this.resenaForm.reset({ calificacion: 0, comentario: '' });
+        this.mensajeResena.set('Tu reseña se publicó correctamente.');
+        this.publicandoResena.set(false);
+      },
+      error: (respuesta: { error?: { mensaje?: string } }) => {
+        this.errorResena.set(respuesta.error?.mensaje ?? 'No se pudo publicar la reseña. Inténtalo nuevamente.');
+        this.publicandoResena.set(false);
+      }
+    });
+  }
+
+  protected estrellas(calificacion: number): string {
+    return '★'.repeat(calificacion) + '☆'.repeat(5 - calificacion);
+  }
+
+  protected fechaResena(fecha: string): string {
+    return new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeZone: 'America/Santiago' }).format(new Date(fecha));
   }
 
   protected cerrarDetalle(): void {
