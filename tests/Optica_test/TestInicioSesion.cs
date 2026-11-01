@@ -24,19 +24,19 @@ public sealed class TestInicioSesion : IDisposable
     {
         var correo = new CorreoPrueba();
         var admin = new AutenticacionAdministradorService(new AutenticacionAdministradorRepository(db),
-            new PasswordHasher<Administrador>(), new EstadoRecuperacionAdministrador(), correo,
+            new PasswordHasher<Trabajador>(), new EstadoRecuperacionAdministrador(), correo,
             TimeProvider.System, NullLogger<AutenticacionAdministradorService>.Instance);
         var clientes = new AutenticacionClienteService(db, new PasswordHasher<CuentaCliente>(),
             new EstadoRecuperacionCliente(), correo, TimeProvider.System, NullLogger<AutenticacionClienteService>.Instance, new ConfigurationBuilder().Build());
-        return new(db, admin, new AccesoService(db, new PasswordHasher<Trabajador>()), clientes);
+        return new(admin, new AccesoService(db, new PasswordHasher<Trabajador>()), clientes);
     }
 
     private async Task Preparar()
     {
-        var admin = new Administrador { Nombre = "admin", Correo = "admin@example.test" };
-        admin.Contrasena = new PasswordHasher<Administrador>().HashPassword(admin, Clave);
+        var admin = new Administrador { Nombre = "admin", NombreUsuario = "admin", Correo = "admin@example.test" };
+        admin.Contrasena = new PasswordHasher<Trabajador>().HashPassword(admin, Clave);
         db.Administradores.Add(admin);
-        var trabajador = new Trabajador { Nombre = "Equipo", Correo = "EQUIPO@EXAMPLE.TEST",
+        var trabajador = new Trabajador { Nombre = "Equipo", NombreUsuario = "equipo", Correo = "EQUIPO@EXAMPLE.TEST",
             Rol = new RolTrabajador { Nombre = "Ventas", PermisosJson = "[\"ventas\"]" } };
         trabajador.Contrasena = new PasswordHasher<Trabajador>().HashPassword(trabajador, Clave);
         db.Trabajadores.Add(trabajador);
@@ -48,9 +48,9 @@ public sealed class TestInicioSesion : IDisposable
     }
 
     [Theory]
-    [InlineData(" ADMIN@example.test ", "Administrador")]
+    [InlineData(" ADMIN ", "Administrador")]
     [InlineData("admin", "Administrador")]
-    [InlineData("equipo@example.test", "Trabajador")]
+    [InlineData("equipo", "Trabajador")]
     [InlineData("Cliente@example.test", "Cliente")]
     public async Task ReconoceElTipoSoloDespuesDeValidarLaClave(string correo, string tipo)
     {
@@ -77,23 +77,23 @@ public sealed class TestInicioSesion : IDisposable
     public async Task RechazaTrabajadorInactivo()
     {
         await Preparar();
-        (await db.Trabajadores.SingleAsync()).Estado = "Inactivo";
+        (await db.Trabajadores.SingleAsync(t => !(t is Administrador))).Estado = "Inactivo";
         await db.SaveChangesAsync();
-        Assert.Null(await Servicio().IniciarAsync(new LoginClienteRequest { Correo = "equipo@example.test", Contrasena = Clave }, default));
+        Assert.Null(await Servicio().IniciarAsync(new LoginClienteRequest { Correo = "equipo", Contrasena = Clave }, default));
     }
 
     [Fact]
-    public async Task NoEligeUnaCuentaPorPrioridadSiLasCredencialesSonAmbiguas()
+    public async Task CorreoCompartidoNoConfundeClienteConPersonal()
     {
         await Preparar();
         var cuenta = await db.CuentasCliente.SingleAsync();
         cuenta.Correo = "equipo@example.test"; cuenta.CorreoNormalizado = "EQUIPO@EXAMPLE.TEST";
         await db.SaveChangesAsync();
-        Assert.Null(await Servicio().IniciarAsync(new LoginClienteRequest { Correo = cuenta.Correo, Contrasena = Clave }, default));
-        cuenta.ContrasenaHash = new PasswordHasher<CuentaCliente>().HashPassword(cuenta, "OtraClave123!");
-        await db.SaveChangesAsync();
-        var resultado = await Servicio().IniciarAsync(new LoginClienteRequest { Correo = cuenta.Correo, Contrasena = Clave }, default);
-        Assert.Equal("Trabajador", resultado?.TipoUsuario);
+        var cliente = await Servicio().IniciarAsync(new LoginClienteRequest { Correo = cuenta.Correo, Contrasena = Clave }, default);
+        Assert.Equal("Cliente", cliente?.TipoUsuario);
+        var trabajador = await Servicio().IniciarAsync(new LoginClienteRequest { Correo = "equipo", Contrasena = Clave }, default);
+        Assert.Equal("Trabajador", trabajador?.TipoUsuario);
+        Assert.Null(await Servicio().IniciarAsync(new LoginClienteRequest { Correo = "admin@example.test", Contrasena = Clave }, default));
     }
 
     public void Dispose() => db.Dispose();

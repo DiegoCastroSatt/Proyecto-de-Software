@@ -77,3 +77,9 @@ npm start
 ```
 
 El frontend se abrira normalmente en `http://localhost:4200`.
+
+### Acceso del personal
+
+Los clientes inician sesión con correo y el personal con nombre de usuario. En `/admin` se encuentra el acceso y la recuperación por código para administradores y trabajadores. Desde el diálogo de recuperación del acceso general también se puede abrir este flujo. El correo de recuperación puede coincidir con el de una cuenta de cliente.
+
+La estructura completa, incluidos personal y roles, está en `database/schema.sql`; los datos de ejemplo están en `database/insert.sql`. Docker Compose aplica el esquema al inicializar un volumen nuevo de MySQL.

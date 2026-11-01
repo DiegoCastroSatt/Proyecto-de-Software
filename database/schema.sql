@@ -64,6 +64,17 @@ nombre VARCHAR(60) NOT NULL,
 CONSTRAINT uq_catalogo_tipo_nombre UNIQUE (tipo, nombre)
 );
 
+-- Tipos de marco administrables para recomendador y simulador.
+CREATE TABLE tipos_marco (
+    id_tipo_marco INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(80) NOT NULL UNIQUE,
+    nombre VARCHAR(80) NOT NULL UNIQUE,
+    categoria VARCHAR(50) NOT NULL,
+    svg MEDIUMTEXT NOT NULL,
+    rostros TEXT NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
 CREATE TABLE productos (
 id_producto INT AUTO_INCREMENT PRIMARY KEY,
 codigo VARCHAR(30) NOT NULL UNIQUE,
@@ -76,7 +87,9 @@ precio DECIMAL(10,2) NOT NULL DEFAULT 0,
 stock INT NOT NULL DEFAULT 0,
 stock_minimo INT NOT NULL DEFAULT 0,
 estado ENUM('Disponible', 'Agotado') NOT NULL DEFAULT 'Disponible',
-ruta_imagen VARCHAR(255)
+ruta_imagen VARCHAR(255),
+id_tipo_marco INT NULL,
+CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL
 );
 
 CREATE TABLE pedidos (
@@ -119,13 +132,26 @@ CONSTRAINT fk_detalle_producto
 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
 ON DELETE SET NULL
 );
-CREATE TABLE administradores (
-    id_administrador INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(60) NOT NULL,
-    correo VARCHAR(100) NOT NULL UNIQUE,
+CREATE TABLE roles_trabajadores (
+    id_rol INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL UNIQUE,
+    permisos_json LONGTEXT NOT NULL
+);
+
+CREATE TABLE trabajador_optica (
+    id_trabajador INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    nombre_usuario VARCHAR(60) NOT NULL UNIQUE,
+    correo VARCHAR(100) NOT NULL,
     contrasena VARCHAR(255) NOT NULL,
-    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo',
-    CONSTRAINT uq_administrador_nombre UNIQUE (nombre)
+    estado VARCHAR(8) NOT NULL DEFAULT 'Activo',
+    tipo_usuario VARCHAR(20) NOT NULL DEFAULT 'Trabajador',
+    id_rol INT NULL,
+    id_administrador_creador INT NULL,
+    CONSTRAINT fk_personal_rol FOREIGN KEY (id_rol) REFERENCES roles_trabajadores(id_rol),
+    CONSTRAINT fk_personal_creador FOREIGN KEY (id_administrador_creador) REFERENCES trabajador_optica(id_trabajador),
+    CONSTRAINT ck_personal_tipo CHECK (tipo_usuario IN ('Administrador', 'Trabajador')),
+    CONSTRAINT ck_personal_rol CHECK (tipo_usuario = 'Administrador' OR id_rol IS NOT NULL)
 );
 CREATE TABLE horarios_atencion (
     id_horario INT AUTO_INCREMENT PRIMARY KEY,
@@ -140,7 +166,7 @@ CREATE TABLE horarios_atencion (
 
     CONSTRAINT fk_horarios_administrador
         FOREIGN KEY (id_administrador)
-        REFERENCES administradores(id_administrador)
+        REFERENCES trabajador_optica(id_trabajador)
         ON DELETE RESTRICT,
 
     CONSTRAINT uq_horario_fecha_hora
@@ -241,35 +267,6 @@ CREATE TABLE intentos_correo_pedidos (
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);
 
--- Migración aditiva para bases existentes. Ejecutar una vez antes de iniciar la API actualizada.
-USE optica_db;
-CREATE TABLE IF NOT EXISTS roles_trabajadores (
-    id_rol INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(60) NOT NULL UNIQUE,
-    permisos_json LONGTEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS trabajadores (
-    id_trabajador INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    correo VARCHAR(100) NOT NULL UNIQUE,
-    contrasena VARCHAR(255) NOT NULL,
-    estado VARCHAR(8) NOT NULL DEFAULT 'Activo',
-    id_rol INT NOT NULL,
-    id_administrador_creador INT NOT NULL,
-    CONSTRAINT fk_trabajador_rol FOREIGN KEY (id_rol) REFERENCES roles_trabajadores(id_rol),
-    CONSTRAINT fk_trabajador_administrador FOREIGN KEY (id_administrador_creador) REFERENCES administradores(id_administrador)
-);
-
--- Tipos de marco administrables para recomendador y simulador.
-CREATE TABLE IF NOT EXISTS tipos_marco (
-    id_tipo_marco INT AUTO_INCREMENT PRIMARY KEY,
-    codigo VARCHAR(80) NOT NULL UNIQUE,
-    nombre VARCHAR(80) NOT NULL UNIQUE,
-    categoria VARCHAR(50) NOT NULL,
-    svg MEDIUMTEXT NOT NULL,
-    rostros VARCHAR(100) NOT NULL,
-    activo BOOLEAN NOT NULL DEFAULT TRUE
-);
 -- Rostros administrables del recomendador.
 CREATE TABLE IF NOT EXISTS tipos_rostro (
     id_tipo_rostro INT AUTO_INCREMENT PRIMARY KEY,
@@ -282,10 +279,6 @@ CREATE TABLE IF NOT EXISTS tipos_rostro (
     tipo_imagen VARCHAR(30) NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE
 );
-
--- Un armazón del inventario utiliza el diseño de un tipo de marco.
-ALTER TABLE productos ADD COLUMN id_tipo_marco INT NULL;
-ALTER TABLE productos ADD CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL;
 
 -- Contornos personalizados reutilizables en el editor de marcos.
 CREATE TABLE IF NOT EXISTS formas_lente (

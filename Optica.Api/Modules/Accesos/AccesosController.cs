@@ -37,22 +37,27 @@ public sealed class AccesosController(OpticaDbContext db, IPasswordHasher<Trabaj
         return Ok(new { rol.IdRol, rol.Nombre, permisos = AccesoService.LeerPermisos(rol.PermisosJson) });
     }
     [HttpGet("trabajadores")]
-    public async Task<IActionResult> Trabajadores(CancellationToken ct) => Ok(await db.Trabajadores.AsNoTracking().OrderBy(t => t.Nombre)
-        .Select(t => new { t.IdTrabajador, t.Nombre, t.Correo, t.Estado, t.IdRol, rol = t.Rol.Nombre, tipoUsuario = "Trabajador" }).ToListAsync(ct));
+    public async Task<IActionResult> Trabajadores(CancellationToken ct) => Ok(await db.Trabajadores.AsNoTracking().Where(t => !(t is Optica.Api.Modules.AgendaReservas.Models.Administrador)).OrderBy(t => t.Nombre)
+        .Select(t => new { t.IdTrabajador, t.Nombre, t.NombreUsuario, t.Correo, t.Estado, t.IdRol, rol = t.Rol.Nombre, tipoUsuario = "Trabajador" }).ToListAsync(ct));
     [HttpPost("trabajadores")]
     public async Task<IActionResult> CrearTrabajador(CrearTrabajadorRequest request, CancellationToken ct)
     {
-        var correo = request.Correo.Trim().ToUpperInvariant();
+        if (!Optica.Api.Modules.Autenticacion.Services.AutenticacionClienteService.ContrasenaValida(request.Contrasena))
+            return BadRequest(new { mensaje = "La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo." });
+        var correo = request.Correo.Trim();
+        var usuario = request.NombreUsuario.Trim().ToLowerInvariant();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(usuario, @"^[a-z0-9][a-z0-9._-]{2,59}$"))
+            return BadRequest(new { mensaje = "El usuario debe tener entre 3 y 60 caracteres: letras, números, punto, guion o guion bajo." });
         if (string.IsNullOrWhiteSpace(request.Nombre)) return BadRequest(new { mensaje = "Ingresa el nombre del trabajador." });
         if (!await db.RolesTrabajadores.AnyAsync(r => r.IdRol == request.IdRol, ct)) return BadRequest(new { mensaje = "Selecciona un rol existente." });
-        if (await db.Trabajadores.AnyAsync(t => t.Correo == correo, ct) || await db.Administradores.AnyAsync(a => a.Nombre.ToUpper() == correo, ct))
-            return Conflict(new { mensaje = "Ese correo ya está en uso como usuario." });
-        var t = new Trabajador { Nombre = request.Nombre.Trim(), Correo = correo, IdRol = request.IdRol,
+        if (await db.Trabajadores.AnyAsync(t => t.NombreUsuario.ToUpper() == usuario.ToUpper(), ct))
+            return Conflict(new { mensaje = "Ese nombre de usuario ya está en uso." });
+        var t = new Trabajador { Nombre = request.Nombre.Trim(), NombreUsuario = usuario, Correo = correo, IdRol = request.IdRol,
             IdAdministradorCreador = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!) };
         t.Contrasena = hasher.HashPassword(t, request.Contrasena);
         db.Trabajadores.Add(t);
         try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException) { return Conflict(new { mensaje = "No se pudo crear el trabajador. Revisa si el correo ya está en uso." }); }
+        catch (DbUpdateException) { return Conflict(new { mensaje = "No se pudo crear el trabajador. Revisa si el nombre de usuario ya está en uso." }); }
         return Ok(new { t.IdTrabajador });
     }
     [HttpPut("trabajadores/{id:int}/acceso")]
@@ -61,7 +66,7 @@ public sealed class AccesosController(OpticaDbContext db, IPasswordHasher<Trabaj
         if (request.Estado is not ("Activo" or "Inactivo")) return BadRequest(new { mensaje = "Estado inválido." });
         if (!await db.RolesTrabajadores.AnyAsync(r => r.IdRol == request.IdRol, ct)) return BadRequest(new { mensaje = "Selecciona un rol existente." });
         var t = await db.Trabajadores.FindAsync([id], ct);
-        if (t is null) return NotFound();
+        if (t is null || t is Optica.Api.Modules.AgendaReservas.Models.Administrador) return NotFound();
         t.IdRol = request.IdRol; t.Estado = request.Estado;
         await db.SaveChangesAsync(ct); return NoContent();
     }
@@ -73,9 +78,10 @@ public sealed record RolRequest
 }
 public sealed record CrearTrabajadorRequest
 {
+    [Required, StringLength(60, MinimumLength = 3), RegularExpression(@"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,59}$")] public required string NombreUsuario { get; init; }
     [Required, StringLength(100)] public required string Nombre { get; init; }
     [Required, EmailAddress, StringLength(100)] public required string Correo { get; init; }
-    [Required, StringLength(255, MinimumLength = 12)] public required string Contrasena { get; init; }
+    [Required, StringLength(255, MinimumLength = 8)] public required string Contrasena { get; init; }
     [Range(1, int.MaxValue)] public int IdRol { get; init; }
 }
 public sealed record AsignarAccesoRequest

@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject, sign
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InicioSesionService } from '../../shared/services/inicio-sesion.service';
 import { AutenticacionClienteService, RegistroCliente } from './autenticacion-cliente.service';
 import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
@@ -11,7 +11,7 @@ type CampoRegistro = keyof RegistroCliente;
 
 @Component({
   selector: 'app-login-cliente',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './login-cliente.html',
   styleUrl: './login-cliente.css',
 })

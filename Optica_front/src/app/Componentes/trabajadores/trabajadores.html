@@ -48,23 +48,25 @@
         <label
           >Nombre completo<input formControlName="nombre" maxlength="100" autocomplete="name"
         /></label>
+        <label>Nombre de usuario<input formControlName="nombreUsuario" maxlength="60" autocomplete="username" />
+          <small>Entre 3 y 60 caracteres: letras, números, punto, guion o guion bajo.</small></label>
         <label
           >Correo electrónico<input
             type="email"
             formControlName="correo"
             maxlength="100"
             autocomplete="email"
-          /><small>Será su usuario para iniciar sesión.</small></label
+          /><small>Se utilizará para recuperar su contraseña.</small></label
         >
         <label
           >Contraseña inicial<input
             type="password"
             formControlName="contrasena"
-            minlength="12"
+            minlength="8"
             maxlength="255"
             autocomplete="new-password"
           /><small
-            >Al menos 12 caracteres. Entrégala al trabajador por un medio privado.</small
+            >Al menos 8 caracteres con una letra, un número y un símbolo. Entrégala al trabajador por un medio privado.</small
           ></label
         >
         <div class="selector-rol">
@@ -99,7 +101,7 @@
         </div>
         @if (trabajadorForm.invalid && trabajadorForm.touched) {
           <p class="error">
-            Completa el nombre, un correo válido, la contraseña de al menos 12 caracteres y el rol.
+            Completa el nombre, un usuario válido, un correo válido, la contraseña de al menos 8 caracteres con una letra, un número y un símbolo y el rol.
           </p>
         }
         <button class="primario" type="submit" [disabled]="guardando() || !roles().length">
@@ -112,6 +114,7 @@
         <article class="tarjeta">
           <div class="identidad">
             <h3>{{ trabajador.nombre }}</h3>
+            <p>Usuario: {{ trabajador.nombreUsuario }}</p>
             <p>{{ trabajador.correo }}</p>
             <small>Trabajador</small>
           </div>
@@ -140,8 +143,7 @@
       } @empty {
         @if (!cargando()) {
           <p>
-            Aún no hay trabajadores. Las cuentas de clientes y administradores se mantienen
-            separadas.
+            Aún no hay trabajadores registrados.
           </p>
         }
       }

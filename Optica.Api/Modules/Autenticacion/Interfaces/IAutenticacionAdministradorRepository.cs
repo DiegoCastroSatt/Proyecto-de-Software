@@ -1,18 +1,18 @@
-using Optica.Api.Modules.AgendaReservas.Models;
+using Optica.Api.Modules.Accesos;
 
 namespace Optica.Api.Modules.Autenticacion.Interfaces;
 
 public interface IAutenticacionAdministradorRepository
 {
-    Task<Administrador?> ObtenerPorNombreUsuarioAsync(
+    Task<Trabajador?> ObtenerPorNombreUsuarioAsync(
         string nombreUsuario,
         CancellationToken cancellationToken);
 
-    Task<Administrador?> ObtenerPorIdAsync(
+    Task<Trabajador?> ObtenerPorIdAsync(
         int idAdministrador,
         CancellationToken cancellationToken);
 
     Task ActualizarAsync(
-        Administrador administrador,
+        Trabajador administrador,
         CancellationToken cancellationToken);
 }

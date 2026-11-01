@@ -43,12 +43,12 @@ public sealed class TestAccesos
     public async Task SesionReleeRolesYRevocaTrabajadoresInactivosSinConfundirIds()
     {
         await using var db = CrearDb();
-        db.Administradores.Add(new Administrador { IdAdministrador = 1, Nombre = "Admin", Estado = "Activo" });
+        db.Administradores.Add(new Administrador { IdAdministrador = 1, Nombre = "Admin", NombreUsuario = "admin", Estado = "Activo" });
         var rol = new RolTrabajador { IdRol = 1, Nombre = "Ventas", PermisosJson = "[\"ventas\"]" };
-        db.Trabajadores.Add(new Trabajador { IdTrabajador = 1, Nombre = "Personal", Correo = "EQUIPO@EXAMPLE.COM", IdRol = 1, Rol = rol, IdAdministradorCreador = 1 });
+        db.Trabajadores.Add(new Trabajador { IdTrabajador = 2, Nombre = "Personal", NombreUsuario = "personal", Correo = "EQUIPO@EXAMPLE.COM", IdRol = 1, Rol = rol, IdAdministradorCreador = 1 });
         await db.SaveChangesAsync();
         var servicio = new AccesoService(db, new PasswordHasher<Trabajador>());
-        var principal = AccesoService.CrearPrincipal(AccesoService.Respuesta(await db.Trabajadores.Include(t => t.Rol).SingleAsync()));
+        var principal = AccesoService.CrearPrincipal(AccesoService.Respuesta(await db.Trabajadores.Include(t => t.Rol).SingleAsync(t => !(t is Administrador))));
         Assert.Contains("ventas", (await servicio.ObtenerSesionAsync(principal, default))!.Permisos);
         rol.PermisosJson = "[\"agenda\"]";
         await db.SaveChangesAsync();
@@ -57,11 +57,12 @@ public sealed class TestAccesos
         Assert.Contains("agenda", sesion.Permisos);
         Assert.Equal(0, sesion.IdAdministrador);
         Assert.Equal("Trabajador", sesion.TipoUsuario);
-        var trabajador = await db.Trabajadores.FindAsync(1);
+        var trabajador = await db.Trabajadores.FindAsync(2);
         trabajador!.Estado = "Inactivo";
         await db.SaveChangesAsync();
         Assert.Null(await servicio.ObtenerSesionAsync(principal, default));
-        Assert.NotNull(await servicio.ObtenerSesionAsync(Principal("Administrador"), default));
+        var admin = await db.Administradores.SingleAsync();
+        Assert.NotNull(await servicio.ObtenerSesionAsync(AccesoService.CrearPrincipal(new LoginAdministradorResponse(1, admin.Nombre) { VersionCredencial = AccesoService.CrearVersionCredencial(admin.Contrasena) }), default));
         Assert.Null(await servicio.ObtenerSesionAsync(Principal("Cliente"), default));
     }
 
@@ -70,13 +71,13 @@ public sealed class TestAccesos
     {
         await using var db = CrearDb();
         var hasher = new PasswordHasher<Trabajador>();
-        var trabajador = new Trabajador { IdTrabajador = 1, Nombre = "Equipo", Correo = "EQUIPO@EXAMPLE.COM", Rol = new RolTrabajador { Nombre = "Agenda", PermisosJson = "[\"agenda\",\"SoloAdministrador\"]" } };
-        var clave = Guid.NewGuid().ToString("N");
+        var trabajador = new Trabajador { IdTrabajador = 1, Nombre = "Equipo", NombreUsuario = "equipo", Correo = "EQUIPO@EXAMPLE.COM", Rol = new RolTrabajador { Nombre = "Agenda", PermisosJson = "[\"agenda\",\"SoloAdministrador\"]" } };
+        var clave = (Guid.NewGuid().ToString("N") + "A1!");
         trabajador.Contrasena = hasher.HashPassword(trabajador, clave);
         db.Trabajadores.Add(trabajador); await db.SaveChangesAsync();
         var servicio = new AccesoService(db, hasher);
-        Assert.Null(await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "equipo@example.com", Contrasena = "incorrecta" }, default));
-        var sesion = await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "equipo@example.com", Contrasena = clave }, default);
+        Assert.Null(await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "equipo", Contrasena = "incorrecta" }, default));
+        var sesion = await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "equipo", Contrasena = clave }, default);
         Assert.NotNull(sesion);
         var principal = AccesoService.CrearPrincipal(sesion);
         Assert.True(PermisosAcceso.Tiene(principal, "agenda"));
@@ -182,7 +183,7 @@ public sealed class TestAccesos
     {
         using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
         cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", "Trabajador");
-        var anterior = Guid.NewGuid().ToString("N"); var nueva = Guid.NewGuid().ToString("N");
+        var anterior = (Guid.NewGuid().ToString("N") + "A1!"); var nueva = (Guid.NewGuid().ToString("N") + "A1!");
         var hasher = new PasswordHasher<Trabajador>();
         ClaimsPrincipal cookieAnterior;
         string hashAnterior;
@@ -190,10 +191,10 @@ public sealed class TestAccesos
         {
             var db = scope.ServiceProvider.GetRequiredService<OpticaDbContext>();
             var rol = new RolTrabajador { IdRol = 1, Nombre = "Sin permisos", PermisosJson = "[]" };
-            var cuenta = new Trabajador { IdTrabajador = 1, Nombre = "Cuenta propia", Correo = "PROPIA@EXAMPLE.COM", IdRol = 1, Rol = rol };
+            var cuenta = new Trabajador { IdTrabajador = 1, Nombre = "Cuenta propia", NombreUsuario = "propia", Correo = "PROPIA@EXAMPLE.COM", IdRol = 1, Rol = rol };
             cuenta.Contrasena = hasher.HashPassword(cuenta, anterior); hashAnterior = cuenta.Contrasena;
             db.Trabajadores.Add(cuenta);
-            db.Trabajadores.Add(new Trabajador { IdTrabajador = 2, Nombre = "Otra cuenta", Correo = "OTRA@EXAMPLE.COM", IdRol = 1, Rol = rol, Contrasena = hashAnterior });
+            db.Trabajadores.Add(new Trabajador { IdTrabajador = 2, Nombre = "Otra cuenta", NombreUsuario = "otra", Correo = "OTRA@EXAMPLE.COM", IdRol = 1, Rol = rol, Contrasena = hashAnterior });
             await db.SaveChangesAsync(); cookieAnterior = AccesoService.CrearPrincipal(AccesoService.Respuesta(cuenta));
         }
         var ruta = "/api/CuentaTrabajador/contrasena";
@@ -213,7 +214,7 @@ public sealed class TestAccesos
         Assert.Equal(hashAnterior, (await contexto.Trabajadores.FindAsync(2))!.Contrasena);
         var servicio = new AccesoService(contexto, hasher);
         Assert.Null(await servicio.ObtenerSesionAsync(cookieAnterior, default));
-        Assert.NotNull(await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "propia@example.com", Contrasena = nueva }, default));
+        Assert.NotNull(await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "propia", Contrasena = nueva }, default));
     }
 
     [Fact]
@@ -225,8 +226,8 @@ public sealed class TestAccesos
         Assert.Equal(HttpStatusCode.OK, rol.StatusCode);
         using var json = System.Text.Json.JsonDocument.Parse(await rol.Content.ReadAsStringAsync());
         var idRol = json.RootElement.GetProperty("idRol").GetInt32();
-        var clave = Guid.NewGuid().ToString("N");
-        var resultado = await cliente.PostAsJsonAsync("/api/Accesos/trabajadores", new { nombre = "Equipo", correo = "equipo@example.com", contrasena = clave, idRol });
+        var clave = (Guid.NewGuid().ToString("N") + "A1!");
+        var resultado = await cliente.PostAsJsonAsync("/api/Accesos/trabajadores", new { nombre = "Equipo", nombreUsuario = "equipo", correo = "equipo@example.com", contrasena = clave, idRol });
         Assert.Equal(HttpStatusCode.OK, resultado.StatusCode);
         using var scope = servidor.Services.CreateScope();
         var trabajador = await scope.ServiceProvider.GetRequiredService<OpticaDbContext>().Trabajadores.SingleAsync();
@@ -235,7 +236,7 @@ public sealed class TestAccesos
         var listado = await cliente.GetStringAsync("/api/Accesos/trabajadores");
         Assert.DoesNotContain(clave, listado);
         Assert.DoesNotContain("contrasena", listado);
-        Assert.Equal(HttpStatusCode.Conflict, (await cliente.PostAsJsonAsync("/api/Accesos/trabajadores", new { nombre = "Otro", correo = "EQUIPO@EXAMPLE.COM", contrasena = clave, idRol })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await cliente.PostAsJsonAsync("/api/Accesos/trabajadores", new { nombre = "Otro", nombreUsuario = "EQUIPO", correo = "EQUIPO@EXAMPLE.COM", contrasena = clave, idRol })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await cliente.PostAsJsonAsync("/api/Accesos/roles", new { nombre = "Elevacion", permisos = new[] { "SoloAdministrador" } })).StatusCode);
     }
 }

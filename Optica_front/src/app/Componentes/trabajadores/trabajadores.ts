@@ -55,8 +55,9 @@ export class TrabajadoresComponent implements OnInit {
   readonly rolEditado = signal<number | null>(null);
   readonly trabajadorForm = this.fb.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
+    nombreUsuario: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,59}$/)]],
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
-    contrasena: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(255)]],
+    contrasena: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(255), Validators.pattern(/^(?=[\s\S]*\p{L})(?=[\s\S]*\p{N})(?=[\s\S]*[^\p{L}\p{N}\s])[\s\S]*$/u)]],
     idRol: [0, [Validators.min(1)]],
   });
   readonly rolForm = this.fb.nonNullable.group({
@@ -98,7 +99,7 @@ export class TrabajadoresComponent implements OnInit {
         this.nuevo.set(false);
         this.trabajadorForm.reset();
         this.mensaje.set(
-          'Trabajador creado. Puede iniciar sesión con su correo y la contraseña inicial.',
+          'Trabajador creado. Puede iniciar sesión con su nombre de usuario y la contraseña inicial.',
         );
         this.cargar();
       },

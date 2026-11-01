@@ -1,4 +1,3 @@
-import { InicioSesionService } from '../../shared/services/inicio-sesion.service';
 import { Component, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -31,25 +30,24 @@ export class LoginAdmin {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private autenticacionAdmin: AutenticacionAdminService,
-    private inicioSesion: InicioSesionService
+    private autenticacionAdmin: AutenticacionAdminService
   ) {
     if (this.route.snapshot.queryParamMap.get('claveActualizada') === '1')
       this.exito.set('Contraseña actualizada. Inicia sesión con tu nueva contraseña.');
+    if (this.route.snapshot.queryParamMap.get('recuperar') === '1') this.abrirRecuperacion();
   }
 
   onLogin(): void{
     this.error.set('');
     this.exito.set('');
 
-    this.inicioSesion.iniciarSesion(this.usuario.trim(), this.contrasena).subscribe({
+    this.autenticacionAdmin.iniciarSesion(this.usuario.trim(), this.contrasena).subscribe({
       next: (resultado) => {
         this.contrasena = '';
         sessionStorage.removeItem('isAdmin');
 
         const destino = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/admin/panel';
-        void this.router.navigateByUrl(resultado.tipoUsuario === 'Cliente' ? '/cliente/inicio'
-          : destino === '/admin/panel' || destino.startsWith('/admin/panel/') ? destino : '/admin/panel');
+        void this.router.navigateByUrl(destino === '/admin/panel' || destino.startsWith('/admin/panel/') ? destino : '/admin/panel');
       },
       error: (error: HttpErrorResponse) => {
         this.error.set(error.status === 401
@@ -76,7 +74,7 @@ export class LoginAdmin {
     if (this.procesandoRecuperacion()) return;
     const nombreUsuario = this.nombreUsuarioRecuperacion.trim();
     if (!nombreUsuario) {
-      this.errorRecuperacion.set('Ingresa el nombre de usuario del administrador.');
+      this.errorRecuperacion.set('Ingresa el nombre de usuario del personal.');
       return;
     }
 
@@ -107,8 +105,8 @@ export class LoginAdmin {
       this.errorRecuperacion.set('Ingresa el código de 6 dígitos.');
       return;
     }
-    if (this.nuevaContrasena.length < 12 || this.nuevaContrasena.length > 255) {
-      this.errorRecuperacion.set('La contraseña debe tener entre 12 y 255 caracteres.');
+    if (this.nuevaContrasena.length < 8 || this.nuevaContrasena.length > 255 || !/\p{L}/u.test(this.nuevaContrasena) || !/\p{N}/u.test(this.nuevaContrasena) || !/[^\p{L}\p{N}\s]/u.test(this.nuevaContrasena)) {
+      this.errorRecuperacion.set('La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo.');
       return;
     }
     if (this.nuevaContrasena !== this.confirmarContrasena) {

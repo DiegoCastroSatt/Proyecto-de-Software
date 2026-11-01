@@ -17,6 +17,8 @@ public sealed class CuentaTrabajadorController(OpticaDbContext db, IPasswordHash
     [HttpPost("contrasena")]
     public async Task<IActionResult> CambiarContrasena(CambiarContrasenaTrabajadorRequest request, CancellationToken ct)
     {
+        if (!Optica.Api.Modules.Autenticacion.Services.AutenticacionClienteService.ContrasenaValida(request.NuevaContrasena))
+            return BadRequest(new { mensaje = "La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo." });
         // La identidad se toma exclusivamente de la sesión, nunca de un identificador del formulario.
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id)) return Unauthorized();
         var trabajador = await db.Trabajadores.SingleOrDefaultAsync(t => t.IdTrabajador == id && t.Estado == "Activo", ct);
@@ -34,6 +36,6 @@ public sealed class CuentaTrabajadorController(OpticaDbContext db, IPasswordHash
 public sealed record CambiarContrasenaTrabajadorRequest
 {
     [Required, StringLength(255)] public required string ContrasenaActual { get; init; }
-    [Required, StringLength(255, MinimumLength = 12)] public required string NuevaContrasena { get; init; }
+    [Required, StringLength(255, MinimumLength = 8)] public required string NuevaContrasena { get; init; }
     [Required, StringLength(255), Compare(nameof(NuevaContrasena))] public required string ConfirmarContrasena { get; init; }
 }

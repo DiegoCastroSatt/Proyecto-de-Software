@@ -79,15 +79,18 @@ public class OpticaDbContext : DbContext
         });
         modelBuilder.Entity<Trabajador>(e =>
         {
-            e.ToTable("trabajadores"); e.HasKey(t => t.IdTrabajador);
+            e.ToTable("trabajador_optica"); e.HasKey(t => t.IdTrabajador);
             e.Property(t => t.IdTrabajador).HasColumnName("id_trabajador");
             e.Property(t => t.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            e.Property(t => t.NombreUsuario).HasColumnName("nombre_usuario").HasMaxLength(60).IsRequired();
             e.Property(t => t.Correo).HasColumnName("correo").HasMaxLength(100).IsRequired();
             e.Property(t => t.Contrasena).HasColumnName("contrasena").HasMaxLength(255).IsRequired();
             e.Property(t => t.Estado).HasColumnName("estado").HasMaxLength(8).IsRequired();
             e.Property(t => t.IdRol).HasColumnName("id_rol");
             e.Property(t => t.IdAdministradorCreador).HasColumnName("id_administrador_creador");
-            e.HasIndex(t => t.Correo).IsUnique();
+            e.HasIndex(t => t.NombreUsuario).IsUnique();
+            e.HasDiscriminator<string>("TipoUsuario").HasValue<Trabajador>("Trabajador").HasValue<Administrador>("Administrador");
+            e.Property<string>("TipoUsuario").HasColumnName("tipo_usuario").HasMaxLength(20);
             e.HasOne(t => t.Rol).WithMany().HasForeignKey(t => t.IdRol).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Administrador>().WithMany().HasForeignKey(t => t.IdAdministradorCreador).OnDelete(DeleteBehavior.Restrict);
         });
@@ -272,17 +275,6 @@ public class OpticaDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Administrador>(entity =>
-        {
-            entity.ToTable("administradores");
-            entity.HasKey(a => a.IdAdministrador);
-            entity.Property(a => a.IdAdministrador).HasColumnName("id_administrador");
-            entity.Property(a => a.Nombre).HasColumnName("nombre");
-            entity.Property(a => a.Correo).HasColumnName("correo");
-            entity.Property(a => a.Contrasena).HasColumnName("contrasena");
-            entity.Property(a => a.Estado).HasColumnName("estado");
-            entity.HasIndex(a => a.Nombre).IsUnique();
-        });
 
         modelBuilder.Entity<Producto>(entity =>
         {

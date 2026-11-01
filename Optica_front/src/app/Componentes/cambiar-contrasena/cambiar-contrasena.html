@@ -2,7 +2,7 @@
   <p class="eyebrow">Mi cuenta</p>
   <h1 id="titulo-clave">Cambiar contraseña</h1>
   <p>
-    Elige una nueva contraseña de al menos 12 caracteres. Después tendrás que iniciar sesión
+    Elige una nueva contraseña de al menos 8 caracteres con una letra, un número y un símbolo. Después tendrás que iniciar sesión
     nuevamente.
   </p>
   <form [formGroup]="formulario" (ngSubmit)="guardar()">
@@ -23,7 +23,7 @@
         type="password"
         formControlName="nuevaContrasena"
         autocomplete="new-password"
-        minlength="12"
+        minlength="8"
         maxlength="255"
         required
       />
@@ -39,7 +39,7 @@
     </fieldset>
     @if (formulario.touched && formulario.invalid) {
       <p class="error" role="alert">
-        Completa la contraseña actual y una nueva de al menos 12 caracteres, con su confirmación
+        Completa la contraseña actual y una nueva de al menos 8 caracteres con una letra, un número y un símbolo, con su confirmación
         idéntica.
       </p>
     }

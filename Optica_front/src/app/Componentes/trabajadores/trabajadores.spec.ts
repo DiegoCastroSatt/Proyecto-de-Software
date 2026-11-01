@@ -13,7 +13,7 @@ describe('Gestión de trabajadores y roles', () => {
         of([
           {
             idTrabajador: 1,
-            nombre: 'Equipo',
+            nombre: 'Equipo', nombreUsuario: 'equipo',
             correo: 'equipo@example.com',
             estado: 'Activo' as const,
             idRol: 1,
@@ -45,14 +45,14 @@ describe('Gestión de trabajadores y roles', () => {
     componente.crearTrabajador();
     expect(api.crearTrabajador).not.toHaveBeenCalled();
     componente.trabajadorForm.setValue({
-      nombre: 'Persona de prueba',
+      nombre: 'Persona de prueba', nombreUsuario: 'persona',
       correo: 'nueva@example.com',
       contrasena: 'solo-para-pruebas-123',
       idRol: 1,
     });
     componente.crearTrabajador();
     expect(api.crearTrabajador).toHaveBeenCalledWith({
-      nombre: 'Persona de prueba',
+      nombre: 'Persona de prueba', nombreUsuario: 'persona',
       correo: 'nueva@example.com',
       contrasena: 'solo-para-pruebas-123',
       idRol: 1,
@@ -77,7 +77,7 @@ describe('Gestión de trabajadores y roles', () => {
     const { componente, api } = crear();
     api.crearTrabajador.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
     componente.trabajadorForm.setValue({
-      nombre: 'Prueba',
+      nombre: 'Prueba', nombreUsuario: 'prueba',
       correo: 'prueba@example.com',
       contrasena: 'solo-para-pruebas-123',
       idRol: 1,
@@ -115,7 +115,7 @@ describe('Gestión de trabajadores y roles', () => {
     const dialogo = prepararDialogo(fixture);
     componente.nuevo.set(true);
     componente.trabajadorForm.patchValue({
-      nombre: 'Persona nueva',
+      nombre: 'Persona nueva', nombreUsuario: 'persona_nueva',
       correo: 'nueva@example.com',
       contrasena: 'solo-para-pruebas-123',
     });

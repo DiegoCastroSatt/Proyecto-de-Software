@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Accesos;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,7 +20,7 @@ public sealed class TestAutenticacionAdministradores
 
     private AutenticacionAdministradorService Servicio() => new(
         repositorio,
-        new PasswordHasher<Administrador>(),
+        new PasswordHasher<Trabajador>(),
         estado,
         correo,
         reloj,
@@ -31,7 +32,7 @@ public sealed class TestAutenticacionAdministradores
         repositorio.Administrador = new Administrador
         {
             IdAdministrador = 7,
-            Nombre = "admin",
+            Nombre = "admin", NombreUsuario = "admin",
             Correo = "admin@example.test",
             Contrasena = "ClaveAntigua!",
             Estado = "Activo"
@@ -125,16 +126,29 @@ public sealed class TestAutenticacionAdministradores
         Assert.False(estado.ValidarCodigo("admin", hashCorrecto, instante).Valido);
     }
 
+    [Theory]
+    [InlineData("abcdef1!", true)]
+    [InlineData("ABCDEF1!", true)]
+    [InlineData("abcde1!", false)]
+    [InlineData("abcdefgh!", false)]
+    [InlineData("1234567!", false)]
+    [InlineData("abcdef12", false)]
+    [InlineData("abcdef1 ", false)]
+    public void ContrasenaDelPersonalUsaLosMismosRequisitosDelCliente(string clave, bool valida)
+    {
+        Assert.Equal(valida, AutenticacionClienteService.ContrasenaValida(clave));
+    }
+
     private static Administrador CrearAdministrador(string contrasena)
     {
         var admin = new Administrador
         {
             IdAdministrador = 7,
-            Nombre = "admin",
+            Nombre = "admin", NombreUsuario = "admin",
             Correo = "admin@example.test",
             Estado = "Activo"
         };
-        admin.Contrasena = new PasswordHasher<Administrador>().HashPassword(admin, contrasena);
+        admin.Contrasena = new PasswordHasher<Trabajador>().HashPassword(admin, contrasena);
         return admin;
     }
 
@@ -149,17 +163,17 @@ public sealed class TestAutenticacionAdministradores
         public Administrador? Administrador { get; set; }
         public int Actualizaciones { get; private set; }
 
-        public Task<Administrador?> ObtenerPorNombreUsuarioAsync(string nombreUsuario, CancellationToken cancellationToken) =>
-            Task.FromResult(Administrador is not null && string.Equals(Administrador.Nombre, nombreUsuario, StringComparison.OrdinalIgnoreCase)
+        public Task<Trabajador?> ObtenerPorNombreUsuarioAsync(string nombreUsuario, CancellationToken cancellationToken) =>
+            Task.FromResult<Trabajador?>(Administrador is not null && string.Equals(Administrador.NombreUsuario, nombreUsuario, StringComparison.OrdinalIgnoreCase)
                 ? Administrador : null);
 
-        public Task<Administrador?> ObtenerPorIdAsync(int idAdministrador, CancellationToken cancellationToken) =>
-            Task.FromResult(Administrador?.IdAdministrador == idAdministrador ? Administrador : null);
+        public Task<Trabajador?> ObtenerPorIdAsync(int idAdministrador, CancellationToken cancellationToken) =>
+            Task.FromResult<Trabajador?>(Administrador?.IdAdministrador == idAdministrador ? Administrador : null);
 
-        public Task ActualizarAsync(Administrador administrador, CancellationToken cancellationToken)
+        public Task ActualizarAsync(Trabajador administrador, CancellationToken cancellationToken)
         {
             Actualizaciones++;
-            Administrador = administrador;
+            Administrador = (Administrador)administrador;
             return Task.CompletedTask;
         }
     }

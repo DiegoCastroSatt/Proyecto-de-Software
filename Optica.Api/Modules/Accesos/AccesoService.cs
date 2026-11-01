@@ -17,10 +17,10 @@ public sealed class AccesoService(OpticaDbContext db, IPasswordHasher<Trabajador
     {
         TipoUsuario = PermisosAcceso.Trabajador, IdTrabajador = t.IdTrabajador,
         Rol = t.Rol.Nombre, Permisos = LeerPermisos(t.Rol.PermisosJson),
-        IdAdministradorResponsable = t.IdAdministradorCreador,
+        IdAdministradorResponsable = t.IdAdministradorCreador ?? t.IdTrabajador,
         VersionCredencial = CrearVersionCredencial(t.Contrasena)
     };
-    private static string CrearVersionCredencial(string hash) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(hash)));
+    public static string CrearVersionCredencial(string hash) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(hash)));
     public static ClaimsPrincipal CrearPrincipal(LoginAdministradorResponse sesion)
     {
         var admin = sesion.TipoUsuario == PermisosAcceso.Administrador;
@@ -31,17 +31,17 @@ public sealed class AccesoService(OpticaDbContext db, IPasswordHasher<Trabajador
             new(ClaimTypes.Role, admin ? PermisosAcceso.Administrador : sesion.Rol),
             new(PermisosAcceso.Responsable, (admin ? sesion.IdAdministrador : sesion.IdAdministradorResponsable).ToString())
         };
-        if (!admin) claims.Add(new Claim(PermisosAcceso.VersionCredencial, sesion.VersionCredencial));
+        claims.Add(new Claim(PermisosAcceso.VersionCredencial, sesion.VersionCredencial));
         if (!admin) claims.AddRange(sesion.Permisos.Where(PermisosAcceso.Catalogo.ContainsKey)
             .Select(p => new Claim(PermisosAcceso.Permiso, p)));
         return new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
     }
     public async Task<LoginAdministradorResponse?> IniciarTrabajadorAsync(LoginAdministradorRequest request, CancellationToken ct)
     {
-        var correo = request.NombreUsuario.Trim().ToUpperInvariant();
-        // No resolver como trabajador un nombre reservado a un administrador.
-        if (await db.Administradores.AnyAsync(a => a.Nombre.ToUpper() == correo, ct)) return null;
-        var t = await db.Trabajadores.Include(t => t.Rol).SingleOrDefaultAsync(t => t.Correo == correo && t.Estado == "Activo", ct);
+        var usuario = request.NombreUsuario.Trim().ToUpperInvariant();
+        if (usuario.Contains('@')) return null;
+
+        var t = await db.Trabajadores.Include(t => t.Rol).SingleOrDefaultAsync(t => !(t is Optica.Api.Modules.AgendaReservas.Models.Administrador) && t.NombreUsuario.ToUpper() == usuario && t.Estado == "Activo", ct);
         if (t is null) return null;
         var resultado = hasher.VerifyHashedPassword(t, t.Contrasena, request.Contrasena);
         if (resultado == PasswordVerificationResult.Failed) return null;
@@ -59,14 +59,16 @@ public sealed class AccesoService(OpticaDbContext db, IPasswordHasher<Trabajador
         if (tipo == PermisosAcceso.Trabajador)
         {
             var t = await db.Trabajadores.AsNoTracking().Include(t => t.Rol)
-                .SingleOrDefaultAsync(t => t.IdTrabajador == id && t.Estado == "Activo", ct);
+                .SingleOrDefaultAsync(t => !(t is Optica.Api.Modules.AgendaReservas.Models.Administrador) && t.IdTrabajador == id && t.Estado == "Activo", ct);
             // El cambio de contraseña invalida todas las cookies emitidas con la clave anterior.
             if (t is null || principal.FindFirstValue(PermisosAcceso.VersionCredencial) != CrearVersionCredencial(t.Contrasena)) return null;
             return Respuesta(t);
         }
-        // Compatibilidad con cookies anteriores: revalidar siempre contra administradores.
+        // También se revalida la versión de contraseña de las cuentas administrativas.
         if (tipo is not null && tipo != PermisosAcceso.Administrador) return null;
-        var admin = await db.Administradores.AsNoTracking().SingleOrDefaultAsync(a => a.IdAdministrador == id && a.Estado == "Activo", ct);
-        return admin is null ? null : new LoginAdministradorResponse(admin.IdAdministrador, admin.Nombre);
+        var admin = await db.Administradores.AsNoTracking().SingleOrDefaultAsync(a => a.IdTrabajador == id && a.Estado == "Activo", ct);
+        return admin is null || principal.FindFirstValue(PermisosAcceso.VersionCredencial) != CrearVersionCredencial(admin.Contrasena)
+            ? null : new LoginAdministradorResponse(admin.IdAdministrador, admin.Nombre)
+            { VersionCredencial = CrearVersionCredencial(admin.Contrasena) };
     }
 }

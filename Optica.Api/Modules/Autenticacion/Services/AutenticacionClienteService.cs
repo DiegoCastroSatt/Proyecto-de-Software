@@ -313,7 +313,7 @@ public sealed class AutenticacionClienteService(
 
     public static string NormalizarCorreo(string correo) => correo.Trim().ToUpperInvariant();
 
-    private static bool ContrasenaValida(string contrasena) =>
+    public static bool ContrasenaValida(string contrasena) =>
         contrasena.Length is >= 8 and <= 255
         && contrasena.Any(char.IsLetter)
         && contrasena.Any(char.IsDigit)

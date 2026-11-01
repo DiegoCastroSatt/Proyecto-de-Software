@@ -16,11 +16,11 @@
 
     <main class="login-main">
         <section class="login-content" aria-labelledby="login-title">
-            <h2 id="login-title">Iniciar sesión</h2>
+            <h2 id="login-title">Acceso del personal</h2>
 
             <form (ngSubmit)="onLogin()">
                 <div class="form-field">
-                    <label for="usuario">Usuario o correo</label>
+                    <label for="usuario">Nombre de usuario</label>
                     <input
                         type="text"
                         id="usuario"
@@ -91,12 +91,12 @@
                     <div class="form-field">
                         <label for="nueva-contrasena">Nueva contraseña</label>
                         <input type="password" id="nueva-contrasena" name="nuevaContrasena"
-                            [(ngModel)]="nuevaContrasena" autocomplete="new-password" minlength="12" maxlength="255" required>
+                            [(ngModel)]="nuevaContrasena" autocomplete="new-password" minlength="8" maxlength="255" required>
                     </div>
                     <div class="form-field">
                         <label for="confirmar-contrasena">Confirmar nueva contraseña</label>
                         <input type="password" id="confirmar-contrasena" name="confirmarContrasena"
-                            [(ngModel)]="confirmarContrasena" autocomplete="new-password" minlength="12" maxlength="255" required>
+                            [(ngModel)]="confirmarContrasena" autocomplete="new-password" minlength="8" maxlength="255" required>
                     </div>
                     <p class="recovery-error" [hidden]="!errorRecuperacion()" role="alert">{{ errorRecuperacion() }}</p>
                     <div class="recovery-actions">

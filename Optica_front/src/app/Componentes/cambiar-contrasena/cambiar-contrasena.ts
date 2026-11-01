@@ -19,7 +19,7 @@ export class CambiarContrasenaComponent {
       contrasenaActual: ['', [Validators.required, Validators.maxLength(255)]],
       nuevaContrasena: [
         '',
-        [Validators.required, Validators.minLength(12), Validators.maxLength(255)],
+        [Validators.required, Validators.minLength(8), Validators.maxLength(255), Validators.pattern(/^(?=[\s\S]*\p{L})(?=[\s\S]*\p{N})(?=[\s\S]*[^\p{L}\p{N}\s])[\s\S]*$/u)],
       ],
       confirmarContrasena: ['', [Validators.required, Validators.maxLength(255)]],
     },

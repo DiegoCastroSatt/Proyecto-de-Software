@@ -12,10 +12,10 @@ describe('Inicio de sesión común', () => {
   it.each(['Administrador', 'Trabajador'] as const)('actualiza el personal %s y retira la identidad de cliente anterior', tipoUsuario => {
     const clientes = TestBed.inject(AutenticacionClienteService);
     clientes.cliente.set({ idCliente: 5, nombre: 'Anterior', correo: 'anterior@example.test' });
-    TestBed.inject(InicioSesionService).iniciarSesion('equipo@example.test', 'clave').subscribe();
+    TestBed.inject(InicioSesionService).iniciarSesion('equipo', 'clave').subscribe();
     const req = TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/Autenticacion/login');
     expect(req.request.withCredentials).toBe(true);
-    expect(req.request.body).toEqual({ correo: 'equipo@example.test', contrasena: 'clave' });
+    expect(req.request.body).toEqual({ correo: 'equipo', contrasena: 'clave' });
     const personal = { tipoUsuario, idAdministrador: tipoUsuario === 'Administrador' ? 1 : 0, idTrabajador: 2, nombre: 'Equipo' };
     req.flush({ tipoUsuario, personal, cliente: null });
     expect(TestBed.inject(AutenticacionAdminService).administrador()).toEqual(personal);

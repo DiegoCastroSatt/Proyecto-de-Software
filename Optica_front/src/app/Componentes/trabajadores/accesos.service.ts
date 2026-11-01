@@ -12,6 +12,7 @@ export interface Rol {
 export interface Trabajador {
   idTrabajador: number;
   nombre: string;
+  nombreUsuario: string;
   correo: string;
   estado: 'Activo' | 'Inactivo';
   idRol: number;
@@ -31,7 +32,7 @@ export class AccesosService {
   trabajadores() {
     return this.http.get<Trabajador[]>(`${this.url}/trabajadores`);
   }
-  crearTrabajador(datos: { nombre: string; correo: string; contrasena: string; idRol: number }) {
+  crearTrabajador(datos: { nombre: string; nombreUsuario: string; correo: string; contrasena: string; idRol: number }) {
     return this.http.post(`${this.url}/trabajadores`, datos);
   }
   guardarRol(id: number | null, datos: { nombre: string; permisos: string[] }) {

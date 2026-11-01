@@ -86,7 +86,6 @@ builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
-builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
 builder.Services.AddScoped<InicioSesionService>();
@@ -110,7 +109,7 @@ var mismoSitioCookie = builder.Environment.IsProduction()
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        options.Cookie.Name = "Optica.Admin";
+        options.Cookie.Name = "Optica.Personal";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()

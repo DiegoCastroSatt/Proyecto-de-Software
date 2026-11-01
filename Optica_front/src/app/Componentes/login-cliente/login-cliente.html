@@ -75,6 +75,7 @@
           <p id="recuperar-descripcion" class="registro-descripcion">
             Ingresa tu correo registrado. Te enviaremos un enlace de duración limitada (15 minutos) para definir una nueva contraseña.
           </p>
+          <p>¿Eres trabajador o administrador? <a routerLink="/admin" [queryParams]="{ recuperar: '1' }" (click)="cerrarRecuperar()">Recupera tu contraseña con tu nombre de usuario</a>.</p>
           <form class="registro-formulario" (ngSubmit)="enviarRecuperacion()" novalidate>
             <div class="form-field">
               <label for="recuperar-correo">Correo electrónico</label>

@@ -38,7 +38,7 @@ describe('LoginCliente', () => {
   it.each(['Administrador', 'Trabajador', 'Cliente'])('redirige según el tipo %s validado por el servidor', (tipoUsuario) => {
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     servicio.iniciarSesion.mockReturnValueOnce(of({ tipoUsuario }));
-    component.correo = tipoUsuario === 'Administrador' ? 'admin' : 'cuenta@example.test';
+    component.correo = tipoUsuario === 'Administrador' ? 'admin' : tipoUsuario === 'Trabajador' ? 'equipo' : 'cuenta@example.test';
     component.contrasena = 'ClaveDePrueba123!';
     component.iniciarSesion();
     expect(navegar).toHaveBeenCalledWith(tipoUsuario === 'Cliente' ? '/cliente/inicio' : '/admin/panel');

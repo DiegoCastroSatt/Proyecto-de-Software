@@ -1,3 +1,4 @@
+import { LoginAdmin } from './Componentes/login-admin/login-admin';
 import { CrearMarcoComponent } from './Componentes/crear-marco/crear-marco';
 import { GestionRostrosComponent } from './Componentes/gestion-rostros/gestion-rostros';
 import { GestionMarcosComponent } from './Componentes/gestion-marcos/gestion-marcos';
@@ -63,7 +64,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     children: [
-      { path: '', component: LoginCliente },
+      { path: '', component: LoginAdmin },
       {
         path: 'panel',
         component: AdminLayoutComponent,
