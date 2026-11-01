@@ -8,6 +8,7 @@ using Optica.Api.Modules.Productos.Models;
 using Optica.Api.Modules.RegistroRecetas.Models;
 using Optica.Api.Modules.Ventas.Models;
 using Optica.Api.Modules.Pedidos.Models;
+using Optica.Api.Modules.Resenas.Models;
 
 namespace Optica.Api.Data;
 
@@ -56,6 +57,8 @@ public class OpticaDbContext : DbContext
 
 
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
+
+    public DbSet<Resena> Resenas => Set<Resena>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -390,6 +393,22 @@ public class OpticaDbContext : DbContext
             entity.Property(i => i.FechaUtc).HasColumnName("fecha_utc");
             entity.Property(i => i.Exitoso).HasColumnName("exitoso");
             entity.Property(i => i.Error).HasColumnName("error").HasColumnType("text");
+        });
+
+        modelBuilder.Entity<Resena>(entity =>
+        {
+            entity.ToTable("resenas_productos");
+            entity.HasKey(r => r.IdResena);
+            entity.Property(r => r.IdResena).HasColumnName("id_resena");
+            entity.Property(r => r.IdCliente).HasColumnName("id_cliente");
+            entity.Property(r => r.IdProducto).HasColumnName("id_producto");
+            entity.Property(r => r.Calificacion).HasColumnName("calificacion");
+            entity.Property(r => r.Comentario).HasColumnName("comentario").HasMaxLength(1000).IsRequired();
+            entity.Property(r => r.FechaCreacionUtc).HasColumnName("fecha_creacion_utc");
+            entity.Property(r => r.FechaActualizacionUtc).HasColumnName("fecha_actualizacion_utc");
+            entity.HasIndex(r => new { r.IdCliente, r.IdProducto }).IsUnique();
+            entity.HasOne(r => r.Cliente).WithMany().HasForeignKey(r => r.IdCliente).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(r => r.Producto).WithMany().HasForeignKey(r => r.IdProducto).OnDelete(DeleteBehavior.Restrict);
         });
 
     }
