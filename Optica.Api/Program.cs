@@ -98,12 +98,16 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
+var mismoSitioCookie = builder.Environment.IsProduction()
+    ? SameSiteMode.None
+    : SameSiteMode.Strict;
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.Cookie.Name = "Optica.Admin";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()
             ? CookieSecurePolicy.Always
             : CookieSecurePolicy.SameAsRequest;
@@ -126,7 +130,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "Optica.Cliente";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()
             ? CookieSecurePolicy.Always
             : CookieSecurePolicy.SameAsRequest;
