@@ -118,6 +118,8 @@ describe('ProbadorMarcosComponent', () => {
     const puntos: PuntoFacial[] = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5 }));
     puntos[468] = { x: 0.35, y: 0.4 };
     puntos[473] = { x: 0.65, y: 0.4 };
+    puntos[234] = { x: 0.2, y: 0.5 };
+    puntos[454] = { x: 0.8, y: 0.5 };
     detectar.mockResolvedValue(puntos);
     const createObjectURL = vi.fn().mockReturnValue('blob:prueba');
     const revokeObjectURL = vi.fn();
@@ -140,7 +142,15 @@ describe('ProbadorMarcosComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.ajuste()?.x).toBeCloseTo(50);
     expect(fixture.componentInstance.ajuste()?.y).toBeCloseTo(40);
-    expect(fixture.nativeElement.querySelector('.marco')).toBeTruthy();
+    expect(fixture.componentInstance.ajuste()?.ancho).toBeCloseTo(60);
+    const marco = fixture.nativeElement.querySelector('.marco') as HTMLImageElement;
+    expect(parseFloat(marco.style.width)).toBeCloseTo(60);
+    const control = fixture.nativeElement.querySelector('#tamano') as HTMLInputElement;
+    control.value = '115';
+    control.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(parseFloat(marco.style.width)).toBeCloseTo(69);
+
     fixture.componentInstance.limpiar();
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:prueba');
     expect(fixture.componentInstance.ajuste()).toBeNull();
