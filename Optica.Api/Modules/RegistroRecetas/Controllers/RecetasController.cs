@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Autenticacion.Controllers;
@@ -14,7 +15,7 @@ public class RecetasController : ControllerBase
         _recetaService = recetaService;
     }
 
-    [Authorize(Policy = "recetas")]
+    [Authorize(Policy = PermisosAcceso.ConsultarSugerenciasClientes)]
     [HttpGet("clientes/sugerencias")]
     public async Task<IActionResult> BuscarSugerenciasRut([FromQuery] string termino)
     {

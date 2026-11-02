@@ -18,6 +18,7 @@ using Optica.Api.Modules.Accesos;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Services;
+using Optica.Api.Modules.Clientes.Models;
 using Xunit;
 
 namespace Optica.Tests;
@@ -35,7 +36,7 @@ public sealed class TestAccesos
         foreach (var permiso in PermisosAcceso.Catalogo.Keys)
         {
             Assert.True(PermisosAcceso.Tiene(Principal("Administrador"), permiso));
-            Assert.False(PermisosAcceso.Tiene(Principal("Cliente", permiso), permiso));
+            Assert.False(PermisosAcceso.Tiene(Principal("cliente", permiso), permiso));
             Assert.False(PermisosAcceso.Tiene(new ClaimsPrincipal(new ClaimsIdentity()), permiso));
         }
     }
@@ -64,7 +65,7 @@ public sealed class TestAccesos
         Assert.Null(await servicio.ObtenerSesionAsync(principal, default));
         var admin = await db.Administradores.SingleAsync();
         Assert.NotNull(await servicio.ObtenerSesionAsync(AccesoService.CrearPrincipal(new LoginAdministradorResponse(1, admin.Nombre) { VersionCredencial = AccesoService.CrearVersionCredencial(admin.Contrasena) }), default));
-        Assert.Null(await servicio.ObtenerSesionAsync(Principal("Cliente"), default));
+        Assert.Null(await servicio.ObtenerSesionAsync(Principal("cliente"), default));
     }
 
     [Fact]
@@ -75,7 +76,8 @@ public sealed class TestAccesos
         var trabajador = new Trabajador { IdTrabajador = 1, Nombre = "Equipo", NombreUsuario = "equipo", Correo = "EQUIPO@EXAMPLE.COM", Rol = new RolTrabajador { Nombre = "Agenda", PermisosJson = "[\"agenda\",\"SoloAdministrador\"]" } };
         var clave = (Guid.NewGuid().ToString("N") + "A1!");
         trabajador.Contrasena = hasher.HashPassword(trabajador, clave);
-        db.Trabajadores.Add(trabajador); await db.SaveChangesAsync();
+        db.Trabajadores.Add(trabajador);
+        await db.SaveChangesAsync();
         var servicio = new AccesoService(db, hasher);
         Assert.Null(await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "equipo", Contrasena = "incorrecta" }, default));
         var sesion = await servicio.IniciarTrabajadorAsync(new() { NombreUsuario = "equipo", Contrasena = clave }, default);
@@ -96,28 +98,152 @@ public sealed class TestAccesos
             s.AddScoped<IPasswordHasher<Trabajador>, PasswordHasher<Trabajador>>();
             s.AddSingleton<EstadoRecuperacion>();
             s.AddLogging();
+            s.AddScoped<IRecetaRepository, RecetaRepository>();
+            s.AddScoped<IRecetaService, RecetaService>();
             s.AddScoped<ICatalogoRepository, CatalogoRepository>();
             s.AddScoped<ICatalogoService, CatalogoService>();
             s.AddScoped<IProductoRepository, ProductoRepository>();
             s.AddScoped<IProductoService, ProductoService>();
             s.AddControllers().AddApplicationPart(typeof(AccesosController).Assembly);
             s.AddDataProtection().UseEphemeralDataProtectionProvider();
-            s.AddAuthentication("Pruebas").AddCookie().AddScheme<AuthenticationSchemeOptions, AutenticacionPrueba>("Pruebas", _ => { });
+            // Las cabeceras representan identidades de prueba; los permisos se evalúan en el middleware real.
+            s.AddAuthentication("Pruebas")
+                .AddCookie()
+                .AddScheme<AuthenticationSchemeOptions, AutenticacionPrueba>("Pruebas", _ => { });
             s.AddAuthorization(PermisosAcceso.Configurar);
         }).Configure(app =>
         {
-            app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(e => e.MapControllers());
         })).StartAsync();
     }
 
     [Theory]
+    [InlineData("Trabajador", "ventas")]
+    [InlineData("Trabajador", "clientes")]
+    [InlineData("Trabajador", "recetas")]
+    [InlineData("Trabajador", "pedidos")]
+    [InlineData("Administrador", "")]
+    public async Task Autocompletado_DevuelveClienteConPermisoDelModulo(string tipo, string permiso)
+    {
+        using var servidor = await CrearServidor();
+        await RegistrarClienteDePrueba(servidor);
+        using var cliente = CrearClienteHttp(servidor, tipo, permiso);
+
+        using var respuesta = await cliente.GetAsync("/api/Recetas/clientes/sugerencias?termino=1234");
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Null(respuesta.Headers.Location);
+        var sugerencias = await respuesta.Content.ReadFromJsonAsync<List<ClienteSugerenciaDto>>();
+        Assert.NotNull(sugerencias);
+        var sugerencia = Assert.Single(sugerencias);
+        Assert.Equal("12.345.678-5", sugerencia.Rut);
+        Assert.Equal("Ana", sugerencia.Nombre);
+        Assert.Equal("Pérez", sugerencia.Apellido);
+    }
+
+    [Theory]
+    [InlineData("1234")]
+    [InlineData("12.345.678-5")]
+    [InlineData("123456785")]
+    public async Task Ventas_ConsultaRutParcialOCompletoSinRedireccion(string termino)
+    {
+        using var servidor = await CrearServidor();
+        await RegistrarClienteDePrueba(servidor);
+        using var cliente = CrearClienteHttp(servidor, "Trabajador", "ventas");
+
+        using var respuesta = await cliente.GetAsync(
+            "/api/Recetas/clientes/sugerencias?termino=" + Uri.EscapeDataString(termino));
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Null(respuesta.Headers.Location);
+        var sugerencias = await respuesta.Content.ReadFromJsonAsync<List<ClienteSugerenciaDto>>();
+        Assert.NotNull(sugerencias);
+        Assert.Equal("12.345.678-5", Assert.Single(sugerencias).Rut);
+    }
+
+    [Fact]
+    public async Task Ventas_DevuelveListaVaciaCuandoNoHayCoincidencias()
+    {
+        using var servidor = await CrearServidor();
+        await RegistrarClienteDePrueba(servidor);
+        using var cliente = CrearClienteHttp(servidor, "Trabajador", "ventas");
+
+        using var respuesta = await cliente.GetAsync("/api/Recetas/clientes/sugerencias?termino=99999999");
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        var sugerencias = await respuesta.Content.ReadFromJsonAsync<List<ClienteSugerenciaDto>>();
+        Assert.NotNull(sugerencias);
+        Assert.Empty(sugerencias);
+    }
+
+    [Theory]
+    [InlineData("/api/Recetas/historial?rut=12345678-5")]
+    [InlineData("/api/Recetas/1")]
+    public async Task Ventas_NoPuedeConsultarRecetasAunquePuedeBuscarClientes(string ruta)
+    {
+        using var servidor = await CrearServidor();
+        using var cliente = CrearClienteHttp(servidor, "Trabajador", "ventas");
+
+        using var respuesta = await cliente.GetAsync(ruta);
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("", "", HttpStatusCode.Unauthorized)]
+    [InlineData("cliente", "", HttpStatusCode.Forbidden)]
+    [InlineData("cliente", "ventas", HttpStatusCode.Forbidden)]
+    [InlineData("Trabajador", "inventario", HttpStatusCode.Forbidden)]
+    [InlineData("Trabajador", "agenda", HttpStatusCode.Forbidden)]
+    [InlineData("Trabajador", "resumen", HttpStatusCode.Forbidden)]
+    [InlineData("Trabajador", "horarios", HttpStatusCode.Forbidden)]
+    [InlineData("Trabajador", "", HttpStatusCode.Forbidden)]
+    public async Task Autocompletado_RechazaSesionesSinPermiso(string tipo, string permiso, HttpStatusCode esperado)
+    {
+        using var servidor = await CrearServidor();
+        using var cliente = CrearClienteHttp(servidor, tipo, permiso);
+
+        using var respuesta = await cliente.GetAsync("/api/Recetas/clientes/sugerencias?termino=1234");
+
+        Assert.Equal(esperado, respuesta.StatusCode);
+        Assert.Null(respuesta.Headers.Location);
+    }
+
+    private static HttpClient CrearClienteHttp(IHost servidor, string tipo, params string[] permisos)
+    {
+        var cliente = servidor.GetTestClient();
+        if (!string.IsNullOrEmpty(tipo))
+            cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", tipo);
+        if (permisos.Any(p => !string.IsNullOrEmpty(p)))
+            cliente.DefaultRequestHeaders.Add("X-Prueba-Permisos", string.Join(",", permisos));
+        return cliente;
+    }
+
+    private static async Task RegistrarClienteDePrueba(IHost servidor)
+    {
+        using var scope = servidor.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<OpticaDbContext>();
+        db.Clientes.Add(new Cliente
+        {
+            Rut = "12.345.678-5",
+            Nombre = "Ana",
+            Apellido = "Pérez",
+            Estado = "Activo"
+        });
+        await db.SaveChangesAsync();
+    }
+
+    [Theory]
     [InlineData("", 401)]
     [InlineData("Trabajador", 403)]
-    [InlineData("Cliente", 403)]
+    [InlineData("cliente", 403)]
     public async Task ApiBloqueaGestionDeTrabajadoresYRoles(string tipo, int esperado)
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         if (tipo.Length > 0) cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", tipo);
         Assert.Equal(esperado, (int)(await cliente.GetAsync("/api/Accesos/trabajadores")).StatusCode);
         Assert.Equal(esperado, (int)(await cliente.PostAsJsonAsync("/api/Accesos/roles", new { nombre = "Intento", permisos = new[] { "ventas" } })).StatusCode);
@@ -136,7 +262,8 @@ public sealed class TestAccesos
     [InlineData("/api/Catalogos")]
     public async Task ApiBloqueaModulosSinPermiso(string ruta)
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", "Trabajador");
         Assert.Equal(HttpStatusCode.Forbidden, (await cliente.GetAsync(ruta)).StatusCode);
     }
@@ -144,7 +271,8 @@ public sealed class TestAccesos
     [Fact]
     public async Task TrabajadorSoloPuedeOperarSuModuloYCatalogoSiguePublico()
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         Assert.Equal(HttpStatusCode.OK, (await cliente.GetAsync("/api/Productos")).StatusCode);
         cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", "Trabajador");
         cliente.DefaultRequestHeaders.Add("X-Prueba-Permisos", "inventario");
@@ -163,7 +291,8 @@ public sealed class TestAccesos
     [InlineData("DELETE", "/api/Productos/1")]
     public async Task ApiRechazaCambiosDirectosSinPermiso(string metodo, string ruta)
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", "Trabajador");
         using var peticion = new HttpRequestMessage(new HttpMethod(metodo), ruta) { Content = JsonContent.Create(new { }) };
         Assert.Equal(HttpStatusCode.Forbidden, (await cliente.SendAsync(peticion)).StatusCode);
@@ -171,11 +300,12 @@ public sealed class TestAccesos
 
     [Theory]
     [InlineData("", 401)]
-    [InlineData("Cliente", 403)]
+    [InlineData("cliente", 403)]
     [InlineData("Administrador", 403)]
     public async Task CambioDeClaveSoloDisponibleParaTrabajadorAutenticado(string tipo, int esperado)
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         if (tipo.Length > 0) cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", tipo);
         Assert.Equal(esperado, (int)(await cliente.PostAsJsonAsync("/api/CuentaTrabajador/contrasena", new { contrasenaActual = "anterior", nuevaContrasena = "nueva-de-prueba-123", confirmarContrasena = "nueva-de-prueba-123" })).StatusCode);
     }
@@ -183,9 +313,11 @@ public sealed class TestAccesos
     [Fact]
     public async Task CambioClaveValidaActualConfirmacionYNoPermiteCambiarOtraCuenta()
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", "Trabajador");
-        var anterior = (Guid.NewGuid().ToString("N") + "A1!"); var nueva = (Guid.NewGuid().ToString("N") + "A1!");
+        var anterior = Guid.NewGuid().ToString("N") + "A1!";
+        var nueva = Guid.NewGuid().ToString("N") + "A1!";
         var hasher = new PasswordHasher<Trabajador>();
         ClaimsPrincipal cookieAnterior;
         string hashAnterior;
@@ -194,10 +326,12 @@ public sealed class TestAccesos
             var db = scope.ServiceProvider.GetRequiredService<OpticaDbContext>();
             var rol = new RolTrabajador { IdRol = 1, Nombre = "Sin permisos", PermisosJson = "[]" };
             var cuenta = new Trabajador { IdTrabajador = 1, Nombre = "Cuenta propia", NombreUsuario = "propia", Correo = "PROPIA@EXAMPLE.COM", IdRol = 1, Rol = rol };
-            cuenta.Contrasena = hasher.HashPassword(cuenta, anterior); hashAnterior = cuenta.Contrasena;
+            cuenta.Contrasena = hasher.HashPassword(cuenta, anterior);
+            hashAnterior = cuenta.Contrasena;
             db.Trabajadores.Add(cuenta);
             db.Trabajadores.Add(new Trabajador { IdTrabajador = 2, Nombre = "Otra cuenta", NombreUsuario = "otra", Correo = "OTRA@EXAMPLE.COM", IdRol = 1, Rol = rol, Contrasena = hashAnterior });
-            await db.SaveChangesAsync(); cookieAnterior = AccesoService.CrearPrincipal(AccesoService.Respuesta(cuenta));
+            await db.SaveChangesAsync();
+            cookieAnterior = AccesoService.CrearPrincipal(AccesoService.Respuesta(cuenta));
         }
         var ruta = "/api/CuentaTrabajador/contrasena";
         Assert.Equal(HttpStatusCode.BadRequest, (await cliente.PostAsJsonAsync(ruta, new { contrasenaActual = "incorrecta", nuevaContrasena = nueva, confirmarContrasena = nueva })).StatusCode);
@@ -222,7 +356,8 @@ public sealed class TestAccesos
     [Fact]
     public async Task AdministradorCreaRolYTrabajadorConHashSinExponerContrasena()
     {
-        using var servidor = await CrearServidor(); using var cliente = servidor.GetTestClient();
+        using var servidor = await CrearServidor();
+        using var cliente = servidor.GetTestClient();
         cliente.DefaultRequestHeaders.Add("X-Prueba-Tipo", "Administrador");
         var rol = await cliente.PostAsJsonAsync("/api/Accesos/roles", new { nombre = "Ventas", permisos = new[] { "ventas" } });
         Assert.Equal(HttpStatusCode.OK, rol.StatusCode);

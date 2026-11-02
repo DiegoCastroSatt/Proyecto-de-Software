@@ -9,6 +9,7 @@ public static class PermisosAcceso
     public const string Administrador = "Administrador";
     public const string Trabajador = "Trabajador";
     public const string Personal = "Personal";
+    public const string ConsultarSugerenciasClientes = "ConsultarSugerenciasClientes";
     public const string SoloAdministrador = "SoloAdministrador";
     public const string SoloTrabajador = "CuentaTrabajador";
     public const string VersionCredencial = "version_credencial";
@@ -35,6 +36,10 @@ public static class PermisosAcceso
         options.AddPolicy(Personal, p => p.RequireAuthenticatedUser().RequireClaim(Tipo, Administrador, Trabajador));
         foreach (var permiso in Catalogo.Keys)
             options.AddPolicy(permiso, p => p.RequireAuthenticatedUser().RequireAssertion(c => Tiene(c.User, permiso)));
+        // El autocompletado se comparte entre los formularios de estos módulos.
+        options.AddPolicy(ConsultarSugerenciasClientes, p => p.RequireAuthenticatedUser()
+            .RequireAssertion(c => new[] { "clientes", "ventas", "recetas", "pedidos" }
+                .Any(permiso => Tiene(c.User, permiso))));
         // Reservar al administrador los endpoints internos nuevos sin política explícita.
         options.DefaultPolicy = options.GetPolicy(SoloAdministrador)!;
         options.FallbackPolicy = options.DefaultPolicy;
