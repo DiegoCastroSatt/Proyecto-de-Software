@@ -2,21 +2,24 @@ import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject, sign
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AutenticacionClienteService, RegistroCliente } from './autenticacion-cliente.service';
-import { validarRutChileno } from '../../shared/validators/rut-chileno.validator';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AutenticacionService } from '../../../shared/services/autenticacion.service';
+import { AutenticacionClienteService, RegistroCliente } from '../../../shared/services/autenticacion-cliente.service';
+import { validarRutChileno } from '../../../shared/validators/rut-chileno.validator';
 
 type CampoRegistro = keyof RegistroCliente;
 
 @Component({
-  selector: 'app-login-cliente',
+  selector: 'app-login',
   imports: [FormsModule],
-  templateUrl: './login-cliente.html',
-  styleUrl: './login-cliente.css',
+  templateUrl: './login.html',
+  styleUrl: './login.css',
 })
-export class LoginCliente implements OnDestroy {
+export class LoginComponent implements OnDestroy {
   private readonly autenticacion = inject(AutenticacionClienteService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly inicioSesion = inject(AutenticacionService);
   @ViewChild('registroDialog') private registroDialog?: ElementRef<HTMLElement>;
   @ViewChild('registroTrigger') private registroTrigger?: ElementRef<HTMLButtonElement>;
   @ViewChild('recuperarDialog') private recuperarDialog?: ElementRef<HTMLElement>;
@@ -24,6 +27,7 @@ export class LoginCliente implements OnDestroy {
 
   correo = '';
   contrasena = '';
+  mostrarContrasenaLogin = signal(false);
   errorLogin = signal('');
   mensajeLogin = signal('');
   cargandoLogin = signal(false);
@@ -42,34 +46,44 @@ export class LoginCliente implements OnDestroy {
   registro: RegistroCliente = {
     nombre: '', apellido: '', rut: '', correo: '', telefono: '', contrasena: '', confirmarContrasena: ''
   };
+  mostrarContrasenaRegistro = signal(false);
+  mostrarConfirmacionRegistro = signal(false);
 
   // --- Estado para recuperación de contraseña ---
   modalRecuperarAbierto = signal(false);
   recuperacionEnviada = signal(false);
   correoRecuperacion = '';
+  codigoRecuperacion = '';
+  nuevaContrasenaRecuperacion = '';
+  confirmarContrasenaRecuperacion = '';
+  mostrarNuevaContrasenaRecuperacion = signal(false);
+  mostrarConfirmacionRecuperacion = signal(false);
+  recuperacionCompletada = signal(false);
   errorRecuperar = signal('');
   cargandoRecuperar = signal(false);
 
   iniciarSesion(): void {
+    if (this.cargandoLogin()) return;
     this.errorLogin.set('');
     this.mensajeLogin.set('');
     this.sesionIniciada.set(false);
     if (!this.correo.trim() || !this.contrasena) {
-      this.errorLogin.set('Ingresa tu correo electrónico y contraseña.');
-      return;
-    }
-    if (!this.correoValido(this.correo)) {
-      this.errorLogin.set('Ingresa un correo electrónico válido.');
+      this.errorLogin.set('Ingresa tu correo o usuario y contraseña.');
       return;
     }
 
     this.cargandoLogin.set(true);
-    this.autenticacion.iniciarSesion(this.correo.trim(), this.contrasena).subscribe({
-      next: () => {
+    this.inicioSesion.iniciarSesion(this.correo.trim(), this.contrasena).subscribe({
+      next: (resultado) => {
         this.cargandoLogin.set(false);
         this.sesionIniciada.set(true);
         this.contrasena = '';
-        void this.router.navigateByUrl('/cliente/inicio');
+        const retorno = this.route.snapshot.queryParamMap.get('returnUrl');
+        const destino = resultado.tipoUsuario === 'Cliente'
+          ? '/cliente/inicio'
+          : retorno && (retorno === '/admin/panel' || retorno.startsWith('/admin/panel/'))
+            ? retorno : '/admin/panel';
+        void this.router.navigateByUrl(destino);
       },
       error: (error: HttpErrorResponse) => {
         this.cargandoLogin.set(false);
@@ -109,6 +123,8 @@ export class LoginCliente implements OnDestroy {
     this.confirmacionReenviada.set(false);
     this.errorRegistro.set('');
     this.camposTocados.set(false);
+    this.mostrarContrasenaRegistro.set(false);
+    this.mostrarConfirmacionRegistro.set(false);
     this.registro = { nombre: '', apellido: '', rut: '', correo: '', telefono: '', contrasena: '', confirmarContrasena: '' };
     this.overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -130,8 +146,14 @@ export class LoginCliente implements OnDestroy {
   abrirRecuperar(): void {
     this.modalRecuperarAbierto.set(true);
     this.recuperacionEnviada.set(false);
+    this.recuperacionCompletada.set(false);
+    this.codigoRecuperacion = '';
+    this.nuevaContrasenaRecuperacion = '';
+    this.confirmarContrasenaRecuperacion = '';
     this.errorRecuperar.set('');
     this.correoRecuperacion = this.correo.trim();
+    this.mostrarNuevaContrasenaRecuperacion.set(false);
+    this.mostrarConfirmacionRecuperacion.set(false);
     this.overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     setTimeout(() => this.recuperarDialog?.nativeElement.querySelector<HTMLInputElement>('#recuperar-correo')?.focus());
@@ -148,18 +170,14 @@ export class LoginCliente implements OnDestroy {
     if (this.cargandoRecuperar()) return;
     this.errorRecuperar.set('');
 
-    const correo = this.correoRecuperacion.trim();
-    if (!correo) {
-      this.errorRecuperar.set('Ingresa tu correo electrónico.');
-      return;
-    }
-    if (!this.correoValido(correo)) {
-      this.errorRecuperar.set('Ingresa un correo electrónico válido.');
+    const identificador = this.correoRecuperacion.trim();
+    if (!identificador) {
+      this.errorRecuperar.set('Ingresa tu RUT o nombre de usuario.');
       return;
     }
 
     this.cargandoRecuperar.set(true);
-    this.autenticacion.solicitarRecuperacion(correo).subscribe({
+    this.inicioSesion.solicitarRecuperacion(identificador).subscribe({
       next: () => {
         this.cargandoRecuperar.set(false);
         this.recuperacionEnviada.set(true);
@@ -171,6 +189,37 @@ export class LoginCliente implements OnDestroy {
         } else {
           this.errorRecuperar.set('No se pudo enviar la solicitud. Inténtalo nuevamente más tarde.');
         }
+      }
+    });
+  }
+
+  confirmarCodigoRecuperacion(): void {
+    if (this.cargandoRecuperar()) return;
+    if (!/^[0-9]{6}$/.test(this.codigoRecuperacion)) {
+      this.errorRecuperar.set('Ingresa el código de 6 dígitos.');
+      return;
+    }
+    if (!this.contrasenaValida(this.nuevaContrasenaRecuperacion)) {
+      this.errorRecuperar.set('La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo.');
+      return;
+    }
+    if (this.nuevaContrasenaRecuperacion !== this.confirmarContrasenaRecuperacion) {
+      this.errorRecuperar.set('Las contraseñas no coinciden.');
+      return;
+    }
+    this.cargandoRecuperar.set(true);
+    this.errorRecuperar.set('');
+    this.inicioSesion.confirmarRecuperacion({
+      identificador: this.correoRecuperacion.trim(),
+      codigo: this.codigoRecuperacion,
+      nuevaContrasena: this.nuevaContrasenaRecuperacion,
+      confirmarContrasena: this.confirmarContrasenaRecuperacion,
+    }).subscribe({
+      next: () => { this.cargandoRecuperar.set(false); this.recuperacionCompletada.set(true); },
+      error: (error: HttpErrorResponse) => {
+        this.cargandoRecuperar.set(false);
+        this.errorRecuperar.set(typeof error.error?.mensaje === 'string'
+          ? error.error.mensaje : 'No se pudo cambiar la contraseña. Verifica el código e inténtalo nuevamente.');
       }
     });
   }

@@ -16,7 +16,6 @@ namespace Optica.Api.Modules.Autenticacion.Services;
 public sealed class AutenticacionClienteService(
     OpticaDbContext db,
     IPasswordHasher<CuentaCliente> passwordHasher,
-    EstadoRecuperacionCliente estadoRecuperacion,
     IEmailService emailService,
     TimeProvider proveedorTiempo,
     ILogger<AutenticacionClienteService> logger,
@@ -28,10 +27,24 @@ public sealed class AutenticacionClienteService(
     public async Task<(ClienteSesionResponse? Sesion, bool CredencialesValidas)> IniciarSesionAsync(
         LoginClienteRequest request, CancellationToken cancellationToken)
     {
-        var correo = NormalizarCorreo(request.Correo);
-        var cuenta = await db.CuentasCliente
-            .Include(c => c.Cliente)
-            .SingleOrDefaultAsync(c => c.CorreoNormalizado == correo, cancellationToken);
+        var identificador = request.Correo.Trim();
+        CuentaCliente? cuenta;
+        if (RutChilenoValidator.EsValido(identificador))
+        {
+            var rut = RutChilenoValidator.Normalizar(identificador);
+            cuenta = await db.CuentasCliente.Include(c => c.Cliente).SingleOrDefaultAsync(c =>
+                c.Cliente != null && c.Cliente.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut,
+                cancellationToken);
+        }
+        else if (MailAddress.TryCreate(identificador, out _))
+        {
+            cuenta = await db.CuentasCliente.Include(c => c.Cliente)
+                .SingleOrDefaultAsync(c => c.CorreoNormalizado == NormalizarCorreo(identificador), cancellationToken);
+        }
+        else
+        {
+            return (null, false);
+        }
 
         if (cuenta is null || cuenta.Estado != "Activa" || cuenta.Cliente?.Estado != "Activo")
             return (null, false);
@@ -208,112 +221,15 @@ public sealed class AutenticacionClienteService(
     private static string HashToken(string token) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token.Trim()))).ToLowerInvariant();
 
-    public async Task<bool> SolicitarRecuperacionAsync(
-        string correoIngresado,
-        string? ipCliente,
-        CancellationToken cancellationToken)
-    {
-        var correo = NormalizarCorreo(correoIngresado);
-        var ahora = proveedorTiempo.GetUtcNow();
-
-        if (!estadoRecuperacion.IntentarIniciarSolicitud(correo, ipCliente, ahora))
-            return false;
-
-        var cuenta = await db.CuentasCliente
-            .Include(c => c.Cliente)
-            .SingleOrDefaultAsync(c => c.CorreoNormalizado == correo, cancellationToken);
-
-        // Si la cuenta no existe o está inactiva, retornamos true para evitar enumeración de usuarios
-        if (cuenta is null || cuenta.Estado != "Activa" || cuenta.Cliente?.Estado != "Activo")
-            return true;
-
-        var token = estadoRecuperacion.GenerarToken();
-        var baseFrontend = (configuracion["Correo:UrlBaseFrontend"] ?? "http://localhost:4200").TrimEnd('/');
-        var enlace = $"{baseFrontend}/cliente/restablecer-contrasena?token={Uri.EscapeDataString(token)}";
-
-        var asunto = $"Recuperación de contraseña - {NombreCentro}";
-        var enlaceHtml = HtmlEncoder.Default.Encode(enlace);
-        var nombreDestinatario = HtmlEncoder.Default.Encode(cuenta.Cliente.Nombre);
-
-        var cuerpoHtml = $"""
-            <!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;font-family:Arial,sans-serif;color:#18333c">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px"><tr><td align="center">
-            <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border-radius:14px;padding:32px">
-            <tr><td><p style="margin:0 0 8px;color:#176b6c;font-weight:bold">{NombreCentro}</p>
-            <h1 style="font-size:24px">Recuperación de contraseña</h1>
-            <p>Hola {nombreDestinatario}, recibimos una solicitud para restablecer la contraseña de tu cuenta de cliente.</p>
-            <p style="margin:24px 0">
-                <a href="{enlaceHtml}" style="background:#176b6c;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block">
-                    Restablecer contraseña
-                </a>
-            </p>
-            <p>Este enlace vence en 15 minutos y solo puede utilizarse una vez.</p>
-            <p>Si tú no solicitaste este cambio, puedes ignorar este mensaje; tu contraseña seguirá siendo la misma.</p>
-            <p style="color:#63777c">{NombreCentro}</p></td></tr></table></td></tr></table></body></html>
-            """;
-
-        var resultado = await emailService.EnviarConResultadoAsync(
-            cuenta.Correo, asunto, cuerpoHtml, cancellationToken, importante: true);
-
-        if (!resultado.Exitoso)
-        {
-            logger.LogWarning("No se pudo enviar el correo de recuperación al cliente {ClienteId}.", cuenta.IdCliente);
-            return true;
-        }
-
-        estadoRecuperacion.GuardarSolicitud(token, cuenta.IdCliente, cuenta.Correo, ahora);
-        return true;
-    }
-
-    public async Task<bool> ConfirmarRecuperacionAsync(
-        string token,
-        string nuevaContrasena,
-        string confirmarContrasena,
-        CancellationToken cancellationToken)
-    {
-        if (!string.Equals(nuevaContrasena, confirmarContrasena, StringComparison.Ordinal))
-            throw new ArgumentException("Las contraseñas ingresadas no coinciden.");
-
-        if (!ContrasenaValida(nuevaContrasena))
-            throw new ArgumentException("La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo.");
-
-        var validacion = estadoRecuperacion.ValidarToken(token, proveedorTiempo.GetUtcNow());
-        if (!validacion.Valido)
-            return false;
-
-        try
-        {
-            var cuenta = await db.CuentasCliente
-                .Include(c => c.Cliente)
-                .SingleOrDefaultAsync(c => c.IdCliente == validacion.IdCliente, cancellationToken);
-
-            if (cuenta is null || cuenta.Estado != "Activa" || cuenta.Cliente?.Estado != "Activo")
-            {
-                estadoRecuperacion.FinalizarCambio(token, exitoso: true);
-                return false;
-            }
-
-            cuenta.ContrasenaHash = passwordHasher.HashPassword(cuenta, nuevaContrasena);
-            await db.SaveChangesAsync(cancellationToken);
-
-            estadoRecuperacion.FinalizarCambio(token, exitoso: true);
-            return true;
-        }
-        catch
-        {
-            estadoRecuperacion.FinalizarCambio(token, exitoso: false);
-            throw;
-        }
-    }
-
     public static ClienteSesionResponse CrearSesion(CuentaCliente cuenta) => new(
         cuenta.IdCliente,
         $"{cuenta.Cliente?.Nombre} {cuenta.Cliente?.Apellido}".Trim(),
-        cuenta.Correo);
+        cuenta.Correo)
+    { VersionCredencial = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(cuenta.ContrasenaHash))) };
 
     public static string NormalizarCorreo(string correo) => correo.Trim().ToUpperInvariant();
 
-    private static bool ContrasenaValida(string contrasena) =>
+    public static bool ContrasenaValida(string contrasena) =>
         contrasena.Length is >= 8 and <= 255
         && contrasena.Any(char.IsLetter)
         && contrasena.Any(char.IsDigit)

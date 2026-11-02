@@ -6,6 +6,7 @@ using Optica.Api.Modules.Marcos;
 
 namespace Optica.Api.Modules.Rostros;
 
+[Authorize(Policy = "inventario")]
 [ApiController]
 [Route("api/Rostros")]
 public sealed class RostrosController(OpticaDbContext db) : ControllerBase

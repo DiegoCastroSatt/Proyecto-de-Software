@@ -222,9 +222,8 @@ INSERT INTO detalle_venta
 
 
 
-INSERT INTO administradores
-(nombre, correo, contrasena, estado) VALUES
-('ale', 'admin@optica.cl', '1234', 'Activo');
+INSERT INTO trabajador_optica (nombre, correo, contrasena, estado, nombre_usuario, tipo_usuario) VALUES
+('ale', 'correo@gmail.com', '1234', 'Activo', 'ale', 'Administrador');
 
 -- TIPOS DE MARCOS
 INSERT IGNORE INTO tipos_marco
@@ -409,9 +408,6 @@ VALUES (
 
 
 -- TIPOS DE ROSTRO
-
-ALTER TABLE tipos_marco
-MODIFY COLUMN rostros TEXT NOT NULL;
 
 INSERT IGNORE INTO tipos_rostro
 (codigo, nombre, rasgos, consejo, ruta_imagen)

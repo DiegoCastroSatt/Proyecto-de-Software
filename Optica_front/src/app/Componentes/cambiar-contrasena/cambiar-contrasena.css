@@ -1,0 +1,88 @@
+:host {
+  display: block;
+  color: #203d39;
+}
+.cuenta {
+  max-width: 540px;
+  margin: 32px auto;
+  padding: 28px;
+  background: white;
+  border: 1px solid #d6e1d9;
+  border-radius: 16px;
+}
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
+h1 {
+  font-size: 1.8rem;
+  margin: 12px 0;
+}
+.cuenta > p {
+  line-height: 1.6;
+  color: #526961;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  margin: 24px 0;
+}
+label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+input {
+  font: inherit;
+  border: 1px solid #b6c9be;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+button {
+  font: inherit;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #24534f;
+  color: white;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+a {
+  color: #24534f;
+}
+:focus-visible {
+  outline: 3px solid #ac682e;
+  outline-offset: 3px;
+}
+.error {
+  background: #fff1ec;
+  padding: 12px;
+  color: #a52b24;
+  line-height: 1.5;
+}
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (max-width: 650px) {
+  .cuenta {
+    margin: 20px 16px;
+    padding: 22px;
+  }
+}

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using Optica.Api.Modules.Accesos;
 using System.Security.Claims;
 using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +11,7 @@ using Optica.Api.Modules.AgendaReservas.Services;
 
 namespace Optica.Api.Modules.AgendaReservas.Controllers;
 
+[Authorize(Policy = "horarios")]
 [ApiController]
 [Route("api/[controller]")]
 public class HorariosController(OpticaDbContext context, TimeProvider proveedorTiempo) : ControllerBase
@@ -65,7 +68,7 @@ public class HorariosController(OpticaDbContext context, TimeProvider proveedorT
             return BadRequest(new { mensaje = "La duración debe estar entre 1 y 480 minutos." });
         }
 
-        var administradorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var administradorId = int.Parse((User.FindFirstValue(PermisosAcceso.Responsable) ?? User.FindFirstValue(ClaimTypes.NameIdentifier))!);
 
         var duracion = TimeSpan.FromMinutes(dto.DuracionMinutos);
         var existentes = await context.Horarios

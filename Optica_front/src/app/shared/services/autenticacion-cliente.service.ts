@@ -23,9 +23,7 @@ export interface ResultadoRegistroCliente {
   correoConfirmacionEnviado: boolean;
 }
 
-export interface RespuestaRecuperacionCliente {
-  mensaje: string;
-}
+export interface RespuestaAutenticacion { mensaje: string; }
 
 @Injectable({ providedIn: 'root' })
 export class AutenticacionClienteService {
@@ -33,35 +31,16 @@ export class AutenticacionClienteService {
   private readonly apiUrl = 'http://localhost:8080/api/Autenticacion/cliente';
   readonly cliente = signal<ClienteSesion | null>(null);
 
-  iniciarSesion(correo: string, contrasena: string): Observable<ClienteSesion> {
-    return this.http.post<ClienteSesion>(`${this.apiUrl}/login`, { correo, contrasena }, { withCredentials: true })
-      .pipe(tap(cliente => this.cliente.set(cliente)));
-  }
-
   registrar(datos: RegistroCliente): Observable<ResultadoRegistroCliente> {
     return this.http.post<ResultadoRegistroCliente>(`${this.apiUrl}/registro`, datos, { withCredentials: true });
   }
 
-  confirmarCuenta(token: string): Observable<RespuestaRecuperacionCliente> {
-    return this.http.post<RespuestaRecuperacionCliente>(`${this.apiUrl}/registro/confirmar`, { token });
+  confirmarCuenta(token: string): Observable<RespuestaAutenticacion> {
+    return this.http.post<RespuestaAutenticacion>(`${this.apiUrl}/registro/confirmar`, { token });
   }
 
-  reenviarConfirmacion(correo: string): Observable<RespuestaRecuperacionCliente> {
-    return this.http.post<RespuestaRecuperacionCliente>(`${this.apiUrl}/registro/confirmacion/reenviar`, { correo });
-  }
-
-  solicitarRecuperacion(correo: string): Observable<RespuestaRecuperacionCliente> {
-    return this.http.post<RespuestaRecuperacionCliente>(
-      `${this.apiUrl}/recuperacion/solicitar`,
-      { correo }
-    );
-  }
-
-  confirmarRecuperacion(token: string, nuevaContrasena: string, confirmarContrasena: string): Observable<RespuestaRecuperacionCliente> {
-    return this.http.post<RespuestaRecuperacionCliente>(
-      `${this.apiUrl}/recuperacion/confirmar`,
-      { token, nuevaContrasena, confirmarContrasena }
-    );
+  reenviarConfirmacion(correo: string): Observable<RespuestaAutenticacion> {
+    return this.http.post<RespuestaAutenticacion>(`${this.apiUrl}/registro/confirmacion/reenviar`, { correo });
   }
 
   verificarSesion(): Observable<ClienteSesion> {

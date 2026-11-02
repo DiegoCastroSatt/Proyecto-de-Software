@@ -5,6 +5,7 @@ using Optica.Api.Data;
 
 namespace Optica.Api.Modules.Marcos;
 
+[Authorize(Policy = "inventario")]
 [ApiController]
 [Route("api/Marcos")]
 public sealed class MarcosController(OpticaDbContext db) : ControllerBase

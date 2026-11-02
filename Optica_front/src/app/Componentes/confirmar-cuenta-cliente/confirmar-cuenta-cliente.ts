@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
 
 @Component({
   selector: 'app-confirmar-cuenta-cliente',

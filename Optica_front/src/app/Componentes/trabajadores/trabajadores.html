@@ -1,0 +1,232 @@
+<section class="accesos" aria-labelledby="titulo-trabajadores">
+  <header>
+    <div>
+      <p class="eyebrow">Administración</p>
+      <h1 id="titulo-trabajadores">Trabajadores y permisos</h1>
+      <p>Crea las cuentas de tu equipo y decide qué funciones puede usar cada rol.</p>
+    </div>
+  </header>
+  <nav class="pestanas" aria-label="Gestión de accesos">
+    <button
+      type="button"
+      [attr.aria-pressed]="vista() === 'trabajadores'"
+      (click)="vista.set('trabajadores')"
+    >
+      Trabajadores
+    </button>
+    <button type="button" [attr.aria-pressed]="vista() === 'roles'" (click)="vista.set('roles')">
+      Roles y permisos
+    </button>
+  </nav>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (mensaje()) {
+    <p class="exito" role="status">{{ mensaje() }}</p>
+  }
+  @if (cargando()) {
+    <p role="status">Cargando accesos…</p>
+  }
+  @if (vista() === 'trabajadores') {
+    <div class="titulo-lista">
+      <h2>Tu equipo</h2>
+      <button
+        class="primario"
+        type="button"
+        (click)="nuevo.set(!nuevo())"
+        [disabled]="guardando() || cargando()"
+      >
+        {{ nuevo() ? 'Cancelar' : 'Agregar trabajador' }}
+      </button>
+    </div>
+    @if (!roles().length && !cargando()) {
+      <p class="aviso">Puedes crear el primer rol directamente al agregar un trabajador.</p>
+    }
+    @if (nuevo()) {
+      <form class="tarjeta formulario" [formGroup]="trabajadorForm" (ngSubmit)="crearTrabajador()">
+        <h2>Nuevo trabajador</h2>
+        <label
+          >Nombre completo<input formControlName="nombre" maxlength="100" autocomplete="name"
+        /></label>
+        <label>Nombre de usuario<input formControlName="nombreUsuario" maxlength="60" autocomplete="username" />
+          <small>Entre 3 y 60 caracteres: letras, números, punto, guion o guion bajo.</small></label>
+        <label
+          >Correo electrónico<input
+            type="email"
+            formControlName="correo"
+            maxlength="100"
+            autocomplete="email"
+          /><small>Se utilizará para recuperar su contraseña.</small></label
+        >
+        <label
+          >Contraseña inicial<input
+            type="password"
+            formControlName="contrasena"
+            minlength="8"
+            maxlength="255"
+            autocomplete="new-password"
+          /><small
+            >Al menos 8 caracteres con una letra, un número y un símbolo. Entrégala al trabajador por un medio privado.</small
+          ></label
+        >
+        <div class="selector-rol">
+          <label for="rol-nuevo-trabajador">Rol del trabajador</label>
+          <div class="fila-rol">
+            <select id="rol-nuevo-trabajador" formControlName="idRol">
+              <option [ngValue]="0">Selecciona un rol</option>
+              @for (rol of roles(); track rol.idRol) {
+                <option [ngValue]="rol.idRol">{{ rol.nombre }}</option>
+              }
+            </select>
+            <button
+              type="button"
+              (click)="abrirRolEnTrabajador()"
+              [disabled]="guardando() || cargando()"
+            >
+              Crear rol
+            </button>
+          </div>
+          @if (rolSeleccionado; as rol) {
+            <div class="resumen-permisos" aria-live="polite">
+              <strong>Este rol puede:</strong>
+              <ul>
+                @for (codigo of rol.permisos; track codigo) {
+                  <li>{{ etiquetasPermisos[codigo] || codigo }}</li>
+                } @empty {
+                  <li>No tiene funciones internas habilitadas.</li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+        @if (trabajadorForm.invalid && trabajadorForm.touched) {
+          <p class="error">
+            Completa el nombre, un usuario válido, un correo válido, la contraseña de al menos 8 caracteres con una letra, un número y un símbolo y el rol.
+          </p>
+        }
+        <button class="primario" type="submit" [disabled]="guardando() || !roles().length">
+          {{ guardando() ? 'Guardando…' : 'Crear trabajador' }}
+        </button>
+      </form>
+    }
+    <div class="equipo">
+      @for (trabajador of trabajadores(); track trabajador.idTrabajador) {
+        <article class="tarjeta">
+          <div class="identidad">
+            <h3>{{ trabajador.nombre }}</h3>
+            <p>Usuario: {{ trabajador.nombreUsuario }}</p>
+            <p>{{ trabajador.correo }}</p>
+            <small>Trabajador</small>
+          </div>
+          <form class="acceso-trabajador" (ngSubmit)="guardarAcceso(trabajador)">
+            <label
+              >Rol de {{ trabajador.nombre
+              }}<select [name]="'rol-' + trabajador.idTrabajador" [(ngModel)]="trabajador.idRol">
+                @for (rol of roles(); track rol.idRol) {
+                  <option [ngValue]="rol.idRol">{{ rol.nombre }}</option>
+                }
+              </select></label
+            >
+            <label
+              >Estado de {{ trabajador.nombre
+              }}<select
+                [name]="'estado-' + trabajador.idTrabajador"
+                [(ngModel)]="trabajador.estado"
+              >
+                <option>Activo</option>
+                <option>Inactivo</option>
+              </select></label
+            >
+            <button type="submit" [disabled]="guardando() || cargando()">Guardar acceso</button>
+          </form>
+        </article>
+      } @empty {
+        @if (!cargando()) {
+          <p>
+            Aún no hay trabajadores registrados.
+          </p>
+        }
+      }
+    </div>
+  } @else {
+    <div class="roles-layout">
+      <div>
+        <h2>Roles del equipo</h2>
+        @for (rol of roles(); track rol.idRol) {
+          <article class="tarjeta">
+            <h3>{{ rol.nombre }}</h3>
+            <p>{{ rol.permisos.length }} permisos asignados</p>
+            <button type="button" (click)="editarRol(rol)" [disabled]="guardando()">
+              Editar permisos
+            </button>
+          </article>
+        } @empty {
+          <p>Crea el primer rol para comenzar.</p>
+        }
+      </div>
+      <ng-container [ngTemplateOutlet]="editorRolFormulario"></ng-container>
+    </div>
+  }
+  <dialog
+    #dialogoRol
+    class="dialogo-rol"
+    aria-labelledby="titulo-editor-rol"
+    (cancel)="cancelarRolEnTrabajador($event)"
+  >
+    @if (creandoRolEnTrabajador()) {
+      <ng-container [ngTemplateOutlet]="editorRolFormulario"></ng-container>
+    }
+  </dialog>
+  <ng-template #editorRolFormulario>
+    <form class="tarjeta formulario" [formGroup]="rolForm" (ngSubmit)="guardarRol()">
+      <h2 id="titulo-editor-rol">{{ rolEditado() ? 'Editar rol' : 'Crear rol' }}</h2>
+      <p class="aviso">Marca las funciones que este rol puede consultar y modificar.</p>
+      <label
+        >Nombre del rol<input
+          formControlName="nombre"
+          maxlength="60"
+          placeholder="Ej. Ventas o Recepción"
+      /></label>
+      <fieldset [disabled]="guardando()">
+        <legend>Funciones permitidas</legend>
+        @for (permiso of permisos(); track permiso.codigo) {
+          <label class="permiso"
+            ><input
+              type="checkbox"
+              [checked]="rolForm.controls.permisos.value.includes(permiso.codigo)"
+              (change)="alternarPermiso(permiso.codigo, $any($event.target).checked)"
+            /><span
+              ><strong>{{ etiquetasPermisos[permiso.codigo] || permiso.nombre }}</strong
+              ><small>{{ permiso.nombre }}</small></span
+            ></label
+          >
+        }
+      </fieldset>
+      <p class="aviso">
+        El administrador siempre tiene acceso completo. Ningún rol de trabajador permite crear
+        cuentas ni administrar permisos. Un rol sin permisos no habilita funciones internas.
+      </p>
+      @if (rolForm.invalid && rolForm.touched) {
+        <p class="error">Ingresa un nombre para el rol.</p>
+      }
+      @if (creandoRolEnTrabajador() && error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      <div class="botones">
+        <button class="primario" type="submit" [disabled]="guardando() || cargando()">
+          {{ creandoRolEnTrabajador() ? 'Guardar rol y seleccionarlo' : 'Guardar rol' }}
+        </button>
+        @if (creandoRolEnTrabajador()) {
+          <button type="button" (click)="cancelarRolEnTrabajador()" [disabled]="guardando()">
+            Cancelar
+          </button>
+        }
+        @if (rolEditado()) {
+          <button type="button" (click)="editarRol()" [disabled]="guardando()">
+            Cancelar edición
+          </button>
+        }
+      </div>
+    </form>
+  </ng-template>
+</section>

@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { BuscarProductoService, Producto, ProductoEditable } from './buscar-producto.service';
 import { ResenaProducto, ResenasProductoService } from './resenas-producto.service';
-import { AutenticacionClienteService } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
 import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
