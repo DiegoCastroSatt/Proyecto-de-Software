@@ -11,6 +11,34 @@ namespace Optica.Tests;
 public class TestPoliticasRecetas
 {
     [Theory]
+    [InlineData("ventas", true)]
+    [InlineData("clientes", true)]
+    [InlineData("recetas", true)]
+    [InlineData("pedidos", true)]
+    [InlineData("inventario", false)]
+    [InlineData("", false)]
+    public async Task AutocompletadoRespetaLosPermisosDelModulo(string permiso, bool permitido)
+    {
+        var servicios = new ServiceCollection();
+        servicios.AddLogging();
+        servicios.AddAuthorization(PermisosAcceso.Configurar);
+        using var provider = servicios.BuildServiceProvider();
+        var datos = typeof(RecetasController).GetCustomAttributes<AuthorizeAttribute>()
+            .Concat(typeof(RecetasController).GetMethod(nameof(RecetasController.BuscarSugerenciasRut))!
+                .GetCustomAttributes<AuthorizeAttribute>());
+        var politica = await AuthorizationPolicy.CombineAsync(provider.GetRequiredService<IAuthorizationPolicyProvider>(), datos);
+        Assert.NotNull(politica);
+        var usuario = new ClaimsPrincipal(new ClaimsIdentity(new[] {
+            new Claim(PermisosAcceso.Tipo, "Trabajador"), new Claim(PermisosAcceso.Permiso, permiso)
+        }, "Prueba"));
+        var resultado = await provider.GetRequiredService<IAuthorizationService>().AuthorizeAsync(usuario, null, politica!);
+        Assert.Equal(permitido, resultado.Succeeded);
+        if (permiso != "recetas")
+            Assert.False((await provider.GetRequiredService<IAuthorizationService>()
+                .AuthorizeAsync(usuario, null, "recetas")).Succeeded);
+    }
+
+    [Theory]
     [InlineData(nameof(RecetasController.ObtenerMisRecetas), "cliente", false, true)]
     [InlineData(nameof(RecetasController.ObtenerMisRecetas), "Trabajador", true, false)]
     [InlineData(nameof(RecetasController.ObtenerReceta), "cliente", false, false)]
