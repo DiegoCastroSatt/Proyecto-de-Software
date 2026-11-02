@@ -126,16 +126,7 @@ public sealed class AutenticacionClientesController(
     {
         try
         {
-            var aceptada = await recuperacion.SolicitarAsync(
-                request.Identificador,
-                HttpContext.Connection.RemoteIpAddress?.ToString(),
-                cancellationToken);
-
-            if (!aceptada)
-            {
-                return StatusCode(StatusCodes.Status429TooManyRequests,
-                    new { mensaje = "Espera unos momentos antes de volver a solicitar un enlace." });
-            }
+            await recuperacion.SolicitarAsync(request.Identificador, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

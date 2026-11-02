@@ -75,6 +75,40 @@ describe('LoginComponent', () => {
     expect(fixture.nativeElement.querySelector('.campo-error')?.textContent).toContain('obligatorio');
   });
 
+  it('muestra y oculta las contraseñas del registro sin enviar el formulario', () => {
+    fixture.nativeElement.querySelectorAll('.registro-invitacion')[1].querySelector('button').click();
+    fixture.detectChanges();
+
+    const contrasena = fixture.nativeElement.querySelector('#registro-contrasena') as HTMLInputElement;
+    const mostrar = fixture.nativeElement.querySelector('[aria-controls="registro-contrasena"]') as HTMLButtonElement;
+    expect(contrasena.type).toBe('password');
+    mostrar.click();
+    fixture.detectChanges();
+    expect(contrasena.type).toBe('text');
+    expect(mostrar.getAttribute('aria-pressed')).toBe('true');
+    mostrar.click();
+    fixture.detectChanges();
+    expect(contrasena.type).toBe('password');
+    expect(servicio.registrar).not.toHaveBeenCalled();
+  });
+
+  it('muestra y oculta la nueva contraseña de recuperación sin confirmar el cambio', () => {
+    fixture.nativeElement.querySelector('.enlace-secundario').click();
+    component.recuperacionEnviada.set(true);
+    fixture.detectChanges();
+
+    const contrasena = fixture.nativeElement.querySelector('#nueva-contrasena-recuperacion') as HTMLInputElement;
+    const mostrar = fixture.nativeElement.querySelector('[aria-controls="nueva-contrasena-recuperacion"]') as HTMLButtonElement;
+    expect(contrasena.type).toBe('password');
+    mostrar.click();
+    fixture.detectChanges();
+    expect(contrasena.type).toBe('text');
+    mostrar.click();
+    fixture.detectChanges();
+    expect(contrasena.type).toBe('password');
+    expect(servicio.confirmarRecuperacion).not.toHaveBeenCalled();
+  });
+
   it('muestra un mensaje seguro cuando las credenciales son incorrectas', () => {
     servicio.iniciarSesion.mockReturnValueOnce(throwError(() => ({ status: 401 })));
     component.correo = 'ana@example.test';
@@ -100,4 +134,21 @@ describe('LoginComponent', () => {
       identificador: '12.345.678-5', codigo: '123456'
     }));
   });
+
+  it('conecta el botón Enviar código con la solicitud HTTP', async () => {
+    fixture.nativeElement.querySelector('.enlace-secundario').click();
+    fixture.detectChanges();
+
+    component.correoRecuperacion = '12.345.678-5';
+    const formulario = fixture.nativeElement.querySelector('#recuperar-correo')!.closest('form') as HTMLFormElement;
+    expect(formulario.querySelector('button[type="submit"]')?.textContent).toContain('Enviar código');
+    (formulario.querySelector('button[type="submit"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(servicio.solicitarRecuperacion).toHaveBeenCalledWith('12.345.678-5');
+    expect(servicio.solicitarRecuperacion).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Revisa tu correo');
+  });
+
 });

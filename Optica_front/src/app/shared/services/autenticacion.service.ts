@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { tap, timeout } from 'rxjs';
 import { AutenticacionAdminService, LoginAdministradorResponse } from './autenticacion-admin.service';
 import { AutenticacionClienteService, ClienteSesion } from './autenticacion-cliente.service';
 
@@ -25,7 +25,7 @@ export class AutenticacionService {
 
   solicitarRecuperacion(identificador: string) {
     return this.http.post<{ mensaje: string }>(`${this.apiUrl}/recuperacion/solicitar`,
-      { identificador }, { withCredentials: true });
+      { identificador }, { withCredentials: true }).pipe(timeout({ first: 15_000 }));
   }
 
   confirmarRecuperacion(datos: { identificador: string; codigo: string; nuevaContrasena: string; confirmarContrasena: string }) {

@@ -32,7 +32,7 @@ git clone <URL_DEL_REPOSITORIO>
 cd Proyecto_de_Software
 ```
 
-2. Crear el archivo `.env` a partir de `.env.example` y configurar tanto `MYSQL_ROOT_PASSWORD` como `RECOVERY_CODE_PEPPER`. El segundo debe ser un secreto aleatorio de al menos 32 bytes y debe ser idéntico en todas las instancias de la API. No lo guardes en archivos versionados ni lo compartas en registros.
+2. Crear el archivo `.env` a partir de `.env.example` y configurar `MYSQL_ROOT_PASSWORD`.
 
 ```bash
 Copy-Item .env.example .env
@@ -82,8 +82,6 @@ El frontend se abrira normalmente en `http://localhost:4200`.
 
 El formulario unificado está disponible en `/cliente/login` y `/admin`. Los clientes ingresan con RUT válido o correo; administradores y trabajadores, con su nombre de usuario. La recuperación pide RUT para clientes y nombre de usuario para personal, y envía un código de seis dígitos al correo registrado.
 
-La recuperación requiere `RECOVERY_CODE_PEPPER`; la API almacena solo un HMAC del código. Mantén ese secreto estable y compartido entre réplicas. Si falta o es menor de 32 bytes, la solicitud se responde de forma genérica y no se envía correo.
-
-Para una base nueva, la estructura completa, incluidas las tablas `desafios_recuperacion` y `limites_recuperacion`, está en `database/schema.sql`; Docker Compose aplica ese archivo solo al inicializar un volumen nuevo. Para una base existente que ya use `trabajador_optica`, revisa y aplica manualmente una sola vez `database/migrations/20261101_autenticacion_recuperacion.sql`. El script es aditivo y no migra ni modifica cuentas existentes. No lo ejecutes sobre una base cuyo esquema no se haya comprobado primero.
+Los códigos de recuperación se conservan en memoria por cinco minutos. Si la API se reinicia, los códigos pendientes dejan de ser válidos y se puede solicitar uno nuevo.
 
 Los datos de ejemplo están en `database/insert.sql`.

@@ -49,11 +49,7 @@ public sealed class AutenticacionController(
     {
         try
         {
-            var aceptada = await recuperacion.SolicitarAsync(
-                request.NombreUsuario, HttpContext.Connection.RemoteIpAddress?.ToString(), cancellationToken);
-            if (!aceptada)
-                return StatusCode(StatusCodes.Status429TooManyRequests,
-                    new { mensaje = "Espera antes de volver a solicitar un código." });
+            await recuperacion.SolicitarAsync(request.NombreUsuario, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

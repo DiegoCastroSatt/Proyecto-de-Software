@@ -94,8 +94,8 @@ builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
 builder.Services.AddScoped<InicioSesionService>();
+builder.Services.AddSingleton<EstadoRecuperacion>();
 builder.Services.AddScoped<RecuperacionService>();
-builder.Services.AddHostedService<LimpiezaRecuperacionBackgroundService>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
 

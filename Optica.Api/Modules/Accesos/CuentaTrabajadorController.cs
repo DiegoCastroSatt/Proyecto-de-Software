@@ -12,7 +12,10 @@ namespace Optica.Api.Modules.Accesos;
 [ApiController]
 [Route("api/CuentaTrabajador")]
 [Authorize(Policy = PermisosAcceso.SoloTrabajador)]
-public sealed class CuentaTrabajadorController(OpticaDbContext db, IPasswordHasher<Trabajador> hasher) : ControllerBase
+public sealed class CuentaTrabajadorController(
+    OpticaDbContext db,
+    IPasswordHasher<Trabajador> hasher,
+    Optica.Api.Modules.Autenticacion.Services.EstadoRecuperacion estadoRecuperacion) : ControllerBase
 {
     [HttpPost("contrasena")]
     public async Task<IActionResult> CambiarContrasena(CambiarContrasenaTrabajadorRequest request, CancellationToken ct)
@@ -28,8 +31,7 @@ public sealed class CuentaTrabajadorController(OpticaDbContext db, IPasswordHash
         if (request.NuevaContrasena == request.ContrasenaActual)
             return BadRequest(new { mensaje = "Elige una contraseña distinta de la actual." });
         trabajador.Contrasena = hasher.HashPassword(trabajador, request.NuevaContrasena);
-        await db.DesafiosRecuperacion.Where(d => d.IdPersonal == trabajador.IdTrabajador && d.Estado == "Pendiente")
-            .ExecuteUpdateAsync(u => u.SetProperty(d => d.Estado, "Invalidado"), ct);
+        estadoRecuperacion.Invalidar($"Trabajador:{trabajador.IdTrabajador}");
         await db.SaveChangesAsync(ct);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Ok(new { mensaje = "Contraseña actualizada. Inicia sesión con tu nueva contraseña." });

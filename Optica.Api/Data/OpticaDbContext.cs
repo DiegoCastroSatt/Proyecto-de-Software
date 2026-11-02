@@ -10,7 +10,6 @@ using Optica.Api.Modules.RegistroRecetas.Models;
 using Optica.Api.Modules.Ventas.Models;
 using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Resenas.Models;
-using Optica.Api.Modules.Autenticacion.Models;
 
 namespace Optica.Api.Data;
 
@@ -63,53 +62,12 @@ public class OpticaDbContext : DbContext
     public DbSet<Trabajador> Trabajadores => Set<Trabajador>();
     public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
     public DbSet<Resena> Resenas => Set<Resena>();
-    public DbSet<DesafioRecuperacion> DesafiosRecuperacion => Set<DesafioRecuperacion>();
-    public DbSet<LimiteRecuperacion> LimitesRecuperacion => Set<LimiteRecuperacion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<FormaLente>().HasIndex(f => f.Codigo).IsUnique();
         modelBuilder.Entity<FormaLente>().HasIndex(f => f.NombreNormalizado).IsUnique();
-        modelBuilder.Entity<DesafioRecuperacion>(e =>
-        {
-            e.ToTable("desafios_recuperacion", table =>
-            {
-                table.HasCheckConstraint("ck_desafio_tipo_cuenta", "(tipo_cuenta = 'Cliente' AND id_cuenta_cliente IS NOT NULL AND id_personal IS NULL) OR (tipo_cuenta IN ('Administrador','Trabajador') AND id_personal IS NOT NULL AND id_cuenta_cliente IS NULL)");
-                table.HasCheckConstraint("ck_desafio_intentos", "intentos BETWEEN 0 AND 5");
-                table.HasCheckConstraint("ck_desafio_estado", "estado IN ('Pendiente','Usado','Invalidado','Agotado','Expirado')");
-            });
-            e.HasKey(d => d.Id);
-            e.Property(d => d.Id).HasColumnName("id_desafio");
-            e.Property(d => d.TipoCuenta).HasColumnName("tipo_cuenta").HasMaxLength(20).IsRequired();
-            e.Property(d => d.IdCuentaCliente).HasColumnName("id_cuenta_cliente");
-            e.Property(d => d.IdPersonal).HasColumnName("id_personal");
-            e.Property(d => d.HashCodigo).HasColumnName("hash_codigo").HasMaxLength(64).IsRequired();
-            e.Property(d => d.CreadoUtc).HasColumnName("creado_utc");
-            e.Property(d => d.ExpiraUtc).HasColumnName("expira_utc");
-            e.Property(d => d.Intentos).HasColumnName("intentos");
-            e.Property(d => d.Estado).HasColumnName("estado").HasMaxLength(16).IsRequired();
-            e.Property(d => d.HuellaIdentificador).HasColumnName("huella_identificador").HasMaxLength(64).IsRequired();
-            e.Property(d => d.HuellaIp).HasColumnName("huella_ip").HasMaxLength(64).IsRequired();
-            e.Property(d => d.UltimaSolicitudUtc).HasColumnName("ultima_solicitud_utc");
-            e.Property<int?>("IdCuentaClientePendiente").HasColumnName("id_cuenta_cliente_pendiente").HasComputedColumnSql("CASE WHEN estado = 'Pendiente' THEN id_cuenta_cliente ELSE NULL END", stored: true);
-            e.Property<int?>("IdPersonalPendiente").HasColumnName("id_personal_pendiente").HasComputedColumnSql("CASE WHEN estado = 'Pendiente' THEN id_personal ELSE NULL END", stored: true);
-            e.HasIndex("IdCuentaClientePendiente").IsUnique();
-            e.HasIndex("IdPersonalPendiente").IsUnique();
-            e.HasIndex(d => new { d.HuellaIdentificador, d.CreadoUtc });
-            e.HasIndex(d => new { d.HuellaIp, d.CreadoUtc });
-            e.HasOne<CuentaCliente>().WithMany().HasForeignKey(d => d.IdCuentaCliente).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne<Trabajador>().WithMany().HasForeignKey(d => d.IdPersonal).OnDelete(DeleteBehavior.Cascade);
-        });
-        modelBuilder.Entity<LimiteRecuperacion>(e =>
-        {
-            e.ToTable("limites_recuperacion");
-            e.HasKey(l => l.Huella);
-            e.Property(l => l.Huella).HasColumnName("huella").HasMaxLength(64);
-            e.Property(l => l.InicioVentanaUtc).HasColumnName("inicio_ventana_utc");
-            e.Property(l => l.Solicitudes).HasColumnName("solicitudes");
-            e.Property(l => l.UltimaSolicitudUtc).HasColumnName("ultima_solicitud_utc");
-        });
         modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Codigo).IsUnique();
         modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Nombre).IsUnique();
         modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Codigo).IsUnique();

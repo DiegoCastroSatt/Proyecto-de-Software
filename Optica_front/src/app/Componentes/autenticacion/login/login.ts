@@ -27,6 +27,7 @@ export class LoginComponent implements OnDestroy {
 
   correo = '';
   contrasena = '';
+  mostrarContrasenaLogin = signal(false);
   errorLogin = signal('');
   mensajeLogin = signal('');
   cargandoLogin = signal(false);
@@ -45,6 +46,8 @@ export class LoginComponent implements OnDestroy {
   registro: RegistroCliente = {
     nombre: '', apellido: '', rut: '', correo: '', telefono: '', contrasena: '', confirmarContrasena: ''
   };
+  mostrarContrasenaRegistro = signal(false);
+  mostrarConfirmacionRegistro = signal(false);
 
   // --- Estado para recuperación de contraseña ---
   modalRecuperarAbierto = signal(false);
@@ -53,6 +56,8 @@ export class LoginComponent implements OnDestroy {
   codigoRecuperacion = '';
   nuevaContrasenaRecuperacion = '';
   confirmarContrasenaRecuperacion = '';
+  mostrarNuevaContrasenaRecuperacion = signal(false);
+  mostrarConfirmacionRecuperacion = signal(false);
   recuperacionCompletada = signal(false);
   errorRecuperar = signal('');
   cargandoRecuperar = signal(false);
@@ -118,6 +123,8 @@ export class LoginComponent implements OnDestroy {
     this.confirmacionReenviada.set(false);
     this.errorRegistro.set('');
     this.camposTocados.set(false);
+    this.mostrarContrasenaRegistro.set(false);
+    this.mostrarConfirmacionRegistro.set(false);
     this.registro = { nombre: '', apellido: '', rut: '', correo: '', telefono: '', contrasena: '', confirmarContrasena: '' };
     this.overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -145,6 +152,8 @@ export class LoginComponent implements OnDestroy {
     this.confirmarContrasenaRecuperacion = '';
     this.errorRecuperar.set('');
     this.correoRecuperacion = this.correo.trim();
+    this.mostrarNuevaContrasenaRecuperacion.set(false);
+    this.mostrarConfirmacionRecuperacion.set(false);
     this.overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     setTimeout(() => this.recuperarDialog?.nativeElement.querySelector<HTMLInputElement>('#recuperar-correo')?.focus());

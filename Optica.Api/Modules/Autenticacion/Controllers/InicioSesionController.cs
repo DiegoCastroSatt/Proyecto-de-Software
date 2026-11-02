@@ -46,17 +46,15 @@ public sealed class InicioSesionController(InicioSesionService inicioSesion, Rec
     {
         try
         {
-            var aceptada = await recuperacion.SolicitarAsync(request.Identificador, HttpContext.Connection.RemoteIpAddress?.ToString(), ct);
-            return aceptada ? Accepted(new { mensaje = "Si los datos corresponden a una cuenta activa, enviaremos un código al correo registrado." })
-                : StatusCode(StatusCodes.Status429TooManyRequests, new { mensaje = "Espera antes de volver a solicitar un código." });
+            await recuperacion.SolicitarAsync(request.Identificador, ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex)
         {
             HttpContext.RequestServices.GetRequiredService<ILogger<InicioSesionController>>()
                 .LogError("Falló una solicitud de recuperación ({TipoError}).", ex.GetType().Name);
-            return Accepted(new { mensaje = "Si los datos corresponden a una cuenta activa, enviaremos un código al correo registrado." });
         }
+        return Accepted(new { mensaje = "Si los datos corresponden a una cuenta activa, enviaremos un código al correo registrado." });
     }
 
     [AllowAnonymous]

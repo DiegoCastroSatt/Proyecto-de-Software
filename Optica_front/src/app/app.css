@@ -751,3 +751,25 @@ app-cliente {
   :where(app-producto, app-registro-receta) button { width: 100%; }
   :where(app-registro-receta) .modo-toggle { flex-direction: column; }
 }
+/* Controles para mostrar u ocultar contraseñas en los formularios de autenticación. */
+.control-contrasena { position: relative; width: 100%; }
+.control-contrasena input { padding-right: 52px; }
+.boton-visibilidad-contrasena {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--color-texto-login);
+  cursor: pointer;
+}
+.boton-visibilidad-contrasena:hover { color: var(--color-principal); }
+.boton-visibilidad-contrasena:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 1px; }
+.boton-visibilidad-contrasena svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.boton-visibilidad-contrasena svg circle { fill: currentColor; stroke: none; }
+.boton-visibilidad-contrasena .oculto { display: none; }

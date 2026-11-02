@@ -42,7 +42,6 @@ services:
       Correo__UrlBaseFrontend: ${EMAIL_FRONTEND_BASE_URL:-http://localhost:4200}
       Correo__UsarTls: ${SMTP_USE_TLS:-true}
       DataProtection__KeysPath: /var/opt/optica-dp-keys
-      Authentication__RecoveryCodePepper: ${RECOVERY_CODE_PEPPER:-}
     depends_on:
       database:
         condition: service_healthy

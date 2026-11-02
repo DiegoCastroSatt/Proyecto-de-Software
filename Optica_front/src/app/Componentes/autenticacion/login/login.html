@@ -27,9 +27,16 @@
               ¿Olvidaste tu contraseña?
             </button>
           </div>
-          <input type="password" id="contrasena" name="contrasena" [(ngModel)]="contrasena"
-            autocomplete="current-password" maxlength="255" required
-            [disabled]="cargandoLogin() || sesionIniciada()">
+          <div class="control-contrasena">
+            <input [type]="mostrarContrasenaLogin() ? 'text' : 'password'" id="contrasena" name="contrasena" [(ngModel)]="contrasena"
+              autocomplete="current-password" maxlength="255" required
+              [disabled]="cargandoLogin() || sesionIniciada()">
+            <button type="button" class="boton-visibilidad-contrasena" aria-controls="contrasena"
+              [attr.aria-label]="mostrarContrasenaLogin() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="mostrarContrasenaLogin()" (click)="mostrarContrasenaLogin.set(!mostrarContrasenaLogin())">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path class="trazo-ojo-tachado" [class.oculto]="mostrarContrasenaLogin()" d="m3 3 18 18"/></svg>
+            </button>
+          </div>
         </div>
         <p class="login-error" [hidden]="!errorLogin()" role="alert">{{ errorLogin() }}</p>
         <p class="login-success" [hidden]="!mensajeLogin()" role="status">{{ mensajeLogin() }}</p>
@@ -82,18 +89,32 @@
                 </div>
                 <div class="form-field">
                   <label for="nueva-contrasena-recuperacion">Nueva contraseña</label>
-                  <input type="password" id="nueva-contrasena-recuperacion" name="nuevaContrasenaRecuperacion"
-                    [(ngModel)]="nuevaContrasenaRecuperacion" autocomplete="new-password" maxlength="255" required>
+                  <div class="control-contrasena">
+                    <input [type]="mostrarNuevaContrasenaRecuperacion() ? 'text' : 'password'" id="nueva-contrasena-recuperacion" name="nuevaContrasenaRecuperacion"
+                      [(ngModel)]="nuevaContrasenaRecuperacion" autocomplete="new-password" maxlength="255" required>
+                    <button type="button" class="boton-visibilidad-contrasena" aria-controls="nueva-contrasena-recuperacion"
+                      [attr.aria-label]="mostrarNuevaContrasenaRecuperacion() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                      [attr.aria-pressed]="mostrarNuevaContrasenaRecuperacion()" (click)="mostrarNuevaContrasenaRecuperacion.set(!mostrarNuevaContrasenaRecuperacion())">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path class="trazo-ojo-tachado" [class.oculto]="mostrarNuevaContrasenaRecuperacion()" d="m3 3 18 18"/></svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="form-field">
                   <label for="confirmar-contrasena-recuperacion">Confirmar contraseña</label>
-                  <input type="password" id="confirmar-contrasena-recuperacion" name="confirmarContrasenaRecuperacion"
-                    [(ngModel)]="confirmarContrasenaRecuperacion" autocomplete="new-password" maxlength="255" required>
+                  <div class="control-contrasena">
+                    <input [type]="mostrarConfirmacionRecuperacion() ? 'text' : 'password'" id="confirmar-contrasena-recuperacion" name="confirmarContrasenaRecuperacion"
+                      [(ngModel)]="confirmarContrasenaRecuperacion" autocomplete="new-password" maxlength="255" required>
+                    <button type="button" class="boton-visibilidad-contrasena" aria-controls="confirmar-contrasena-recuperacion"
+                      [attr.aria-label]="mostrarConfirmacionRecuperacion() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                      [attr.aria-pressed]="mostrarConfirmacionRecuperacion()" (click)="mostrarConfirmacionRecuperacion.set(!mostrarConfirmacionRecuperacion())">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path class="trazo-ojo-tachado" [class.oculto]="mostrarConfirmacionRecuperacion()" d="m3 3 18 18"/></svg>
+                    </button>
+                  </div>
                 </div>
                 @if (errorRecuperar()) { <p class="registro-error" role="alert">{{ errorRecuperar() }}</p> }
                 <div class="registro-acciones">
                   <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
-                  <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()">{{ cargandoRecuperar() ? 'Validando…' : 'Cambiar contraseña' }}</button>
+                  <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()" (click)="confirmarCodigoRecuperacion()">{{ cargandoRecuperar() ? 'Validando…' : 'Cambiar contraseña' }}</button>
                 </div>
               </form>
             }
@@ -116,7 +137,7 @@
 
             <div class="registro-acciones">
               <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
-              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()">
+              <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()" (click)="$event.preventDefault(); enviarRecuperacion()">
                 {{ cargandoRecuperar() ? 'Enviando código…' : 'Enviar código' }}
               </button>
             </div>
@@ -189,15 +210,29 @@
               </div>
               <div class="form-field">
                 <label for="registro-contrasena">Contraseña</label>
-                <input type="password" id="registro-contrasena" name="contrasena" [(ngModel)]="registro.contrasena"
-                  autocomplete="new-password" maxlength="255" required [attr.aria-invalid]="!!campoError('contrasena')">
+                <div class="control-contrasena">
+                  <input [type]="mostrarContrasenaRegistro() ? 'text' : 'password'" id="registro-contrasena" name="contrasena" [(ngModel)]="registro.contrasena"
+                    autocomplete="new-password" maxlength="255" required [attr.aria-invalid]="!!campoError('contrasena')">
+                  <button type="button" class="boton-visibilidad-contrasena" aria-controls="registro-contrasena"
+                    [attr.aria-label]="mostrarContrasenaRegistro() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    [attr.aria-pressed]="mostrarContrasenaRegistro()" (click)="mostrarContrasenaRegistro.set(!mostrarContrasenaRegistro())">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path class="trazo-ojo-tachado" [class.oculto]="mostrarContrasenaRegistro()" d="m3 3 18 18"/></svg>
+                  </button>
+                </div>
                 @if (campoError('contrasena')) { <small class="campo-error">{{ campoError('contrasena') }}</small> }
               </div>
               <div class="form-field campo-confirmacion">
                 <label for="registro-confirmar">Confirmar contraseña</label>
-                <input type="password" id="registro-confirmar" name="confirmarContrasena"
-                  [(ngModel)]="registro.confirmarContrasena" autocomplete="new-password" maxlength="255" required
-                  [attr.aria-invalid]="!!campoError('confirmarContrasena')">
+                <div class="control-contrasena">
+                  <input [type]="mostrarConfirmacionRegistro() ? 'text' : 'password'" id="registro-confirmar" name="confirmarContrasena"
+                    [(ngModel)]="registro.confirmarContrasena" autocomplete="new-password" maxlength="255" required
+                    [attr.aria-invalid]="!!campoError('confirmarContrasena')">
+                  <button type="button" class="boton-visibilidad-contrasena" aria-controls="registro-confirmar"
+                    [attr.aria-label]="mostrarConfirmacionRegistro() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    [attr.aria-pressed]="mostrarConfirmacionRegistro()" (click)="mostrarConfirmacionRegistro.set(!mostrarConfirmacionRegistro())">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path class="trazo-ojo-tachado" [class.oculto]="mostrarConfirmacionRegistro()" d="m3 3 18 18"/></svg>
+                  </button>
+                </div>
                 @if (campoError('confirmarContrasena')) { <small class="campo-error">{{ campoError('confirmarContrasena') }}</small> }
               </div>
             </div>
