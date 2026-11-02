@@ -17,6 +17,7 @@ using Optica.Api.Data;
 using Optica.Api.Modules.Accesos;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Autenticacion.DTOs;
+using Optica.Api.Modules.Autenticacion.Services;
 using Xunit;
 
 namespace Optica.Tests;
@@ -93,6 +94,7 @@ public sealed class TestAccesos
         {
             s.AddDbContext<OpticaDbContext>(o => o.UseInMemoryDatabase(nombreDb));
             s.AddScoped<IPasswordHasher<Trabajador>, PasswordHasher<Trabajador>>();
+            s.AddSingleton<EstadoRecuperacion>();
             s.AddLogging();
             s.AddScoped<ICatalogoRepository, CatalogoRepository>();
             s.AddScoped<ICatalogoService, CatalogoService>();
