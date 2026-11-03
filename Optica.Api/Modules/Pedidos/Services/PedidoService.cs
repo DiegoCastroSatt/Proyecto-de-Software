@@ -13,22 +13,45 @@ public class PedidoService : IPedidoService
     private readonly IPedidoRepository _pedidoRepository;
     private readonly IPedidoCorreoService _correoService;
     private readonly OpticaDbContext? _dbContext;
+    private readonly TimeProvider _reloj;
+    private static readonly TimeZoneInfo ZonaHoraria = TimeZoneInfo.FindSystemTimeZoneById("America/Santiago");
 
-    public PedidoService(IPedidoRepository pedidoRepository, IPedidoCorreoService correoService, OpticaDbContext? dbContext = null)
+    public PedidoService(IPedidoRepository pedidoRepository, IPedidoCorreoService correoService, OpticaDbContext? dbContext = null, TimeProvider? reloj = null)
     {
         _pedidoRepository = pedidoRepository;
         _correoService = correoService;
         _dbContext = dbContext;
+        _reloj = reloj ?? TimeProvider.System;
+    }
+
+    private bool EsVencido(DateTime? fechaEntregaEstimada, string estado)
+    {
+        if (fechaEntregaEstimada is null) return false;
+        if (estado is "Entregado" or "Cancelado") return false;
+        var hoy = TimeZoneInfo.ConvertTime(_reloj.GetUtcNow(), ZonaHoraria).Date;
+        return fechaEntregaEstimada.Value.Date < hoy;
+    }
+
+    private IEnumerable<PedidoResponseDto> MarcarVencidos(IEnumerable<PedidoResponseDto> pedidos)
+    {
+        foreach (var pedido in pedidos)
+        {
+            pedido.Vencido = EsVencido(pedido.FechaEntregaEstimada, pedido.Estado);
+        }
+        return pedidos;
     }
 
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosAsync()
     {
-        return await _pedidoRepository.ObtenerPedidosDetalleAsync();
+        return MarcarVencidos(await _pedidoRepository.ObtenerPedidosDetalleAsync());
     }
 
     public async Task<PedidoResponseDto?> ObtenerPedidoPorIdAsync(int id)
     {
-        return await _pedidoRepository.ObtenerPedidoDetalleAsync(id);
+        var pedido = await _pedidoRepository.ObtenerPedidoDetalleAsync(id);
+        if (pedido is not null)
+            pedido.Vencido = EsVencido(pedido.FechaEntregaEstimada, pedido.Estado);
+        return pedido;
     }
 
     public async Task<IEnumerable<ClienteActivoDto>> ObtenerClientesActivosAsync()
@@ -72,7 +95,7 @@ public class PedidoService : IPedidoService
             throw new KeyNotFoundException("No se encontró un cliente con ese RUT.");
         }
 
-        return await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(rutNormalizado);
+        return MarcarVencidos(await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(rutNormalizado));
     }
 
     public async Task<PedidoResponseDto> CrearPedidoAsync(CreatePedidoDto dto)
@@ -95,7 +118,8 @@ public class PedidoService : IPedidoService
             Fecha = dto.Fecha,
             Anotaciones = dto.Anotaciones,
             Estado = dto.Estado,
-            Total = dto.Total
+            Total = dto.Total,
+            FechaEntregaEstimada = dto.FechaEntregaEstimada
         };
 
         var nuevoPedido = await _pedidoRepository.CrearPedidoAsync(pedido);
@@ -107,7 +131,9 @@ public class PedidoService : IPedidoService
             Fecha = nuevoPedido.Fecha,
             Estado = nuevoPedido.Estado,
             Total = nuevoPedido.Total,
-            Anotaciones = nuevoPedido.Anotaciones
+            Anotaciones = nuevoPedido.Anotaciones,
+            FechaEntregaEstimada = nuevoPedido.FechaEntregaEstimada,
+            Vencido = EsVencido(nuevoPedido.FechaEntregaEstimada, nuevoPedido.Estado)
         };
     }
 
@@ -175,7 +201,9 @@ public class PedidoService : IPedidoService
             Estado = pedido.Estado,
             Total = pedido.Total,
             Anotaciones = pedido.Anotaciones,
-            EstadoNotificacion = estadoNotificacion
+            EstadoNotificacion = estadoNotificacion,
+            FechaEntregaEstimada = pedido.FechaEntregaEstimada,
+            Vencido = EsVencido(pedido.FechaEntregaEstimada, pedido.Estado)
         };
     }
 

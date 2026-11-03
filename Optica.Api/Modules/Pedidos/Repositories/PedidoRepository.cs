@@ -38,7 +38,8 @@ public class PedidoRepository : IPedidoRepository
                     Fecha = p.Fecha,
                     Estado = p.Estado,
                     Total = p.Total,
-                    Anotaciones = p.Anotaciones
+                    Anotaciones = p.Anotaciones,
+                    FechaEntregaEstimada = p.FechaEntregaEstimada
                 })
             .OrderByDescending(p => p.Fecha)
             .ToListAsync();
@@ -90,7 +91,7 @@ public class PedidoRepository : IPedidoRepository
 
     public Task<Pedido?> ObtenerPedidoPorIdParaActualizarAsync(int id) =>
         _context.Pedidos
-            .FromSqlInterpolated($"SELECT id_pedido, rut, id_receta, fecha, estado, total, anotaciones FROM pedidos WHERE id_pedido = {id} FOR UPDATE")
+            .FromSqlInterpolated($"SELECT id_pedido, rut, id_receta, fecha, estado, total, anotaciones, fecha_entrega_estimada FROM pedidos WHERE id_pedido = {id} FOR UPDATE")
             .SingleOrDefaultAsync();
 
     public async Task ActualizarPedidoAsync(Pedido pedido)
@@ -114,7 +115,8 @@ public class PedidoRepository : IPedidoRepository
                     Fecha = p.Fecha,
                     Estado = p.Estado,
                     Total = p.Total,
-                    Anotaciones = p.Anotaciones
+                    Anotaciones = p.Anotaciones,
+                    FechaEntregaEstimada = p.FechaEntregaEstimada
                 }
             )
             .FirstOrDefaultAsync();
@@ -135,7 +137,8 @@ public class PedidoRepository : IPedidoRepository
                     Fecha = p.Fecha,
                     Estado = p.Estado,
                     Total = p.Total,
-                    Anotaciones = p.Anotaciones
+                    Anotaciones = p.Anotaciones,
+                    FechaEntregaEstimada = p.FechaEntregaEstimada
                 })
             .OrderByDescending(p => p.Fecha)
             .ToListAsync();
