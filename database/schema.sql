@@ -154,6 +154,22 @@ CREATE TABLE trabajador_optica (
     CONSTRAINT ck_personal_rol CHECK (tipo_usuario = 'Administrador' OR id_rol IS NOT NULL)
 );
 
+CREATE TABLE historial_stock (
+    id_cambio INT AUTO_INCREMENT PRIMARY KEY,
+    id_producto INT NOT NULL,
+    razon_movimiento VARCHAR(255) NOT NULL,
+    id_responsable INT NOT NULL,
+    tipo_stock ENUM('Normal', 'Minimo') NOT NULL,
+    valor_anterior INT NOT NULL,
+    valor_actual INT NOT NULL,
+    fecha_cambio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_historial_stock_producto
+        FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE RESTRICT,
+    CONSTRAINT fk_historial_stock_responsable
+        FOREIGN KEY (id_responsable) REFERENCES trabajador_optica(id_trabajador) ON DELETE RESTRICT,
+    INDEX idx_historial_stock_producto_fecha (id_producto, fecha_cambio)
+);
+
 CREATE TABLE horarios_atencion (
     id_horario INT AUTO_INCREMENT PRIMARY KEY,
 
