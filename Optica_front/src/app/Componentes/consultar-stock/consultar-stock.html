@@ -66,6 +66,7 @@
 							</td>
 							<td class="stock-column action-column">
 								@if (productoEditando() === producto.id) {
+									<label class="stock-input"><span>Motivo del cambio</span><input type="text" maxlength="255" [value]="motivoCambio()" (input)="actualizarMotivoCambio($event)"></label>
 									<button type="button" (click)="guardarStock(producto)" [disabled]="guardandoStock()">{{ guardandoStock() ? 'Guardando...' : 'Guardar' }}</button>
 									<button type="button" (click)="cancelarEdicionStock()" [disabled]="guardandoStock()">Cancelar</button>
 								} @else {

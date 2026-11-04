@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 public class ActualizarProductoDto
 {
     public string Codigo { get; set; } = string.Empty;
@@ -9,6 +11,10 @@ public class ActualizarProductoDto
     public decimal Precio { get; set; }
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
+
+    [StringLength(255)]
+    public string? MotivoCambio { get; set; }
+
     public string Estado { get; set; } = "Disponible";
     public IFormFile? Imagen { get; set; }
 }

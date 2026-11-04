@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,9 +31,14 @@ public class ProductosController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ActualizarProducto(int id, [FromForm] ActualizarProductoDto dto)
     {
+        if (!TryObtenerIdResponsable(out var idResponsable))
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            return Ok(await _productoService.ActualizarProducto(id, dto));
+            return Ok(await _productoService.ActualizarProducto(id, dto, idResponsable));
         }
         catch (KeyNotFoundException ex)
         {
@@ -47,13 +53,37 @@ public class ProductosController : ControllerBase
     [HttpPatch("{id:int}/stock")]
     public async Task<IActionResult> ActualizarStock(int id, [FromBody] ActualizarStockDto dto)
     {
+        if (!TryObtenerIdResponsable(out var idResponsable))
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            return Ok(await _productoService.ActualizarStock(id, dto));
+            return Ok(await _productoService.ActualizarStock(id, dto, idResponsable));
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { mensaje = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:int}/historial-stock")]
+    public async Task<IActionResult> ConsultarHistorialStock(
+        int id,
+        [FromQuery] int pagina = 1,
+        [FromQuery] int tamanoPagina = 20)
+    {
+        try
+        {
+            var historial = await _productoService.ConsultarHistorialStock(id, pagina, tamanoPagina);
+            return historial is null
+                ? NotFound(new { mensaje = "No se encuentra el producto." })
+                : Ok(historial);
         }
         catch (ArgumentException ex)
         {
@@ -83,9 +113,14 @@ public class ProductosController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> CrearProducto([FromForm] CrearProductoDto dto)
     {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idResponsable) || idResponsable <= 0)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            var producto = await _productoService.CrearProducto(dto);
+            var producto = await _productoService.CrearProducto(dto, idResponsable);
             return Ok(producto);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -98,9 +133,14 @@ public class ProductosController : ControllerBase
     [Consumes("application/json")]
     public async Task<IActionResult> CrearProductoJson([FromBody] CrearProductoDto dto)
     {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idResponsable) || idResponsable <= 0)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            var producto = await _productoService.CrearProducto(dto);
+            var producto = await _productoService.CrearProducto(dto, idResponsable);
             return Ok(producto);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -108,4 +148,7 @@ public class ProductosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+
+    private bool TryObtenerIdResponsable(out int idResponsable) =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out idResponsable) && idResponsable > 0;
 }
