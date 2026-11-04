@@ -11,4 +11,6 @@ public interface IClienteService
     Task<Cliente> ActualizarAsync(int id, ActualizarClienteDto dto);
     Task<Cliente> CambiarEstadoAsync(int id, string nuevoEstado);
     Task<HistorialClienteDto?> ObtenerHistorialAsync(int idCliente);
+    Task<PerfilClienteDto?> ObtenerPerfilAsync(int idCliente);
+    Task<PerfilClienteDto> ActualizarPerfilAsync(int idCliente, ActualizarPerfilClienteDto dto);
 }
