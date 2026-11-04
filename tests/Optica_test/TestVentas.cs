@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.Clientes.Models;
@@ -44,7 +46,7 @@ public class TestVentas
     public async Task Crear_PermiteVentaSinCliente(string? rut)
     {
         var servicio = CrearServicio(out var repositorio); var solicitud = Solicitud(("A", 1)); solicitud.RutCliente = rut;
-        await servicio.Crear(solicitud); Assert.Null(repositorio.UltimaVenta!.ClienteId);
+        await CrearVenta(servicio, solicitud); Assert.Null(repositorio.UltimaVenta!.ClienteId);
     }
 
     [Theory]
@@ -53,14 +55,14 @@ public class TestVentas
     public async Task Crear_VinculaLaVentaAlClientePorRutNormalizado(string rut)
     {
         var servicio = CrearServicio(out var repositorio); var solicitud = Solicitud(("A", 1)); solicitud.RutCliente = rut;
-        await servicio.Crear(solicitud); Assert.Equal(7, repositorio.UltimaVenta!.ClienteId);
+        await CrearVenta(servicio, solicitud); Assert.Equal(7, repositorio.UltimaVenta!.ClienteId);
     }
 
     [Fact]
     public async Task Crear_NoGuardaSiElRutNoCorrespondeAUnClienteActivo()
     {
         var servicio = CrearServicio(out var repositorio); var solicitud = Solicitud(("A", 1)); solicitud.RutCliente = "no existe";
-        await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(solicitud)); Assert.Equal(0, repositorio.Guardadas);
+        await Assert.ThrowsAsync<ArgumentException>(() => CrearVenta(servicio, solicitud)); Assert.Equal(0, repositorio.Guardadas);
     }
 
     [Fact]
@@ -70,7 +72,7 @@ public class TestVentas
         var servicio = CrearServicio(out var repositorio);
         salida.WriteLine("PREPARACIÓN: productos A x2, B x1 y A x3.");
 
-        var venta = await servicio.Crear(Solicitud(("A", 2), ("B", 1), ("A", 3)));
+        var venta = await CrearVenta(servicio, Solicitud(("A", 2), ("B", 1), ("A", 3)));
         salida.WriteLine("RESULTADO: {0} productos agrupados y total ${1}.", venta.Productos.Count, venta.Total);
 
         Assert.Equal(750, venta.Total);
@@ -87,7 +89,7 @@ public class TestVentas
         var utc = new DateTimeOffset(2026, 9, 25, 17, 30, 0, TimeSpan.Zero);
         var servicio = new VentaService(repositorio, new ConsultaPrueba(), new CalculoVenta(), new RelojPrueba(utc));
 
-        var venta = await servicio.Crear(Solicitud(("A", 1)));
+        var venta = await CrearVenta(servicio, Solicitud(("A", 1)));
 
         Assert.Equal(new DateTime(2026, 9, 25, 14, 30, 0), venta.Fecha);
     }
@@ -99,7 +101,8 @@ public class TestVentas
         var servicio = CrearServicio(out var repositorio);
         salida.WriteLine("ACCIÓN: registrar una venta del producto A.");
 
-        var venta = await servicio.Crear(Solicitud(("A", 1)));
+        var venta = await CrearVenta(servicio, Solicitud(("A", 1)));
+        Assert.Equal(42, repositorio.IdResponsable);
         salida.WriteLine("RESULTADO: ID {0}; ventas guardadas: {1}.", venta.IdVenta, repositorio.Guardadas);
 
         Assert.Equal(1, venta.IdVenta);
@@ -122,7 +125,7 @@ public class TestVentas
         {
             salida.WriteLine("ACCIÓN: validar solicitud inválida {0} de {1}.", indice + 1, solicitudesInvalidas.Length);
             var solicitud = solicitudesInvalidas[indice];
-            await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(solicitud));
+            await Assert.ThrowsAsync<ArgumentException>(() => CrearVenta(servicio, solicitud));
             salida.WriteLine("RESULTADO: solicitud {0} rechazada correctamente.", indice + 1);
         }
 
@@ -138,7 +141,7 @@ public class TestVentas
         var servicio = new VentaService(repositorio, new ConsultaPrueba(), new CalculoAlternativo(), TimeProvider.System);
         salida.WriteLine("ACCIÓN: crear una venta de $100 con cálculo alternativo del 50%.");
 
-        var venta = await servicio.Crear(Solicitud(("A", 1)));
+        var venta = await CrearVenta(servicio, Solicitud(("A", 1)));
         salida.WriteLine("RESULTADO: total calculado ${0}.", venta.Total);
 
         Assert.Equal(50, venta.Total);
@@ -219,7 +222,7 @@ public class TestVentas
     public async Task Api_Crear_VentaValidaDevuelve201ConDetallesCalculados()
     {
         var servicio = CrearServicio(out var repositorio);
-        var controlador = new VentasController(servicio, new ConsultaPrueba());
+        var controlador = CrearControlador(servicio);
         var respuesta = Assert.IsType<CreatedAtActionResult>(
             await controlador.Crear(Solicitud(("A", 2), ("B", 1), ("A", 3))));
         var venta = Assert.IsType<VentaCreadaResponseDto>(respuesta.Value);
@@ -234,6 +237,7 @@ public class TestVentas
         Assert.Equal(new DetalleVentaResponseDto(2, 1, 250, 250),
             venta.Productos.Single(p => p.ProductoId == 2));
         Assert.Equal(1, repositorio.Guardadas);
+        Assert.Equal(42, repositorio.IdResponsable);
     }
 
     [Theory]
@@ -244,7 +248,7 @@ public class TestVentas
     public async Task Api_Crear_VentaInvalidaDevuelve400SinGuardar(string codigo, int cantidad)
     {
         var servicio = CrearServicio(out var repositorio);
-        var controlador = new VentasController(servicio, new ConsultaPrueba());
+        var controlador = CrearControlador(servicio);
         var respuesta = Assert.IsType<BadRequestObjectResult>(
             await controlador.Crear(Solicitud((codigo, cantidad))));
 
@@ -254,10 +258,21 @@ public class TestVentas
     }
 
     [Fact]
+    public async Task Api_Crear_SinIdResponsableDevuelve401SinGuardar()
+    {
+        var servicio = CrearServicio(out var repositorio);
+        var controlador = CrearControlador(servicio, null);
+
+        var respuesta = Assert.IsType<UnauthorizedResult>(await controlador.Crear(Solicitud(("A", 1))));
+
+        Assert.Equal(0, repositorio.Guardadas);
+    }
+
+    [Fact]
     public async Task Crear_RechazaCantidadAcumuladaSuperiorAlStock()
     {
         var servicio = CrearServicio(out var repositorio);
-        var error = await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(Solicitud(("A", 3), ("A", 3))));
+        var error = await Assert.ThrowsAsync<ArgumentException>(() => CrearVenta(servicio, Solicitud(("A", 3), ("A", 3))));
         Assert.Contains("stock insuficiente", error.Message);
         Assert.Equal(0, repositorio.Guardadas);
     }
@@ -266,7 +281,7 @@ public class TestVentas
     public async Task Crear_RechazaProductoSinStock()
     {
         var servicio = CrearServicio(out var repositorio);
-        var error = await Assert.ThrowsAsync<ArgumentException>(() => servicio.Crear(Solicitud(("C", 1))));
+        var error = await Assert.ThrowsAsync<ArgumentException>(() => CrearVenta(servicio, Solicitud(("C", 1))));
         Assert.Contains("Sin productos en stock", error.Message);
         Assert.Equal(0, repositorio.Guardadas);
     }
@@ -282,15 +297,41 @@ public class TestVentas
         Productos = items.Select(i => new ProductoVentaDto
             { CodigoProducto = i.Codigo, Cantidad = i.Cantidad }).ToList()
     };
+
+    private static Task<VentaCreadaResponseDto> CrearVenta(IVentaService servicio, CrearVentaDto solicitud) =>
+        servicio.Crear(solicitud, 42);
+
+    private static VentasController CrearControlador(IVentaService servicio, int? idResponsable = 42)
+    {
+        var controlador = new VentasController(servicio, new ConsultaPrueba());
+        var claims = idResponsable.HasValue
+            ? new[] { new Claim(ClaimTypes.NameIdentifier, idResponsable.Value.ToString()) }
+            : [];
+        controlador.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims, "pruebas"))
+            }
+        };
+        return controlador;
+    }
 }
 
 public sealed class RepositorioPrueba : IVentaRepository
 {
     public Task<int?> BuscarClienteActivo(string rutNormalizado) => Task.FromResult<int?>(rutNormalizado == "123456785" ? 7 : null);
     public int Guardadas { get; private set; }
+    public int IdResponsable { get; private set; }
     public Venta? UltimaVenta { get; private set; }
     public IReadOnlyList<VentaResponseDto> Historial { get; set; } = [];
-    public Task Guardar(Venta venta) { UltimaVenta = venta; venta.IdVenta = ++Guardadas; return Task.CompletedTask; }
+    public Task Guardar(Venta venta, int idResponsable)
+    {
+        UltimaVenta = venta;
+        IdResponsable = idResponsable;
+        venta.IdVenta = ++Guardadas;
+        return Task.CompletedTask;
+    }
     public Task<IReadOnlyList<VentaResponseDto>> Listar() => Task.FromResult(Historial);
 }
 

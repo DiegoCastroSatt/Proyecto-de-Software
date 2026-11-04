@@ -225,6 +225,35 @@ INSERT INTO detalle_venta
 INSERT INTO trabajador_optica (nombre, correo, contrasena, estado, nombre_usuario, tipo_usuario) VALUES
 ('ale', 'correo@gmail.com', '1234', 'Activo', 'ale', 'Administrador');
 
+
+INSERT INTO historial_stock
+(id_producto, motivo_movimiento, id_responsable, tipo_stock, valor_anterior, valor_actual, fecha_cambio)
+SELECT p.id_producto, 'Registro de nuevo producto', t.id_trabajador, 'Normal', 0, p.stock, '2026-09-01 09:00:00'
+FROM productos p
+CROSS JOIN trabajador_optica t
+WHERE t.nombre_usuario = 'ale';
+
+INSERT INTO historial_stock
+(id_producto, motivo_movimiento, id_responsable, tipo_stock, valor_anterior, valor_actual, fecha_cambio)
+SELECT p.id_producto, 'Registro de nuevo producto', t.id_trabajador, 'Minimo', 0, p.stock_minimo, '2026-09-01 09:00:00'
+FROM productos p
+CROSS JOIN trabajador_optica t
+WHERE t.nombre_usuario = 'ale';
+
+INSERT INTO historial_stock
+(id_producto, motivo_movimiento, id_responsable, tipo_stock, valor_anterior, valor_actual, fecha_cambio)
+SELECT p.id_producto, 'Venta', t.id_trabajador, 'Normal', 5, 4, '2026-09-10 12:00:00'
+FROM productos p
+CROSS JOIN trabajador_optica t
+WHERE p.codigo = 'VG001' AND t.nombre_usuario = 'ale';
+
+INSERT INTO historial_stock
+(id_producto, motivo_movimiento, id_responsable, tipo_stock, valor_anterior, valor_actual, fecha_cambio)
+SELECT p.id_producto, 'Reposición de prueba', t.id_trabajador, 'Normal', 4, 5, '2026-09-12 12:00:00'
+FROM productos p
+CROSS JOIN trabajador_optica t
+WHERE p.codigo = 'VG001' AND t.nombre_usuario = 'ale';
+
 -- TIPOS DE MARCOS
 INSERT IGNORE INTO tipos_marco
 (codigo, nombre, categoria, svg, rostros)
