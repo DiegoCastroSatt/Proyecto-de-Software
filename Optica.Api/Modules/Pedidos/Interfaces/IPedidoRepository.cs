@@ -21,4 +21,3 @@ public interface IPedidoRepository
     Task<PedidoResponseDto?> ObtenerPedidoDetalleAsync(int id);
     Task ActualizarPedidoAsync(Pedido pedido);
 }
-
