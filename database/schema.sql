@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 
 -- Script autocontenido: puede ejecutarse directamente en MySQL o mediante Docker.
 CREATE DATABASE IF NOT EXISTS optica_db
