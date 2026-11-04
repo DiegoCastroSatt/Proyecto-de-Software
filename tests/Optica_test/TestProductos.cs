@@ -284,6 +284,15 @@ internal sealed class ProductoRepositorioPrueba : IProductoRepository
         int pagina,
         int tamanoPagina) => Task.FromResult<Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto?>(null);
 
+    public Task<Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto> ConsultarHistorialStockReciente(
+        int pagina,
+        int tamanoPagina) => Task.FromResult(new Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto(
+            pagina,
+            tamanoPagina,
+            0,
+            0,
+            Array.Empty<Optica.Api.Modules.Productos.DTOs.HistorialStockMovimientoResponseDto>()));
+
     public Task<bool> Eliminar(int id)
     {
         ProductoEliminado = true;
