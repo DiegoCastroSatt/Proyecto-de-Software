@@ -63,6 +63,8 @@ public class OpticaDbContext : DbContext
     public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
     public DbSet<Resena> Resenas => Set<Resena>();
 
+    public DbSet<HistorialStock> HistorialStock => Set<HistorialStock>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -426,6 +428,19 @@ public class OpticaDbContext : DbContext
             entity.HasIndex(r => new { r.IdCliente, r.IdProducto }).IsUnique();
             entity.HasOne(r => r.Cliente).WithMany().HasForeignKey(r => r.IdCliente).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(r => r.Producto).WithMany().HasForeignKey(r => r.IdProducto).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<HistorialStock>(entity =>
+        {
+            entity.ToTable("historial_stock");
+            entity.HasKey(h => h.IdCambio);
+            entity.Property(h => h.IdCambio).HasColumnName("id_cambio");
+            entity.Property(h => h.IdProducto).HasColumnName("id_producto");
+            entity.Property(h => h.StockAnterior).HasColumnName("stock_anterior");
+            entity.Property(h => h.StockActual).HasColumnName("stock_actual");
+            entity.Property(h => h.FechaCambio).HasColumnName("fecha_cambio");
+            entity.Property(h => h.MotivoCambio).HasColumnName("motivo_cambio").HasMaxLength(255);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(h => h.IdProducto).OnDelete(DeleteBehavior.Cascade);
         });
 
     }

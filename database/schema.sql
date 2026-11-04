@@ -157,7 +157,7 @@ CREATE TABLE trabajador_optica (
 CREATE TABLE historial_stock (
     id_cambio INT AUTO_INCREMENT PRIMARY KEY,
     id_producto INT NOT NULL,
-    razon_movimiento VARCHAR(255) NOT NULL,
+    motivo_movimiento VARCHAR(255) NOT NULL,
     id_responsable INT NOT NULL,
     tipo_stock ENUM('Normal', 'Minimo') NOT NULL,
     valor_anterior INT NOT NULL,
