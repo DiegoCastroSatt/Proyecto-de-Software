@@ -12,4 +12,6 @@ public interface IClienteRepository
     Task<Cliente> CrearAsync(Cliente cliente);
     Task ActualizarAsync(Cliente cliente);
     Task<HistorialClienteDto?> ObtenerHistorialAsync(int idCliente);
+    Task<PerfilClienteDto?> ObtenerPerfilAsync(int idCliente);
+    Task ActualizarPerfilAsync(int idCliente, ActualizarPerfilClienteDto dto);
 }

@@ -37,6 +37,7 @@ import { authClienteGuard } from './guards/auth-cliente-guard';
 import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
 import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
+import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
 
 export const routes: Routes = [
   {
@@ -48,6 +49,7 @@ export const routes: Routes = [
       { path: 'cliente/login', component: LoginComponent },
       { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
       { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
+      { path: 'cliente/perfil', component: MiPerfilComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },

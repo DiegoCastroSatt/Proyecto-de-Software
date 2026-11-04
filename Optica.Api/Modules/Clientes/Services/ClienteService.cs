@@ -108,4 +108,23 @@ public class ClienteService : IClienteService
     }
     return historial;
 }
+
+    public Task<PerfilClienteDto?> ObtenerPerfilAsync(int idCliente) => _repository.ObtenerPerfilAsync(idCliente);
+
+    public async Task<PerfilClienteDto> ActualizarPerfilAsync(int idCliente, ActualizarPerfilClienteDto dto)
+    {
+        dto.Nombre = dto.Nombre.Trim();
+        dto.Apellido = dto.Apellido.Trim();
+        dto.Telefono = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono.Trim();
+        if (dto.Nombre.Length == 0 || dto.Apellido.Length == 0)
+            throw new ArgumentException("El nombre y el apellido son obligatorios.");
+        if (dto.Telefono is not null && !TelefonoChilenoValidator.EsValido(dto.Telefono))
+            throw new ArgumentException("Ingresa un celular válido de 9 dígitos; puedes incluir el prefijo +56.");
+        var actual = await _repository.ObtenerPerfilAsync(idCliente);
+        if (actual is null) throw new KeyNotFoundException("No se encontró el perfil del cliente.");
+        if (dto.Telefono is null && string.IsNullOrWhiteSpace(actual.Correo))
+            throw new ArgumentException("Debes mantener al menos un medio de contacto.");
+        await _repository.ActualizarPerfilAsync(idCliente, dto);
+        return (await _repository.ObtenerPerfilAsync(idCliente))!;
+    }
 }

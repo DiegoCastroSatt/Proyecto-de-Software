@@ -28,6 +28,7 @@
       <details class="client-account">
         <summary class="client-welcome">Bienvenido, {{ cliente.nombre }}</summary>
         <div class="client-account-options">
+          <a routerLink="/cliente/perfil">Mi perfil</a>
           <button type="button" (click)="cerrarSesion()" [disabled]="cerrandoSesion()">
             {{ cerrandoSesion() ? 'Cerrando sesión…' : 'Cerrar sesión' }}
           </button>
