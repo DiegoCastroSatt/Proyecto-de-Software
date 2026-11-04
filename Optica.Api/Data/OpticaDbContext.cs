@@ -436,11 +436,15 @@ public class OpticaDbContext : DbContext
             entity.HasKey(h => h.IdCambio);
             entity.Property(h => h.IdCambio).HasColumnName("id_cambio");
             entity.Property(h => h.IdProducto).HasColumnName("id_producto");
-            entity.Property(h => h.StockAnterior).HasColumnName("stock_anterior");
-            entity.Property(h => h.StockActual).HasColumnName("stock_actual");
-            entity.Property(h => h.FechaCambio).HasColumnName("fecha_cambio");
-            entity.Property(h => h.MotivoCambio).HasColumnName("motivo_cambio").HasMaxLength(255);
-            entity.HasOne<Producto>().WithMany().HasForeignKey(h => h.IdProducto).OnDelete(DeleteBehavior.Cascade);
+            entity.Property(h => h.MotivoMovimiento).HasColumnName("motivo_movimiento").HasMaxLength(255).IsRequired();
+            entity.Property(h => h.IdResponsable).HasColumnName("id_responsable");
+            entity.Property(h => h.TipoStock).HasColumnName("tipo_stock").HasColumnType("enum('Normal','Minimo')").IsRequired();
+            entity.Property(h => h.ValorAnterior).HasColumnName("valor_anterior");
+            entity.Property(h => h.ValorActual).HasColumnName("valor_actual");
+            entity.Property(h => h.FechaCambio).HasColumnName("fecha_cambio").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(h => new { h.IdProducto, h.FechaCambio });
+            entity.HasOne<Producto>().WithMany().HasForeignKey(h => h.IdProducto).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Trabajador>().WithMany().HasForeignKey(h => h.IdResponsable).OnDelete(DeleteBehavior.Restrict);
         });
 
     }

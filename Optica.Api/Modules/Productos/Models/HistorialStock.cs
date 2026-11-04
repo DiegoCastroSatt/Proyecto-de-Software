@@ -1,17 +1,13 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Optica.Api.Modules.Productos.Models;
 
 public class HistorialStock
 {
     public int IdCambio { get; set; }
     public int IdProducto { get; set; }
-    public int IdTrabajador { get; set; }
-    public int StockAnterior { get; set; }
-    public int StockActual { get; set; }
-    public DateTime FechaCambio { get; set; } = DateTime.Now;
-    public string? MotivoCambio { get; set; }
-
-    [ForeignKey("IdProducto")]
-    public Producto Producto { get; set; } = null!;
+    public string MotivoMovimiento { get; set; } = string.Empty;
+    public int IdResponsable { get; set; }
+    public string TipoStock { get; set; } = string.Empty;
+    public int ValorAnterior { get; set; }
+    public int ValorActual { get; set; }
+    public DateTime FechaCambio { get; set; }
 }
