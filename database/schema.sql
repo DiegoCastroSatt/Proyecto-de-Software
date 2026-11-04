@@ -28,6 +28,7 @@ CREATE TABLE cuentas_cliente (
     token_confirmacion_hash CHAR(64) NULL,
     token_confirmacion_expira_utc DATETIME NULL,
     ultimo_correo_confirmacion_utc DATETIME NULL,
+    correo_pendiente VARCHAR(100) NULL,
     CONSTRAINT fk_cuentas_cliente_cliente FOREIGN KEY (id_cliente)
         REFERENCES clientes(id_cliente) ON DELETE RESTRICT
 );
