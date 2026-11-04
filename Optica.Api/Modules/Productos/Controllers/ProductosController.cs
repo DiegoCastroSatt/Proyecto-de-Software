@@ -91,6 +91,21 @@ public class ProductosController : ControllerBase
         }
     }
 
+    [HttpGet("historial-stock")]
+    public async Task<IActionResult> ConsultarHistorialStockReciente(
+        [FromQuery] int pagina = 1,
+        [FromQuery] int tamanoPagina = 20)
+    {
+        try
+        {
+            return Ok(await _productoService.ConsultarHistorialStockReciente(pagina, tamanoPagina));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> EliminarProducto(int id)
     {

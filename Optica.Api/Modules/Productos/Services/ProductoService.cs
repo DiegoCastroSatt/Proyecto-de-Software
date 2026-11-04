@@ -163,18 +163,28 @@ public class ProductoService : IProductoService
         int pagina,
         int tamanoPagina)
     {
+        ValidarPaginacionHistorial(pagina, tamanoPagina);
         if (idProducto <= 0)
-        {
             throw new ArgumentException("El identificador del producto no es válido.");
-        }
 
+        return await _productoRepository.ConsultarHistorialStock(idProducto, pagina, tamanoPagina);
+    }
+
+    public async Task<HistorialStockPaginadoResponseDto> ConsultarHistorialStockReciente(
+        int pagina,
+        int tamanoPagina)
+    {
+        ValidarPaginacionHistorial(pagina, tamanoPagina);
+        return await _productoRepository.ConsultarHistorialStockReciente(pagina, tamanoPagina);
+    }
+
+    private static void ValidarPaginacionHistorial(int pagina, int tamanoPagina)
+    {
         if (pagina <= 0 || tamanoPagina <= 0 || tamanoPagina > 100 ||
             (long)(pagina - 1) * tamanoPagina > int.MaxValue)
         {
             throw new ArgumentException("La paginación solicitada no es válida.");
         }
-
-        return await _productoRepository.ConsultarHistorialStock(idProducto, pagina, tamanoPagina);
     }
 
     public async Task EliminarProducto(int id)

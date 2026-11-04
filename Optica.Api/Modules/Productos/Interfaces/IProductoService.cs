@@ -8,5 +8,6 @@ public interface IProductoService
     Task<ProductoResponseDto> ActualizarProducto(int id, ActualizarProductoDto dto, int idResponsable);
     Task<ProductoResponseDto> ActualizarStock(int id, ActualizarStockDto dto, int idResponsable);
     Task<HistorialStockPaginadoResponseDto?> ConsultarHistorialStock(int idProducto, int pagina, int tamanoPagina);
+    Task<HistorialStockPaginadoResponseDto> ConsultarHistorialStockReciente(int pagina, int tamanoPagina);
     Task EliminarProducto(int id);
 }

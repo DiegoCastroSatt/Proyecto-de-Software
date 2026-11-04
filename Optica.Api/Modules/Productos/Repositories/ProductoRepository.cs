@@ -177,6 +177,39 @@ public class ProductoRepository : IProductoRepository
             movimientos);
     }
 
+    public async Task<HistorialStockPaginadoResponseDto> ConsultarHistorialStockReciente(
+        int pagina,
+        int tamanoPagina)
+    {
+        var consulta = _context.HistorialStock.AsNoTracking();
+        var totalRegistros = await consulta.CountAsync();
+        var movimientos = await (
+            from historial in consulta
+            join responsable in _context.Trabajadores.AsNoTracking()
+                on historial.IdResponsable equals responsable.IdTrabajador
+            orderby historial.FechaCambio descending, historial.IdCambio descending
+            select new HistorialStockMovimientoResponseDto(
+                historial.IdCambio,
+                historial.IdProducto,
+                historial.MotivoMovimiento,
+                historial.IdResponsable,
+                responsable.Nombre,
+                historial.TipoStock,
+                historial.ValorAnterior,
+                historial.ValorActual,
+                historial.FechaCambio))
+            .Skip((pagina - 1) * tamanoPagina)
+            .Take(tamanoPagina)
+            .ToListAsync();
+
+        return new HistorialStockPaginadoResponseDto(
+            pagina,
+            tamanoPagina,
+            totalRegistros,
+            (int)Math.Ceiling(totalRegistros / (double)tamanoPagina),
+            movimientos);
+    }
+
     public async Task<bool> Eliminar(int id)
     {
         var producto = await _context.Productos.FirstOrDefaultAsync(item => item.IdProducto == id);
