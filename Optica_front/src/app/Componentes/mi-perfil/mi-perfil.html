@@ -19,9 +19,23 @@
         <label>Apellido<input type="text" formControlName="apellido" [readonly]="!editando()" autocomplete="family-name" maxlength="60"><small *ngIf="formulario.controls.apellido.touched && formulario.controls.apellido.invalid">Ingresa tu apellido (máximo 60 caracteres).</small></label>
         <label>RUT<input type="text" [value]="datos.rut" readonly aria-describedby="rut-note"><small id="rut-note">El RUT no se puede modificar.</small></label>
         <label>Teléfono<input type="tel" formControlName="telefono" [readonly]="!editando()" autocomplete="tel" placeholder="+56 9 1234 5678"><small *ngIf="formulario.controls.telefono.touched && formulario.controls.telefono.invalid">Ingresa un celular válido de 9 dígitos.</small></label>
-        <label class="wide">Correo electrónico<input type="email" [value]="datos.correo ?? 'Sin correo registrado'" readonly><small>Para cambiar tu correo se necesita un proceso de confirmación.</small></label>
+        <label class="wide">Correo electrónico<input type="email" [value]="datos.correo ?? 'Sin correo registrado'" readonly><small>El correo nuevo se activará cuando confirmes el enlace enviado a esa dirección.</small></label>
       </div>
       @if (editando()) { <div class="actions"><button type="button" class="button secondary" (click)="cancelar()" [disabled]="guardando()">Cancelar</button><button type="submit" class="button primary" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar cambios' }}</button></div> }
     </form>
+    <section class="profile-card email-card" aria-labelledby="email-title">
+      <div class="card-heading"><div><h2 id="email-title">Cambiar correo electrónico</h2><p>Ingresa tu contraseña actual para verificar tu identidad.</p></div>
+        @if (!editandoCorreo()) { <button type="button" class="button secondary" (click)="editandoCorreo.set(true)">Cambiar correo</button> }
+      </div>
+      @if (mensajeCorreo()) { <p class="notice success" role="status">{{ mensajeCorreo() }}</p> }
+      @if (errorCorreo()) { <p class="notice error" role="alert">{{ errorCorreo() }}</p> }
+      @if (editandoCorreo()) {
+        <form class="email-form" [formGroup]="formularioCorreo" (ngSubmit)="solicitarCambioCorreo()" novalidate>
+          <label>Nuevo correo electrónico<input type="email" formControlName="correo" autocomplete="email" maxlength="100"><small *ngIf="formularioCorreo.controls.correo.touched && formularioCorreo.controls.correo.invalid">Ingresa un correo válido de hasta 100 caracteres.</small></label>
+          <label>Contraseña actual<input type="password" formControlName="contrasenaActual" autocomplete="current-password"><small *ngIf="formularioCorreo.controls.contrasenaActual.touched && formularioCorreo.controls.contrasenaActual.invalid">Ingresa tu contraseña actual.</small></label>
+          <div class="actions"><button type="button" class="button secondary" (click)="cancelarCambioCorreo()" [disabled]="procesandoCorreo()">Cancelar</button><button type="submit" class="button primary" [disabled]="procesandoCorreo()">{{ procesandoCorreo() ? 'Enviando…' : 'Enviar confirmación' }}</button></div>
+        </form>
+      }
+    </section>
   }
 </section>

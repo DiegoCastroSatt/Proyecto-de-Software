@@ -9,7 +9,9 @@ export const authClienteGuard: CanActivateFn = (_route, state) => {
   const servicio = inject(AutenticacionClienteService);
   const login = () => router.createUrlTree(['/cliente/login'], { queryParams: { returnUrl: state.url } });
 
-  if (!isPlatformBrowser(inject(PLATFORM_ID))) return login();
+  // En SSR no está disponible la cookie HttpOnly del navegador para consultar la sesión.
+  // Dejar pasar la ruta permite que el guard del navegador la valide tras hidratarse.
+  if (!isPlatformBrowser(inject(PLATFORM_ID))) return true;
 
   return servicio.verificarSesion().pipe(
     map(cliente => Number.isInteger(cliente.idCliente) && cliente.idCliente > 0 ? true : login()),

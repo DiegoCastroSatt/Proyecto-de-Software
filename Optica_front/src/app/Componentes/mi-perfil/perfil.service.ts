@@ -17,6 +17,13 @@ export interface ActualizarPerfilCliente {
   telefono: string | null;
 }
 
+export interface SolicitarCambioCorreo {
+  correo: string;
+  contrasenaActual: string;
+}
+
+export interface RespuestaCambioCorreo { mensaje: string; }
+
 @Injectable({ providedIn: 'root' })
 export class PerfilService {
   private readonly http = inject(HttpClient);
@@ -28,5 +35,10 @@ export class PerfilService {
 
   actualizar(datos: ActualizarPerfilCliente): Observable<PerfilCliente> {
     return this.http.put<PerfilCliente>(this.apiUrl, datos, { withCredentials: true });
+  }
+
+  solicitarCambioCorreo(datos: SolicitarCambioCorreo): Observable<RespuestaCambioCorreo> {
+    return this.http.post<RespuestaCambioCorreo>(
+      'http://localhost:8080/api/Autenticacion/cliente/correo/cambio', datos, { withCredentials: true });
   }
 }

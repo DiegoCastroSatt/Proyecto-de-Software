@@ -153,6 +153,7 @@ public class OpticaDbContext : DbContext
             entity.Property(c => c.TokenConfirmacionHash).HasColumnName("token_confirmacion_hash").HasMaxLength(64);
             entity.Property(c => c.TokenConfirmacionExpiraUtc).HasColumnName("token_confirmacion_expira_utc");
             entity.Property(c => c.UltimoCorreoConfirmacionUtc).HasColumnName("ultimo_correo_confirmacion_utc");
+            entity.Property(c => c.CorreoPendiente).HasColumnName("correo_pendiente").HasMaxLength(100);
             entity.HasIndex(c => c.IdCliente).IsUnique();
             entity.HasIndex(c => c.CorreoNormalizado).IsUnique();
             entity.HasOne(c => c.Cliente)

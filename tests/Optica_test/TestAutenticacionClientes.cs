@@ -112,6 +112,32 @@ public sealed class TestAutenticacionClientes : IDisposable
     }
 
     [Fact]
+    public async Task CambioCorreo_VerificaContrasenaYActualizaAlConfirmarNuevoCorreo()
+    {
+        var correoFake = new FakeEmailService();
+        await Servicio(correoFake).RegistrarAsync(Registro(), CancellationToken.None);
+        var tokenInicial = ExtraerToken(correoFake.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
+        await Servicio(correoFake).ConfirmarCuentaAsync(tokenInicial, CancellationToken.None);
+        var cuenta = await db.CuentasCliente.SingleAsync();
+
+        var incorrecta = await Servicio(correoFake).SolicitarCambioCorreoAsync(cuenta.IdCliente, "nuevo@example.test", "incorrecta", CancellationToken.None);
+        Assert.Equal(ResultadoCambioCorreoCliente.ContrasenaIncorrecta, incorrecta);
+        Assert.Null(cuenta.CorreoPendiente);
+
+        var resultado = await Servicio(correoFake).SolicitarCambioCorreoAsync(cuenta.IdCliente, "nuevo@example.test", "Optica123!", CancellationToken.None);
+        Assert.Equal(ResultadoCambioCorreoCliente.ConfirmacionEnviada, resultado);
+        Assert.Equal("ana@example.test", cuenta.Correo);
+        Assert.Equal("ana@example.test", (await db.Clientes.SingleAsync()).Correo);
+        Assert.Equal("nuevo@example.test", cuenta.CorreoPendiente);
+
+        var tokenCambio = ExtraerToken(correoFake.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
+        Assert.True(await Servicio(correoFake).ConfirmarCuentaAsync(tokenCambio, CancellationToken.None));
+        Assert.Equal("nuevo@example.test", cuenta.Correo);
+        Assert.Null(cuenta.CorreoPendiente);
+        Assert.Equal("nuevo@example.test", (await db.Clientes.SingleAsync()).Correo);
+    }
+
+    [Fact]
     public async Task IniciarSesion_RechazaCuentaHastaConfirmarCorreo()
     {
         await Servicio().RegistrarAsync(Registro(), CancellationToken.None);

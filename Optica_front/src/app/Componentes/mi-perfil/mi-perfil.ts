@@ -22,6 +22,14 @@ export class MiPerfilComponent implements OnInit {
   readonly error = signal('');
   readonly confirmacion = signal('');
   readonly perfil = signal<PerfilCliente | null>(null);
+  readonly editandoCorreo = signal(false);
+  readonly procesandoCorreo = signal(false);
+  readonly mensajeCorreo = signal('');
+  readonly errorCorreo = signal('');
+  readonly formularioCorreo = this.formularioBuilder.nonNullable.group({
+    correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+    contrasenaActual: ['', [Validators.required]],
+  });
   readonly formulario = this.formularioBuilder.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(60)]],
     apellido: ['', [Validators.required, Validators.maxLength(60)]],
@@ -56,5 +64,22 @@ export class MiPerfilComponent implements OnInit {
         next: perfil => { this.perfil.set(perfil); this.formulario.patchValue({ nombre: perfil.nombre, apellido: perfil.apellido, telefono: perfil.telefono ?? '' }); this.editando.set(false); this.guardando.set(false); this.confirmacion.set('Tus datos se actualizaron correctamente.'); },
         error: (respuesta: HttpErrorResponse) => { this.guardando.set(false); this.error.set(respuesta.error?.mensaje ?? 'No fue posible guardar los cambios. Inténtalo nuevamente.'); },
       });
+  }
+
+  solicitarCambioCorreo(): void {
+    if (this.formularioCorreo.invalid || this.procesandoCorreo()) { this.formularioCorreo.markAllAsTouched(); return; }
+    this.procesandoCorreo.set(true); this.errorCorreo.set(''); this.mensajeCorreo.set('');
+    const valores = this.formularioCorreo.getRawValue();
+    this.servicio.solicitarCambioCorreo({ correo: valores.correo.trim(), contrasenaActual: valores.contrasenaActual })
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: respuesta => { this.mensajeCorreo.set(respuesta.mensaje); this.procesandoCorreo.set(false); this.editandoCorreo.set(false); this.formularioCorreo.reset(); },
+        error: (respuesta: HttpErrorResponse) => { this.errorCorreo.set(respuesta.error?.mensaje ?? 'No fue posible solicitar el cambio. Inténtalo nuevamente.'); this.procesandoCorreo.set(false); },
+      });
+  }
+
+  cancelarCambioCorreo(): void {
+    this.formularioCorreo.reset();
+    this.errorCorreo.set('');
+    this.editandoCorreo.set(false);
   }
 }
