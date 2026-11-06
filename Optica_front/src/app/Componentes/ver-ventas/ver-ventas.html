@@ -85,6 +85,8 @@
       </section>
 
       <h3>Historial de ventas</h3>
+      <p>Los comprobantes son de uso interno. No son documentos tributarios legales.</p>
+      @if (comprobantes.error()) { <p class="error" role="alert">{{ comprobantes.error() }}</p> }
       @if (!ventas().length) { <p class="vacio">Aún no hay ventas registradas.</p> }
       <div class="historial">
         @for (venta of ventas(); track venta.idVenta) {
@@ -98,6 +100,16 @@
               producto.cantidad }}</span> }
           </div>
           <strong>${{ venta.total | number:'1.0-0' }}</strong>
+          <div class="acciones-comprobante">
+            <button type="button" class="boton-comprobante boton-comprobante--ver" [disabled]="comprobantes.descargando() !== null"
+              [attr.aria-label]="'Ver comprobante PDF de venta ' + venta.idVenta" (click)="comprobantes.mostrar(venta)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>Ver PDF</span>
+            </button>
+            <button type="button" class="boton-comprobante boton-comprobante--descargar" [disabled]="comprobantes.descargando() !== null"
+              [attr.aria-label]="'Descargar comprobante PDF de venta ' + venta.idVenta" (click)="comprobantes.descargar(venta)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>{{ comprobantes.descargando() === venta.idVenta ? 'Generando PDF…' : 'Descargar Comprobante' }}</span>
+            </button>
+          </div>
         </article>
         }
       </div>
