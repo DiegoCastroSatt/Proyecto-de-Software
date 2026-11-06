@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, ElementRef, ViewChild, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { ComprobanteVentaService } from '../../shared/services/comprobante-venta.service';
+import { Component, OnInit, signal, computed, ElementRef, ViewChild, OnDestroy, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import type { Chart as ChartType } from 'chart.js';
@@ -64,9 +65,10 @@ interface ResumenMensual {
   selector: 'app-ver-ventas',
   imports: [DecimalPipe, DatePipe, RouterLink],
   templateUrl: './ver-ventas.html',
-  styleUrls: ['../registro-venta/registro-venta.css', './ver-ventas.css']
+  styleUrls: ['../registro-venta/registro-venta.css', './ver-ventas.css', '../../shared/styles/comprobante-venta.css']
 })
 export class VerVentasComponent implements OnInit, OnDestroy {
+  protected readonly comprobantes = inject(ComprobanteVentaService);
   private graficoIngresos?: ElementRef<HTMLCanvasElement>;
 
   @ViewChild('graficoIngresos')
