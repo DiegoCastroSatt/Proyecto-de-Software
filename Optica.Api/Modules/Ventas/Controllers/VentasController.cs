@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Ventas.DTOs;
 using Optica.Api.Modules.Ventas.Interfaces;
 
 namespace Optica.Api.Modules.Ventas.Controllers;
 
+[Authorize(Policy = "ventas")]
 [ApiController]
 [Route("api/[controller]")]
 public class VentasController(IVentaService ventas, IConsultaProductoVenta productos) : ControllerBase

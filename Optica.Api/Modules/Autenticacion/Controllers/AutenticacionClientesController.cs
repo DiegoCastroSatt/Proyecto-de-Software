@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
+using Optica.Api.Modules.Accesos;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Services;
 
@@ -13,6 +14,7 @@ namespace Optica.Api.Modules.Autenticacion.Controllers;
 [Route("api/Autenticacion/cliente")]
 public sealed class AutenticacionClientesController(
     AutenticacionClienteService autenticacion,
+    RecuperacionService recuperacion,
     OpticaDbContext db,
     ILogger<AutenticacionClientesController> logger) : ControllerBase
 {
@@ -36,8 +38,10 @@ public sealed class AutenticacionClientesController(
                 new Claim(ClaimTypes.NameIdentifier, sesion.IdCliente.ToString()),
                 new Claim(ClaimTypes.Name, sesion.Nombre),
                 new Claim(ClaimTypes.Email, sesion.Correo),
+                new Claim(PermisosAcceso.VersionCredencial, sesion.VersionCredencial),
                 new Claim(ClaimTipo, "cliente")
             }, Esquema);
+            await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(Esquema, new ClaimsPrincipal(identidad));
             return Ok(sesion);
         }
@@ -117,21 +121,12 @@ public sealed class AutenticacionClientesController(
     [AllowAnonymous]
     [HttpPost("recuperacion/solicitar")]
     public async Task<IActionResult> SolicitarRecuperacion(
-        [FromBody] SolicitarRecuperacionClienteRequest request,
+        [FromBody] SolicitarRecuperacionRequest request,
         CancellationToken cancellationToken)
     {
         try
         {
-            var aceptada = await autenticacion.SolicitarRecuperacionAsync(
-                request.Correo,
-                HttpContext.Connection.RemoteIpAddress?.ToString(),
-                cancellationToken);
-
-            if (!aceptada)
-            {
-                return StatusCode(StatusCodes.Status429TooManyRequests,
-                    new { mensaje = "Espera unos momentos antes de volver a solicitar un enlace." });
-            }
+            await recuperacion.SolicitarAsync(request.Identificador, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -152,13 +147,14 @@ public sealed class AutenticacionClientesController(
     [AllowAnonymous]
     [HttpPost("recuperacion/confirmar")]
     public async Task<IActionResult> ConfirmarRecuperacion(
-        [FromBody] ConfirmarRecuperacionClienteRequest request,
+        [FromBody] ConfirmarRecuperacionRequest request,
         CancellationToken cancellationToken)
     {
         try
         {
-            var confirmado = await autenticacion.ConfirmarRecuperacionAsync(
-                request.Token,
+            var confirmado = await recuperacion.ConfirmarAsync(
+                request.Identificador,
+                request.Codigo,
                 request.NuevaContrasena,
                 request.ConfirmarContrasena,
                 cancellationToken);

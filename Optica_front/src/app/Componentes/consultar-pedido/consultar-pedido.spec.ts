@@ -7,7 +7,7 @@ import { signal } from '@angular/core';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ConsultarPedidoComponent } from './consultar-pedido';
 import { PedidoService } from '../pedido/pedido.service';
-import { AutenticacionClienteService, ClienteSesion } from '../login-cliente/autenticacion-cliente.service';
+import { AutenticacionClienteService, ClienteSesion } from '../../shared/services/autenticacion-cliente.service';
 
 try {
   getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());

@@ -1,0 +1,17 @@
+@if (sesion.puede('resumen')) {
+  <app-dashboard />
+} @else {
+  <section class="inicio">
+    <h1>Hola, {{ sesion.administrador()?.nombre }}</h1>
+    <p>Estas son las funciones habilitadas para tu cuenta.</p>
+    <div class="opciones">
+      @for (opcion of opciones(); track opcion.permiso) {
+        <a [routerLink]="opcion.ruta">{{ opcion.nombre }}</a>
+      }
+    </div>
+    <p>
+      Rol: {{ sesion.administrador()?.rol }}. Si necesitas otra función, contacta al
+      administrador.
+    </p>
+  </section>
+}

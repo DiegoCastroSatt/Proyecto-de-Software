@@ -1,0 +1,20 @@
+.inicio {
+  max-width: 1000px;
+  margin: auto;
+  padding: 36px 24px;
+  color: var(--color-texto);
+}
+.opciones {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+.opciones a {
+  padding: 24px;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-cliente);
+  border-radius: 12px;
+  color: var(--color-principal);
+  text-decoration: none;
+}

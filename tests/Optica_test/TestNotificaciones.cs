@@ -33,7 +33,10 @@ public sealed class TestNotificaciones
             ["Correo:SmtpHost"] = smtpHost,
             ["Correo:Remitente"] = remitente
         }).Build();
-        var servicio = new SmtpEmailService(configuracion, NullLogger<SmtpEmailService>.Instance);
+        var servicio = new SmtpEmailService(
+            configuracion,
+            NullLogger<SmtpEmailService>.Instance,
+            new FabricaHttpClientePrueba());
 
         var resultado = await servicio.EnviarConResultadoAsync(
             destinatario, "Asunto", "<p>Mensaje</p>", CancellationToken.None);
@@ -68,5 +71,10 @@ public sealed class TestNotificaciones
             byte[]? adjunto = null,
             string? nombreAdjunto = null,
             string? tipoAdjunto = null) => Task.FromResult(true);
+    }
+
+    private sealed class FabricaHttpClientePrueba : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new();
     }
 }

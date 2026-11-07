@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication;
@@ -25,6 +26,9 @@ using Optica.Api.Modules.AgendaReservas.Interfaces;
 using Optica.Api.Modules.AgendaReservas.Services;
 using Optica.Api.Modules.Notificaciones.Interfaces;
 using Optica.Api.Modules.Notificaciones.Services;
+using Optica.Api.Modules.Resenas.Interfaces;
+using Optica.Api.Modules.Resenas.Repositories;
+using Optica.Api.Modules.Resenas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,11 +46,12 @@ if (!string.IsNullOrWhiteSpace(rutaClavesProteccion))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
+        policy.SetIsOriginAllowed(origen => IsAllowedFrontendOrigin(origen, builder.Configuration))
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -79,30 +84,39 @@ builder.Services.AddScoped<IVentaRepository, VentaRepository>();
 builder.Services.AddScoped<IConsultaProductoVenta, ConsultaProductoVenta>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
+builder.Services.AddScoped<IResenaRepository, ResenaRepository>();
+builder.Services.AddScoped<IResenaService, ResenaService>();
 
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
-builder.Services.AddScoped<IPasswordHasher<Administrador>, PasswordHasher<Administrador>>();
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
-builder.Services.AddSingleton<EstadoRecuperacionAdministrador>();
-builder.Services.AddSingleton<EstadoRecuperacionCliente>();
+builder.Services.AddScoped<InicioSesionService>();
+builder.Services.AddSingleton<EstadoRecuperacion>();
+builder.Services.AddScoped<RecuperacionService>();
 builder.Services.AddScoped<IAutenticacionAdministradorRepository, AutenticacionAdministradorRepository>();
 builder.Services.AddScoped<IAutenticacionAdministradorService, AutenticacionAdministradorService>();
+
+builder.Services.AddScoped<IPasswordHasher<Trabajador>, PasswordHasher<Trabajador>>();
+builder.Services.AddScoped<AccesoService>();
 
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
+var mismoSitioCookie = builder.Environment.IsProduction()
+    ? SameSiteMode.None
+    : SameSiteMode.Strict;
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        options.Cookie.Name = "Optica.Admin";
+        options.Cookie.Name = "Optica.Personal";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()
             ? CookieSecurePolicy.Always
             : CookieSecurePolicy.SameAsRequest;
@@ -112,12 +126,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
         options.Events.OnValidatePrincipal = async ctx =>
         {
-            var db = ctx.HttpContext.RequestServices.GetRequiredService<OpticaDbContext>();
-            if (!int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
-                || !await db.Administradores.AnyAsync(a => a.IdAdministrador == id && a.Estado == "Activo", ctx.HttpContext.RequestAborted))
+            var acceso = ctx.HttpContext.RequestServices.GetRequiredService<AccesoService>();
+            var sesion = await acceso.ObtenerSesionAsync(ctx.Principal!, ctx.HttpContext.RequestAborted);
+            if (sesion is null)
             {
                 ctx.RejectPrincipal();
                 await ctx.HttpContext.SignOutAsync();
+            }
+            else
+            {
+                // Releer los permisos en cada petición para aplicar revocaciones inmediatamente.
+                ctx.ReplacePrincipal(AccesoService.CrearPrincipal(sesion));
             }
         };
     })
@@ -125,7 +144,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "Optica.Cliente";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = mismoSitioCookie;
         options.Cookie.SecurePolicy = builder.Environment.IsProduction()
             ? CookieSecurePolicy.Always
             : CookieSecurePolicy.SameAsRequest;
@@ -136,9 +155,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Events.OnValidatePrincipal = async ctx =>
         {
             var db = ctx.HttpContext.RequestServices.GetRequiredService<OpticaDbContext>();
-            if (!int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)
-                || !await db.CuentasCliente.AnyAsync(c => c.IdCliente == idCliente
-                    && c.Estado == "Activa" && c.Cliente!.Estado == "Activo", ctx.HttpContext.RequestAborted))
+            var cuenta = int.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)
+                ? await db.CuentasCliente.Include(c => c.Cliente).SingleOrDefaultAsync(c => c.IdCliente == idCliente
+                    && c.Estado == "Activa" && c.Cliente!.Estado == "Activo", ctx.HttpContext.RequestAborted)
+                : null;
+            var version = cuenta is null ? string.Empty : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(cuenta.ContrasenaHash)));
+            if (cuenta is null || ctx.Principal?.FindFirstValue(PermisosAcceso.VersionCredencial) != version)
             {
                 ctx.RejectPrincipal();
                 await ctx.HttpContext.SignOutAsync(AutenticacionClientesController.Esquema);
@@ -147,8 +169,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization(options =>
 {
-    // La política predeterminada y de respaldo conserva la autenticación administrativa existente.
-    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    PermisosAcceso.Configurar(options);
     options.AddPolicy(AutenticacionClientesController.Politica, policy =>
     {
         policy.AddAuthenticationSchemes(AutenticacionClientesController.Esquema);
@@ -161,7 +182,7 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseRouting();
 app.UseStaticFiles();
 app.UseCors("Angular");
 app.UseAuthentication();
@@ -172,11 +193,12 @@ app.Use(async (context, next) =>
         && context.Request.Method is not ("GET" or "HEAD" or "OPTIONS")
         && (context.User.Identity?.IsAuthenticated == true
             || context.Request.Cookies.ContainsKey("Optica.Cliente")
+            || context.Request.Path == "/api/Autenticacion/login"
             || context.Request.Path == "/api/Autenticacion/admin"
             || context.Request.Path.StartsWithSegments("/api/Autenticacion/cliente")))
     {
         var origin = context.Request.Headers.Origin.ToString();
-        if (origin != "http://localhost:4200" && origin != "http://localhost:4300"
+        if (!IsAllowedFrontendOrigin(origin, builder.Configuration)
             && origin != $"{context.Request.Scheme}://{context.Request.Host}")
         {
             context.Response.StatusCode = 403;
@@ -200,3 +222,22 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
 });
 
 app.Run();
+
+static bool IsAllowedFrontendOrigin(string origin, IConfiguration configuration)
+{
+    if (origin is "http://localhost:4200" or "http://localhost:4300")
+        return true;
+
+    var origenesConfigurados = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    if (origenesConfigurados.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        return true;
+
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+        || uri.Scheme != Uri.UriSchemeHttps
+        || !uri.IsDefaultPort)
+        return false;
+
+    const string sufijoTunnel = "-4200.brs.devtunnels.ms";
+    return uri.Host.EndsWith(sufijoTunnel, StringComparison.OrdinalIgnoreCase)
+        && uri.Host.Length > sufijoTunnel.Length;
+}

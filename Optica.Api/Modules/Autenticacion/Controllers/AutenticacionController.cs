@@ -1,3 +1,4 @@
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -5,6 +6,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Interfaces;
+using Optica.Api.Modules.Autenticacion.Services;
 
 namespace Optica.Api.Modules.Autenticacion.Controllers;
 
@@ -12,7 +14,9 @@ namespace Optica.Api.Modules.Autenticacion.Controllers;
 [Route("api/[controller]")]
 public sealed class AutenticacionController(
     IAutenticacionAdministradorService autenticacionAdministradorService,
-    ILogger<AutenticacionController> logger) : ControllerBase
+    ILogger<AutenticacionController> logger,
+    AccesoService acceso,
+    RecuperacionService recuperacion) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("admin")]
@@ -25,18 +29,15 @@ public sealed class AutenticacionController(
     {
         var administrador = await autenticacionAdministradorService.IniciarSesionAsync(
             request,
-            cancellationToken);
+            cancellationToken) ?? await acceso.IniciarTrabajadorAsync(request, cancellationToken);
 
         if (administrador is null)
         {
             return Unauthorized(new { mensaje = "Nombre de usuario o contraseña incorrectos." });
         }
 
-        var identidad = new ClaimsIdentity(new[] {
-            new Claim(ClaimTypes.NameIdentifier, administrador.IdAdministrador.ToString()),
-            new Claim(ClaimTypes.Name, administrador.Nombre)
-        }, CookieAuthenticationDefaults.AuthenticationScheme);
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identidad));
+        await HttpContext.SignOutAsync(AutenticacionClientesController.Esquema);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, AccesoService.CrearPrincipal(administrador));
         return Ok(administrador);
     }
 
@@ -48,11 +49,7 @@ public sealed class AutenticacionController(
     {
         try
         {
-            var aceptada = await autenticacionAdministradorService.SolicitarRecuperacionAsync(
-                request.NombreUsuario, HttpContext.Connection.RemoteIpAddress?.ToString(), cancellationToken);
-            if (!aceptada)
-                return StatusCode(StatusCodes.Status429TooManyRequests,
-                    new { mensaje = "Espera antes de volver a solicitar un código." });
+            await recuperacion.SolicitarAsync(request.NombreUsuario, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -78,7 +75,7 @@ public sealed class AutenticacionController(
     {
         try
         {
-            var confirmado = await autenticacionAdministradorService.ConfirmarRecuperacionAsync(
+            var confirmado = await recuperacion.ConfirmarAsync(
                 request.NombreUsuario, request.Codigo, request.NuevaContrasena,
                 request.ConfirmarContrasena, cancellationToken);
             if (!confirmado)
@@ -102,10 +99,15 @@ public sealed class AutenticacionController(
         }
     }
 
+    [Authorize(Policy = PermisosAcceso.Personal)]
     [HttpGet("admin/sesion")]
-    public ActionResult<LoginAdministradorResponse> Sesion() => Ok(new LoginAdministradorResponse(
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!), User.Identity!.Name!));
+    public async Task<ActionResult<LoginAdministradorResponse>> Sesion(CancellationToken ct)
+    {
+        var sesion = await acceso.ObtenerSesionAsync(User, ct);
+        return sesion is null ? Unauthorized() : Ok(sesion);
+    }
 
+    [Authorize(Policy = PermisosAcceso.Personal)]
     [HttpPost("admin/salir")]
     public async Task<IActionResult> Salir()
     {

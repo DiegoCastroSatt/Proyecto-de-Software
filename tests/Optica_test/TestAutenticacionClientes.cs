@@ -19,14 +19,12 @@ public sealed class TestAutenticacionClientes : IDisposable
         .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
         .Options);
 
-    private readonly EstadoRecuperacionCliente estadoRecuperacion = new();
     private readonly RelojManual reloj = new(DateTimeOffset.UtcNow);
 
     private AutenticacionClienteService Servicio(IEmailService? emailService = null) =>
         new(
             db,
             new PasswordHasher<CuentaCliente>(),
-            estadoRecuperacion,
             emailService ?? new FakeEmailService(),
             reloj,
             NullLogger<AutenticacionClienteService>.Instance,
@@ -174,32 +172,6 @@ public sealed class TestAutenticacionClientes : IDisposable
             .ToLowerInvariant();
         Assert.NotEqual(tokenAnteriorHash, tokenNuevoHash);
         Assert.Equal(tokenNuevoHash, cuenta.TokenConfirmacionHash);
-    }
-
-    [Fact]
-    public async Task Recuperacion_SolicitarYConfirmar_ActualizaContrasena()
-    {
-        var fakeEmail = new FakeEmailService();
-        await Servicio(fakeEmail).RegistrarAsync(Registro(), CancellationToken.None);
-        var tokenConfirmacion = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "confirmar-cuenta?token=");
-        await Servicio().ConfirmarCuentaAsync(tokenConfirmacion, CancellationToken.None);
-
-        var servicio = Servicio(fakeEmail);
-
-        var solicitada = await servicio.SolicitarRecuperacionAsync("ana@example.test", "127.0.0.1", CancellationToken.None);
-        Assert.True(solicitada);
-        Assert.NotNull(fakeEmail.UltimoCuerpoHtml);
-
-        // Extraer el token del HTML generado
-        var token = ExtraerToken(fakeEmail.UltimoCuerpoHtml!, "token=");
-
-        var confirmada = await servicio.ConfirmarRecuperacionAsync(token, "NuevaClave999!", "NuevaClave999!", CancellationToken.None);
-        Assert.True(confirmada);
-
-        // Verificar que puede iniciar sesión con la nueva clave
-        var login = await servicio.IniciarSesionAsync(
-            new LoginClienteRequest { Correo = "ana@example.test", Contrasena = "NuevaClave999!" }, CancellationToken.None);
-        Assert.True(login.CredencialesValidas);
     }
 
     private static string ExtraerToken(string html, string marcador)

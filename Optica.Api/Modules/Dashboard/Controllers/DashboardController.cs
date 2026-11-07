@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 
 namespace Optica.Api.Modules.Dashboard.Controllers;
 
+[Authorize(Policy = "resumen")]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class DashboardController(OpticaDbContext context) : ControllerBase

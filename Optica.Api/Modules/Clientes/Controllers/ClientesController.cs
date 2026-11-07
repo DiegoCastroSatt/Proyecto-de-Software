@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Clientes.DTOs;
 using Optica.Api.Modules.Clientes.Interfaces;
@@ -5,6 +7,7 @@ using Optica.Api.Modules.Clientes.Models;
 
 namespace Optica.Api.Modules.Clientes.Controllers;
 
+[Authorize(Policy = "clientes")]
 [ApiController]
 [Route("api/[controller]")]
 public class ClientesController : ControllerBase

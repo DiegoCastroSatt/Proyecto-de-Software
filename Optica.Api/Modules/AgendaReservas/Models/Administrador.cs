@@ -1,10 +1,11 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using Optica.Api.Modules.Accesos;
+
 namespace Optica.Api.Modules.AgendaReservas.Models;
 
-public class Administrador
+// Conserva el contrato del dominio y las rutas existentes sobre la tabla única de personal.
+public class Administrador : Trabajador
 {
-    public int IdAdministrador { get; set; }
-    public string Nombre { get; set; } = string.Empty;
-    public string Correo { get; set; } = string.Empty;
-    public string Contrasena { get; set; } = string.Empty;
-    public string Estado { get; set; } = "Activo";
+    [NotMapped]
+    public int IdAdministrador { get => IdTrabajador; set => IdTrabajador = value; }
 }

@@ -1,3 +1,4 @@
+import { AutenticacionAdminService } from '../../shared/services/autenticacion-admin.service';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -17,6 +18,7 @@ describe('AdminLayoutComponent', () => {
     }).compileComponents();
 
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    TestBed.inject(AutenticacionAdminService).administrador.set({ idAdministrador: 1, nombre: 'Administrador', tipoUsuario: 'Administrador' });
     fixture = TestBed.createComponent(AdminLayoutComponent);
     component = fixture.componentInstance;
     TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/Productos?termino=').flush([
@@ -112,4 +114,27 @@ describe('AdminLayoutComponent', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('.panel-notificaciones').textContent).toContain('No hay notificaciones');
   });
+  it('muestra Trabajadores y Cerrar sesión en el desplegable del administrador', () => {
+    fixture.detectChanges();
+    const menu = fixture.nativeElement.querySelector('.menu-cuenta') as HTMLDetailsElement;
+    expect(menu.querySelector('summary')?.textContent).toContain('Administrador');
+    (menu.querySelector('summary') as HTMLElement).click();
+    expect(menu.open).toBe(true);
+    expect(menu.querySelector('a')?.getAttribute('href')).toBe('/admin/panel/trabajadores');
+    expect(menu.querySelector('button')?.textContent).toContain('Cerrar sesión');
+  });
+  it('muestra el nombre del trabajador y oculta la gestión de trabajadores', async () => {
+    TestBed.inject(AutenticacionAdminService).administrador.set({ idAdministrador: 0, idTrabajador: 1, nombre: 'Equipo de ventas', tipoUsuario: 'Trabajador', permisos: ['ventas'] });
+    fixture.detectChanges();
+    const menu = fixture.nativeElement.querySelector('.menu-cuenta') as HTMLDetailsElement;
+    expect(menu.querySelector('summary')?.textContent).toContain('Equipo de ventas');
+    expect(menu.querySelector('a[href="/admin/panel/trabajadores"]')).toBeNull();
+    expect(menu.querySelector('a[href="/admin/panel/cambiar-contrasena"]')).toBeTruthy();
+    expect(menu.querySelector('button')?.textContent).toContain('Cerrar sesión');
+    expect(fixture.nativeElement.querySelector('a[href="/admin/panel/clientes"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href="/admin/panel/ventas"]')).toBeTruthy();
+    await vi.advanceTimersByTimeAsync(15_000);
+    TestBed.inject(HttpTestingController).expectNone('http://localhost:8080/api/Productos?termino=');
+  });
+
 });

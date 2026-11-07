@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Pedidos.DTOs;
 using Optica.Api.Modules.Pedidos.Interfaces;
 
 namespace Optica.Api.Modules.Pedidos.Controllers;
 
+[Authorize(Policy = "pedidos")]
 [ApiController]
 [Route("api/[controller]")]
 public class PedidosController : ControllerBase
@@ -105,4 +107,3 @@ public class PedidosController : ControllerBase
         }
     }
 }
-

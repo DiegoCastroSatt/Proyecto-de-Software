@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Optica.Api.Modules.Autenticacion.Controllers;
@@ -14,6 +15,7 @@ public class RecetasController : ControllerBase
         _recetaService = recetaService;
     }
 
+    [Authorize(Policy = PermisosAcceso.ConsultarSugerenciasClientes)]
     [HttpGet("clientes/sugerencias")]
     public async Task<IActionResult> BuscarSugerenciasRut([FromQuery] string termino)
     {
@@ -21,6 +23,7 @@ public class RecetasController : ControllerBase
         return Ok(sugerencias);
     }
 
+    [Authorize(Policy = "recetas")]
     [HttpGet("historial")]
     public async Task<IActionResult> ObtenerHistorialPorRut([FromQuery] string rut)
     {
@@ -46,6 +49,7 @@ public class RecetasController : ControllerBase
         return Ok(historial);
     }
 
+    [Authorize(Policy = "recetas")]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> ObtenerReceta(int id)
     {
@@ -53,6 +57,7 @@ public class RecetasController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { mensaje = ex.Message }); }
     }
 
+    [Authorize(Policy = "recetas")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> ActualizarReceta(int id, [FromForm] CrearRecetaDto dto)
     {
@@ -61,6 +66,7 @@ public class RecetasController : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { mensaje = ex.Message }); }
     }
 
+    [Authorize(Policy = "recetas")]
     [HttpPost]
     public async Task<IActionResult> CrearReceta([FromForm] CrearRecetaDto dto)
     {

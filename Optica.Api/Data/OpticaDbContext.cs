@@ -1,5 +1,6 @@
 using Optica.Api.Modules.Rostros;
 using Optica.Api.Modules.Marcos;
+using Optica.Api.Modules.Accesos;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Catalogos.Models;
@@ -8,6 +9,7 @@ using Optica.Api.Modules.Productos.Models;
 using Optica.Api.Modules.RegistroRecetas.Models;
 using Optica.Api.Modules.Ventas.Models;
 using Optica.Api.Modules.Pedidos.Models;
+using Optica.Api.Modules.Resenas.Models;
 
 namespace Optica.Api.Data;
 
@@ -57,6 +59,10 @@ public class OpticaDbContext : DbContext
 
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
+    public DbSet<Trabajador> Trabajadores => Set<Trabajador>();
+    public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
+    public DbSet<Resena> Resenas => Set<Resena>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -66,6 +72,31 @@ public class OpticaDbContext : DbContext
         modelBuilder.Entity<TipoRostro>().HasIndex(r => r.Nombre).IsUnique();
         modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Codigo).IsUnique();
         modelBuilder.Entity<TipoMarco>().HasIndex(t => t.Nombre).IsUnique();
+        modelBuilder.Entity<RolTrabajador>(e =>
+        {
+            e.ToTable("roles_trabajadores"); e.HasKey(r => r.IdRol);
+            e.Property(r => r.IdRol).HasColumnName("id_rol");
+            e.Property(r => r.Nombre).HasColumnName("nombre").HasMaxLength(60).IsRequired();
+            e.Property(r => r.PermisosJson).HasColumnName("permisos_json").HasColumnType("longtext").IsRequired();
+            e.HasIndex(r => r.Nombre).IsUnique();
+        });
+        modelBuilder.Entity<Trabajador>(e =>
+        {
+            e.ToTable("trabajador_optica"); e.HasKey(t => t.IdTrabajador);
+            e.Property(t => t.IdTrabajador).HasColumnName("id_trabajador");
+            e.Property(t => t.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            e.Property(t => t.NombreUsuario).HasColumnName("nombre_usuario").HasMaxLength(60).IsRequired();
+            e.Property(t => t.Correo).HasColumnName("correo").HasMaxLength(100).IsRequired();
+            e.Property(t => t.Contrasena).HasColumnName("contrasena").HasMaxLength(255).IsRequired();
+            e.Property(t => t.Estado).HasColumnName("estado").HasMaxLength(8).IsRequired();
+            e.Property(t => t.IdRol).HasColumnName("id_rol");
+            e.Property(t => t.IdAdministradorCreador).HasColumnName("id_administrador_creador");
+            e.HasIndex(t => t.NombreUsuario).IsUnique();
+            e.HasDiscriminator<string>("TipoUsuario").HasValue<Trabajador>("Trabajador").HasValue<Administrador>("Administrador");
+            e.Property<string>("TipoUsuario").HasColumnName("tipo_usuario").HasMaxLength(20);
+            e.HasOne(t => t.Rol).WithMany().HasForeignKey(t => t.IdRol).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Administrador>().WithMany().HasForeignKey(t => t.IdAdministradorCreador).OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<Cliente>(entity =>
         {
@@ -247,17 +278,6 @@ public class OpticaDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Administrador>(entity =>
-        {
-            entity.ToTable("administradores");
-            entity.HasKey(a => a.IdAdministrador);
-            entity.Property(a => a.IdAdministrador).HasColumnName("id_administrador");
-            entity.Property(a => a.Nombre).HasColumnName("nombre");
-            entity.Property(a => a.Correo).HasColumnName("correo");
-            entity.Property(a => a.Contrasena).HasColumnName("contrasena");
-            entity.Property(a => a.Estado).HasColumnName("estado");
-            entity.HasIndex(a => a.Nombre).IsUnique();
-        });
 
         modelBuilder.Entity<Producto>(entity =>
         {
@@ -390,6 +410,22 @@ public class OpticaDbContext : DbContext
             entity.Property(i => i.FechaUtc).HasColumnName("fecha_utc");
             entity.Property(i => i.Exitoso).HasColumnName("exitoso");
             entity.Property(i => i.Error).HasColumnName("error").HasColumnType("text");
+        });
+
+        modelBuilder.Entity<Resena>(entity =>
+        {
+            entity.ToTable("resenas_productos");
+            entity.HasKey(r => r.IdResena);
+            entity.Property(r => r.IdResena).HasColumnName("id_resena");
+            entity.Property(r => r.IdCliente).HasColumnName("id_cliente");
+            entity.Property(r => r.IdProducto).HasColumnName("id_producto");
+            entity.Property(r => r.Calificacion).HasColumnName("calificacion");
+            entity.Property(r => r.Comentario).HasColumnName("comentario").HasMaxLength(1000).IsRequired();
+            entity.Property(r => r.FechaCreacionUtc).HasColumnName("fecha_creacion_utc");
+            entity.Property(r => r.FechaActualizacionUtc).HasColumnName("fecha_actualizacion_utc");
+            entity.HasIndex(r => new { r.IdCliente, r.IdProducto }).IsUnique();
+            entity.HasOne(r => r.Cliente).WithMany().HasForeignKey(r => r.IdCliente).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(r => r.Producto).WithMany().HasForeignKey(r => r.IdProducto).OnDelete(DeleteBehavior.Restrict);
         });
 
     }

@@ -73,6 +73,8 @@
           }
           <span class="product-copy">
             <strong>{{ producto.nombre }}</strong>
+            @if (!esAdministrador && puedeResenar(producto.id)) { <span class="review-badge">Puedes reseñarlo</span> }
+            @if (!esAdministrador && yaReseno(producto.id)) { <span class="review-badge reviewed">Ya reseñado</span> }
             @if (producto.stock <= 0 || producto.estado === 'Agotado') {
               <span class="agotado">Agotado · Sin productos en stock</span>
             }
@@ -118,6 +120,60 @@
             }
           </div>
         </div>
+        @if (!esAdministrador) {
+          <section class="reviews" aria-labelledby="resenas-titulo">
+            <div class="reviews-heading">
+              <div>
+                <p class="eyebrow">Opiniones de clientes</p>
+                <h3 id="resenas-titulo">Reseñas</h3>
+              </div>
+              @if (resumenResenas().cantidad > 0) {
+                <p class="review-summary"><span aria-label="Calificación promedio">{{ estrellas(resumenResenas().promedio) }}</span> {{ resumenResenas().promedio }} de 5 · {{ resumenResenas().cantidad }} {{ resumenResenas().cantidad === 1 ? 'reseña' : 'reseñas' }}</p>
+              } @else {
+                <p class="review-summary">Aún no hay reseñas para este producto.</p>
+              }
+            </div>
+
+            @if (cargandoResenas()) { <p class="status">Cargando reseñas…</p> }
+            @if (errorResena()) { <p class="review-error" role="alert">{{ errorResena() }}</p> }
+            @for (resena of resenas(); track resena.id) {
+              <article class="review-item">
+                <div class="review-meta"><strong>{{ resena.nombreCliente }}</strong><time>{{ fechaResena(resena.fechaCreacionUtc) }}</time></div>
+                <p class="review-stars" [attr.aria-label]="resena.calificacion + ' de 5 estrellas'">{{ estrellas(resena.calificacion) }}</p>
+                <p class="review-comment">{{ resena.comentario }}</p>
+              </article>
+            }
+
+            @if (puedeResenar(producto.id)) {
+              <form class="review-form" [formGroup]="resenaForm" (ngSubmit)="publicarResena(producto.id)">
+                <h4>Comparte tu experiencia</h4>
+                <fieldset>
+                  <legend>Calificación <span aria-hidden="true">*</span></legend>
+                  <div class="star-picker" role="group" aria-label="Elige una calificación de 1 a 5 estrellas">
+                    @for (estrella of [1, 2, 3, 4, 5]; track estrella) {
+                      <button type="button" [class.selected]="estrella <= resenaForm.controls.calificacion.value" [attr.aria-label]="estrella + ' estrellas'" [attr.aria-pressed]="estrella === resenaForm.controls.calificacion.value" (click)="seleccionarCalificacion(estrella)">★</button>
+                    }
+                  </div>
+                  @if (resenaForm.controls.calificacion.touched && resenaForm.controls.calificacion.invalid) { <small class="review-error">Selecciona de 1 a 5 estrellas.</small> }
+                </fieldset>
+                <label class="comment-field">Comentario
+                  <textarea formControlName="comentario" rows="4" maxlength="1000" placeholder="¿Qué te pareció el producto?"></textarea>
+                  <small>{{ resenaForm.controls.comentario.value.length }}/1000 caracteres</small>
+                  @if (resenaForm.controls.comentario.touched && resenaForm.controls.comentario.invalid) { <small class="review-error">Escribe un comentario de al menos 3 caracteres.</small> }
+                </label>
+                <button class="primary" type="submit" [disabled]="publicandoResena()">{{ publicandoResena() ? 'Publicando…' : 'Publicar reseña' }}</button>
+                @if (mensajeResena()) { <p class="review-success" role="status">{{ mensajeResena() }}</p> }
+                @if (errorResena()) { <p class="review-error" role="alert">{{ errorResena() }}</p> }
+              </form>
+            } @else if (yaReseno(producto.id)) {
+              <p class="review-note">Ya publicaste una reseña para este producto.</p>
+            } @else if (autenticacion.cliente()) {
+              <p class="review-note">La opción de reseñar estará disponible para los productos que hayas comprado.</p>
+            } @else {
+              <p class="review-note">Inicia sesión y compra este producto para poder escribir una reseña.</p>
+            }
+          </section>
+        }
       } @else {
         <p class="eyebrow">Editar producto</p>
         <h2 id="detalle-titulo">{{ producto.nombre }}</h2>

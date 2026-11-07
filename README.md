@@ -32,7 +32,7 @@ git clone <URL_DEL_REPOSITORIO>
 cd Proyecto_de_Software
 ```
 
-2. Crear el archivo `.env` a partir de `.env.example`:
+2. Crear el archivo `.env` a partir de `.env.example` y configurar `MYSQL_ROOT_PASSWORD`.
 
 ```bash
 Copy-Item .env.example .env
@@ -77,3 +77,11 @@ npm start
 ```
 
 El frontend se abrira normalmente en `http://localhost:4200`.
+
+### Autenticación y actualización de una base existente
+
+El formulario unificado está disponible en `/cliente/login` y `/admin`. Los clientes ingresan con RUT válido o correo; administradores y trabajadores, con su nombre de usuario. La recuperación pide RUT para clientes y nombre de usuario para personal, y envía un código de seis dígitos al correo registrado.
+
+Los códigos de recuperación se conservan en memoria por cinco minutos. Si la API se reinicia, los códigos pendientes dejan de ser válidos y se puede solicitar uno nuevo.
+
+Los datos de ejemplo están en `database/insert.sql`.

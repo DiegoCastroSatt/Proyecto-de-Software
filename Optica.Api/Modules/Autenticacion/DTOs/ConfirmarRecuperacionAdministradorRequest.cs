@@ -10,9 +10,9 @@ public sealed record ConfirmarRecuperacionAdministradorRequest
     [Required, RegularExpression("^[0-9]{6}$")]
     public required string Codigo { get; init; }
 
-    [Required, StringLength(255, MinimumLength = 12)]
+    [Required, StringLength(255, MinimumLength = 8)]
     public required string NuevaContrasena { get; init; }
 
-    [Required, StringLength(255, MinimumLength = 12)]
+    [Required, StringLength(255, MinimumLength = 8)]
     public required string ConfirmarContrasena { get; init; }
 }
