@@ -10,8 +10,11 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
 
     public Task<IReadOnlyList<VentaResponseDto>> Listar() => repositorio.Listar();
 
-    public async Task<VentaCreadaResponseDto> Crear(CrearVentaDto dto)
+    public async Task<VentaCreadaResponseDto> Crear(CrearVentaDto dto, int idResponsable)
     {
+        if (idResponsable <= 0)
+            throw new ArgumentException("No se pudo identificar al responsable de la venta.");
+
         if (dto.Productos is null || dto.Productos.Count == 0 ||
             dto.Productos.Any(p => p is null || string.IsNullOrWhiteSpace(p.CodigoProducto) || p.Cantidad <= 0))
             throw new ArgumentException("Agrega al menos un código válido con cantidad mayor que cero.");
@@ -49,7 +52,7 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
             detalle.Cantidad += item.Cantidad;
         }
         calculo.Calcular(venta);
-        await repositorio.Guardar(venta);
+        await repositorio.Guardar(venta, idResponsable);
         return new VentaCreadaResponseDto(venta.IdVenta, venta.Fecha, venta.Total,
             venta.Detalles.Select(d => new DetalleVentaResponseDto(d.ProductoId, d.Cantidad, d.PrecioUnitario, d.Subtotal)).ToList());
     }

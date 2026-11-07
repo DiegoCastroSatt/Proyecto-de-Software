@@ -19,6 +19,26 @@ export interface Producto {
   tieneVentas: boolean;
 }
 
+export interface HistorialStockMovimiento {
+  idCambio: number;
+  idProducto: number;
+  motivoMovimiento: string;
+  idResponsable: number;
+  nombreResponsable: string;
+  tipoStock: 'Normal' | 'Minimo';
+  valorAnterior: number;
+  valorActual: number;
+  fechaCambio: string;
+}
+
+export interface HistorialStockPaginado {
+  pagina: number;
+  tamanoPagina: number;
+  totalRegistros: number;
+  totalPaginas: number;
+  movimientos: HistorialStockMovimiento[];
+}
+
 export type ProductoEditable = Omit<Producto, 'id' | 'rutaImagen' | 'tieneVentas'> & { imagen?: File };
 
 export interface CatalogoItem {
@@ -54,8 +74,24 @@ export class BuscarProductoService {
     return this.http.put<Producto>(`${this.apiUrl}/${id}`, formData);
   }
 
-  actualizarStock(id: number, stock: number, stockMinimo: number): Observable<Producto> {
-    return this.http.patch<Producto>(`${this.apiUrl}/${id}/stock`, { stock, stockMinimo });
+  actualizarStock(id: number, stock: number, stockMinimo: number, motivoCambio: string): Observable<Producto> {
+    return this.http.patch<Producto>(`${this.apiUrl}/${id}/stock`, { stock, stockMinimo, motivoCambio });
+  }
+
+  consultarHistorialStock(
+    idProducto: number,
+    pagina: number,
+    tamanoPagina = 20
+  ): Observable<HistorialStockPaginado> {
+    return this.http.get<HistorialStockPaginado>(`${this.apiUrl}/${idProducto}/historial-stock`, {
+      params: { pagina, tamanoPagina }
+    });
+  }
+
+  consultarHistorialStockReciente(pagina: number, tamanoPagina = 20): Observable<HistorialStockPaginado> {
+    return this.http.get<HistorialStockPaginado>(`${this.apiUrl}/historial-stock`, {
+      params: { pagina, tamanoPagina }
+    });
   }
 
   obtenerCatalogo(tipo: string): Observable<CatalogoItem[]> {

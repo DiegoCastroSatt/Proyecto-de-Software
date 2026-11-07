@@ -19,7 +19,7 @@ public class TestProductos
             Codigo = "",
             Nombre = "Armazón",
             Categoria = "Armazones"
-        }));
+        }, 42));
 
         Assert.Null(repositorio.UltimoProducto);
     }
@@ -37,7 +37,7 @@ public class TestProductos
             Precio = 100,
             Stock = -1,
             StockMinimo = 0
-        }));
+        }, 42));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class TestProductos
         var repositorio = new ProductoRepositorioPrueba { CodigoExiste = true };
         var servicio = CrearServicio(repositorio);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => servicio.CrearProducto(ProductoValido()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => servicio.CrearProducto(ProductoValido(), 42));
         Assert.Null(repositorio.UltimoProducto);
     }
 
@@ -68,7 +68,7 @@ public class TestProductos
             Stock = 5,
             StockMinimo = 1,
             Estado = "agotado"
-        });
+        }, 42);
 
         Assert.Equal(1, resultado.Id);
         Assert.Equal("OPT-001", resultado.Codigo);
@@ -76,6 +76,37 @@ public class TestProductos
         Assert.Equal("Agotado", resultado.Estado);
         Assert.Equal("OPT-001", repositorio.UltimoProducto!.Codigo);
         Assert.Equal("Ray-Ban", repositorio.UltimoProducto.Marca);
+    }
+
+    [Theory]
+    [InlineData(5, 1)]
+    [InlineData(0, 0)]
+    public async Task CrearProducto_RegistraStockInicialNormalYMinimo(int stock, int stockMinimo)
+    {
+        var repositorio = new ProductoRepositorioPrueba();
+        var dto = ProductoValido();
+        dto.Stock = stock;
+        dto.StockMinimo = stockMinimo;
+
+        await CrearServicio(repositorio).CrearProducto(dto, 42);
+
+        Assert.Collection(repositorio.HistorialStock,
+            cambio =>
+            {
+                Assert.Equal(42, cambio.IdResponsable);
+                Assert.Equal("Registro de nuevo producto", cambio.MotivoMovimiento);
+                Assert.Equal("Normal", cambio.TipoStock);
+                Assert.Equal(0, cambio.ValorAnterior);
+                Assert.Equal(stock, cambio.ValorActual);
+            },
+            cambio =>
+            {
+                Assert.Equal(42, cambio.IdResponsable);
+                Assert.Equal("Registro de nuevo producto", cambio.MotivoMovimiento);
+                Assert.Equal("Minimo", cambio.TipoStock);
+                Assert.Equal(0, cambio.ValorAnterior);
+                Assert.Equal(stockMinimo, cambio.ValorActual);
+            });
     }
 
     [Fact]
@@ -115,7 +146,8 @@ public class TestProductos
         var repositorio = new ProductoRepositorioPrueba { ProductoActual = producto };
         var servicio = CrearServicio(repositorio);
 
-        var resultado = await servicio.ActualizarStock(7, new ActualizarStockDto { Stock = 8, StockMinimo = 2 });
+        var resultado = await servicio.ActualizarStock(7,
+            new ActualizarStockDto { Stock = 8, StockMinimo = 2, MotivoCambio = "Ajuste manual" }, 42);
 
         Assert.Equal(8, resultado.Stock);
         Assert.Equal(2, resultado.StockMinimo);
@@ -131,8 +163,9 @@ public class TestProductos
         await Assert.ThrowsAsync<ArgumentException>(() => servicio.ActualizarStock(7, new ActualizarStockDto
         {
             Stock = -1,
-            StockMinimo = 0
-        }));
+            StockMinimo = 0,
+            MotivoCambio = "Ajuste manual"
+        }, 42));
     }
 
     [Theory]
@@ -148,7 +181,7 @@ public class TestProductos
             Precio = 12000, Stock = 4, StockMinimo = 1, Estado = "Agotado", RutaImagen = "/imagen.png"
         }};
         var resultado = await CrearServicio(repositorio).ActualizarStock(7,
-            new ActualizarStockDto { Stock = stock, StockMinimo = minimo });
+            new ActualizarStockDto { Stock = stock, StockMinimo = minimo, MotivoCambio = "Ajuste manual" }, 42);
         Assert.NotNull(repositorio.UltimoProducto);
         Assert.Equal(stock, repositorio.UltimoProducto.Stock);
         Assert.Equal(minimo, repositorio.UltimoProducto.StockMinimo);
@@ -167,7 +200,7 @@ public class TestProductos
         var producto = new Producto { Stock = 5, StockMinimo = 2, Estado = "Disponible" };
         var repositorio = new ProductoRepositorioPrueba { ProductoActual = producto };
         await Assert.ThrowsAsync<ArgumentException>(() => CrearServicio(repositorio).ActualizarStock(7,
-            new ActualizarStockDto { Stock = stock, StockMinimo = minimo }));
+            new ActualizarStockDto { Stock = stock, StockMinimo = minimo, MotivoCambio = "Ajuste manual" }, 42));
         Assert.Null(repositorio.UltimoProducto);
         Assert.Equal(5, producto.Stock);
         Assert.Equal(2, producto.StockMinimo);
@@ -179,7 +212,7 @@ public class TestProductos
     {
         var repositorio = new ProductoRepositorioPrueba();
         await Assert.ThrowsAsync<KeyNotFoundException>(() => CrearServicio(repositorio).ActualizarStock(999,
-            new ActualizarStockDto { Stock = 3, StockMinimo = 1 }));
+            new ActualizarStockDto { Stock = 3, StockMinimo = 1, MotivoCambio = "Ajuste manual" }, 42));
         Assert.Null(repositorio.UltimoProducto);
     }
 
@@ -208,22 +241,57 @@ internal sealed class ProductoRepositorioPrueba : IProductoRepository
 
     public Task<bool> ExisteCodigo(string codigo) => Task.FromResult(CodigoExiste);
 
-    public Task<Producto> Crear(Producto producto)
+    public Task<Producto> CrearConHistorialStock(Producto producto, int idResponsable)
     {
         producto.IdProducto = 1;
         UltimoProducto = producto;
+        HistorialStock.AddRange(
+            new HistorialStock
+            {
+                IdProducto = producto.IdProducto,
+                IdResponsable = idResponsable,
+                MotivoMovimiento = "Registro de nuevo producto",
+                TipoStock = "Normal",
+                ValorAnterior = 0,
+                ValorActual = producto.Stock
+            },
+            new HistorialStock
+            {
+                IdProducto = producto.IdProducto,
+                IdResponsable = idResponsable,
+                MotivoMovimiento = "Registro de nuevo producto",
+                TipoStock = "Minimo",
+                ValorAnterior = 0,
+                ValorActual = producto.StockMinimo
+            });
         return Task.FromResult(producto);
     }
+
+    public List<HistorialStock> HistorialStock { get; } = [];
 
     public Task<List<Producto>> Buscar(string termino) => Task.FromResult(Productos);
 
     public Task<Producto?> ObtenerPorId(int id) => Task.FromResult(ProductoActual ?? UltimoProducto);
 
-    public Task<Producto> Actualizar(Producto producto)
+    public Task<Producto> ActualizarConHistorialStock(Producto producto, int idResponsable, string motivoMovimiento)
     {
         UltimoProducto = producto;
         return Task.FromResult(producto);
     }
+
+    public Task<Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto?> ConsultarHistorialStock(
+        int idProducto,
+        int pagina,
+        int tamanoPagina) => Task.FromResult<Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto?>(null);
+
+    public Task<Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto> ConsultarHistorialStockReciente(
+        int pagina,
+        int tamanoPagina) => Task.FromResult(new Optica.Api.Modules.Productos.DTOs.HistorialStockPaginadoResponseDto(
+            pagina,
+            tamanoPagina,
+            0,
+            0,
+            Array.Empty<Optica.Api.Modules.Productos.DTOs.HistorialStockMovimientoResponseDto>()));
 
     public Task<bool> Eliminar(int id)
     {

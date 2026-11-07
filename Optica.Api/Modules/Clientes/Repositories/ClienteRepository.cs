@@ -121,4 +121,30 @@ public class ClienteRepository : IClienteRepository
         Pedidos = pedidos
     };
 }
+
+    public async Task<PerfilClienteDto?> ObtenerPerfilAsync(int idCliente)
+    {
+        return await _context.Clientes.AsNoTracking()
+            .Where(c => c.IdCliente == idCliente)
+            .Select(c => new PerfilClienteDto
+            {
+                Rut = c.Rut,
+                Nombre = c.Nombre,
+                Apellido = c.Apellido,
+                Telefono = c.Telefono,
+                Correo = c.Correo,
+                Estado = c.Estado
+            })
+            .SingleOrDefaultAsync();
+    }
+
+    public async Task ActualizarPerfilAsync(int idCliente, ActualizarPerfilClienteDto dto)
+    {
+        var cliente = await _context.Clientes.SingleOrDefaultAsync(c => c.IdCliente == idCliente);
+        if (cliente is null) throw new KeyNotFoundException("No se encontró el perfil del cliente.");
+        cliente.Nombre = dto.Nombre.Trim();
+        cliente.Apellido = dto.Apellido.Trim();
+        cliente.Telefono = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono.Trim();
+        await _context.SaveChangesAsync();
+    }
 }

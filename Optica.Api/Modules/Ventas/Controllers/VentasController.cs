@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Optica.Api.Modules.Accesos;
 using Microsoft.AspNetCore.Mvc;
@@ -28,9 +29,12 @@ public class VentasController(IVentaService ventas, IConsultaProductoVenta produ
     [HttpPost]
     public async Task<IActionResult> Crear(CrearVentaDto dto)
     {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idResponsable) || idResponsable <= 0)
+            return Unauthorized();
+
         try
         {
-            return CreatedAtAction(nameof(Listar), await ventas.Crear(dto));
+            return CreatedAtAction(nameof(Listar), await ventas.Crear(dto, idResponsable));
         }
         catch (ArgumentException ex)
         {

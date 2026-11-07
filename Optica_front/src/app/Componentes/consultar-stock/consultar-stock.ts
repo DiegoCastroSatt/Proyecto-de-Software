@@ -17,6 +17,7 @@ export class ConsultarStock implements OnInit {
   protected readonly errorStock = signal('');
   protected readonly productoEditando = signal<number | null>(null);
   protected readonly borradorStock = signal({ stock: 0, stockMinimo: 0 });
+  protected readonly motivoCambio = signal('');
   protected readonly guardandoStock = signal(false);
 
   ngOnInit(): void {
@@ -45,7 +46,12 @@ export class ConsultarStock implements OnInit {
   protected editarStock(producto: Producto): void {
     this.errorStock.set('');
     this.borradorStock.set({ stock: producto.stock, stockMinimo: producto.stockMinimo });
+    this.motivoCambio.set('');
     this.productoEditando.set(producto.id);
+  }
+
+  protected actualizarMotivoCambio(event: Event): void {
+    this.motivoCambio.set((event.target as HTMLInputElement).value);
   }
 
   protected actualizarBorradorStock(campo: 'stock' | 'stockMinimo', event: Event): void {
@@ -55,6 +61,7 @@ export class ConsultarStock implements OnInit {
 
   protected cancelarEdicionStock(): void {
     this.productoEditando.set(null);
+    this.motivoCambio.set('');
     this.errorStock.set('');
   }
 
@@ -64,13 +71,19 @@ export class ConsultarStock implements OnInit {
       this.errorStock.set('Ingresa cantidades enteras iguales o mayores a cero.');
       return;
     }
+    const motivoCambio = this.motivoCambio().trim();
+    if (!motivoCambio || motivoCambio.length > 255) {
+      this.errorStock.set('Ingresa el motivo del cambio (máximo 255 caracteres).');
+      return;
+    }
 
     this.guardandoStock.set(true);
     this.errorStock.set('');
-    this.productoService.actualizarStock(producto.id, stock, stockMinimo).subscribe({
+    this.productoService.actualizarStock(producto.id, stock, stockMinimo, motivoCambio).subscribe({
       next: actualizado => {
         this.productos.update(productos => productos.map(item => item.id === actualizado.id ? actualizado : item));
         this.productoEditando.set(null);
+        this.motivoCambio.set('');
         this.guardandoStock.set(false);
       },
       error: (respuesta: { error?: { mensaje?: string } }) => {

@@ -1,5 +1,6 @@
 using Optica.Api.Modules.Marcos;
 using Microsoft.EntityFrameworkCore;
+using Optica.Api.Modules.Productos.DTOs;
 using Optica.Api.Modules.Productos.Models;
 
 public class ProductoService : IProductoService
@@ -15,8 +16,13 @@ public class ProductoService : IProductoService
         _environment = environment;
     }
 
-    public async Task<ProductoResponseDto> CrearProducto(CrearProductoDto dto)
+    public async Task<ProductoResponseDto> CrearProducto(CrearProductoDto dto, int idResponsable)
     {
+        if (idResponsable <= 0)
+        {
+            throw new ArgumentException("No se pudo identificar al responsable del registro.");
+        }
+
         var codigo = dto.Codigo.Trim();
         var nombre = dto.Nombre.Trim();
         var estado = dto.Estado.Trim();
@@ -53,7 +59,7 @@ public class ProductoService : IProductoService
 
         var rutaImagen = await GuardarImagen(dto.Imagen);
 
-        var producto = await _productoRepository.Crear(new Producto
+        var producto = await _productoRepository.CrearConHistorialStock(new Producto
         {
             Codigo = codigo,
             Nombre = nombre,
@@ -66,7 +72,7 @@ public class ProductoService : IProductoService
             StockMinimo = dto.StockMinimo,
             Estado = EstadosValidos.First(estadoValido => string.Equals(estadoValido, estado, StringComparison.OrdinalIgnoreCase)),
             RutaImagen = rutaImagen
-        });
+        }, idResponsable);
 
         return Mapear(producto);
     }
@@ -80,8 +86,9 @@ public class ProductoService : IProductoService
         return producto is null ? null : Mapear(producto);
     }
 
-    public async Task<ProductoResponseDto> ActualizarProducto(int id, ActualizarProductoDto dto)
+    public async Task<ProductoResponseDto> ActualizarProducto(int id, ActualizarProductoDto dto, int idResponsable)
     {
+        ValidarResponsable(idResponsable);
         var producto = await _productoRepository.ObtenerPorId(id) ?? throw new KeyNotFoundException("No se encuentra el producto.");
         var codigo = dto.Codigo.Trim();
         var nombre = dto.Nombre.Trim();
@@ -96,6 +103,12 @@ public class ProductoService : IProductoService
             throw new ArgumentException("Los datos del producto no son válidos.");
         }
 
+        var cambiaStock = producto.Stock != dto.Stock || producto.StockMinimo != dto.StockMinimo;
+        if (cambiaStock)
+        {
+            ValidarMotivo(dto.MotivoCambio);
+        }
+
         producto.Codigo = codigo;
         producto.Nombre = nombre;
         producto.Marca = dto.Marca.Trim();
@@ -106,18 +119,28 @@ public class ProductoService : IProductoService
         producto.Stock = dto.Stock;
         producto.StockMinimo = dto.StockMinimo;
         producto.Estado = EstadosValidos.First(estado => string.Equals(estado, dto.Estado.Trim(), StringComparison.OrdinalIgnoreCase));
+        string? rutaImagenAnterior = null;
         if (dto.Imagen is not null && dto.Imagen.Length > 0)
         {
-            var rutaAnterior = producto.RutaImagen;
+            rutaImagenAnterior = producto.RutaImagen;
             producto.RutaImagen = await GuardarImagen(dto.Imagen);
-            EliminarImagen(rutaAnterior);
         }
 
-        return Mapear(await _productoRepository.Actualizar(producto));
+        var actualizado = await _productoRepository.ActualizarConHistorialStock(
+            producto,
+            idResponsable,
+            dto.MotivoCambio?.Trim() ?? string.Empty);
+        if (rutaImagenAnterior is not null)
+        {
+            EliminarImagen(rutaImagenAnterior);
+        }
+
+        return Mapear(actualizado);
     }
 
-    public async Task<ProductoResponseDto> ActualizarStock(int id, ActualizarStockDto dto)
+    public async Task<ProductoResponseDto> ActualizarStock(int id, ActualizarStockDto dto, int idResponsable)
     {
+        ValidarResponsableYMotivo(idResponsable, dto.MotivoCambio);
         if (dto.Stock < 0 || dto.StockMinimo < 0)
         {
             throw new ArgumentException("Las cantidades de stock no pueden ser negativas.");
@@ -129,7 +152,39 @@ public class ProductoService : IProductoService
         producto.Stock = dto.Stock;
         producto.StockMinimo = dto.StockMinimo;
         producto.Estado = dto.Stock > 0 ? "Disponible" : "Agotado";
-        return Mapear(await _productoRepository.Actualizar(producto));
+        return Mapear(await _productoRepository.ActualizarConHistorialStock(
+            producto,
+            idResponsable,
+            dto.MotivoCambio.Trim()));
+    }
+
+    public async Task<HistorialStockPaginadoResponseDto?> ConsultarHistorialStock(
+        int idProducto,
+        int pagina,
+        int tamanoPagina)
+    {
+        ValidarPaginacionHistorial(pagina, tamanoPagina);
+        if (idProducto <= 0)
+            throw new ArgumentException("El identificador del producto no es válido.");
+
+        return await _productoRepository.ConsultarHistorialStock(idProducto, pagina, tamanoPagina);
+    }
+
+    public async Task<HistorialStockPaginadoResponseDto> ConsultarHistorialStockReciente(
+        int pagina,
+        int tamanoPagina)
+    {
+        ValidarPaginacionHistorial(pagina, tamanoPagina);
+        return await _productoRepository.ConsultarHistorialStockReciente(pagina, tamanoPagina);
+    }
+
+    private static void ValidarPaginacionHistorial(int pagina, int tamanoPagina)
+    {
+        if (pagina <= 0 || tamanoPagina <= 0 || tamanoPagina > 100 ||
+            (long)(pagina - 1) * tamanoPagina > int.MaxValue)
+        {
+            throw new ArgumentException("La paginación solicitada no es válida.");
+        }
     }
 
     public async Task EliminarProducto(int id)
@@ -174,6 +229,24 @@ public class ProductoService : IProductoService
         RutaImagen = producto.RutaImagen,
         TieneVentas = producto.TieneVentas
     };
+
+    private static void ValidarResponsableYMotivo(int idResponsable, string? motivo)
+    {
+        ValidarResponsable(idResponsable);
+        ValidarMotivo(motivo);
+    }
+
+    private static void ValidarResponsable(int idResponsable)
+    {
+        if (idResponsable <= 0)
+            throw new ArgumentException("No se pudo identificar al responsable del cambio.");
+    }
+
+    private static void ValidarMotivo(string? motivo)
+    {
+        if (string.IsNullOrWhiteSpace(motivo) || motivo.Trim().Length > 255)
+            throw new ArgumentException("El motivo es obligatorio y no puede superar los 255 caracteres.");
+    }
 
     private async Task<string?> GuardarImagen(IFormFile? imagen)
     {

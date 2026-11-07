@@ -12,5 +12,6 @@ public sealed class CuentaCliente
     public string? TokenConfirmacionHash { get; set; }
     public DateTime? TokenConfirmacionExpiraUtc { get; set; }
     public DateTime? UltimoCorreoConfirmacionUtc { get; set; }
+    public string? CorreoPendiente { get; set; }
     public Cliente? Cliente { get; set; }
 }

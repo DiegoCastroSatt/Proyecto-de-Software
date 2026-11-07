@@ -102,7 +102,37 @@ public sealed class AutenticacionClientesController(
         var confirmada = await autenticacion.ConfirmarCuentaAsync(request.Token, cancellationToken);
         if (!confirmada)
             return BadRequest(new { mensaje = "El enlace no es válido, venció o ya fue utilizado. Solicita un nuevo correo de confirmación." });
-        return Ok(new { mensaje = "Tu correo fue confirmado y la cuenta ya está activa. Ya puedes iniciar sesión." });
+        return Ok(new { mensaje = "La confirmación se completó. Si estabas cambiando tu correo, ya está actualizado; si estabas activando tu cuenta, ya puedes iniciar sesión." });
+    }
+
+    [Authorize(Policy = Politica)]
+    [HttpPost("correo/cambio")]
+    public async Task<IActionResult> SolicitarCambioCorreo(
+        [FromBody] SolicitarCambioCorreoClienteRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)) return Unauthorized();
+        try
+        {
+            var resultado = await autenticacion.SolicitarCambioCorreoAsync(idCliente, request.Correo, request.ContrasenaActual, cancellationToken);
+            return resultado switch
+            {
+                ResultadoCambioCorreoCliente.ConfirmacionEnviada => Accepted(new { mensaje = "Enviamos un enlace al nuevo correo. Tu correo actual seguirá activo hasta que confirmes el cambio; el enlace vence en 24 horas." }),
+                ResultadoCambioCorreoCliente.Duplicado => Conflict(new { mensaje = "Ese correo ya está asociado a otra cuenta." }),
+                ResultadoCambioCorreoCliente.ContrasenaIncorrecta => BadRequest(new { mensaje = "La contraseña ingresada no es válida." }),
+                ResultadoCambioCorreoCliente.Igual => BadRequest(new { mensaje = "El nuevo correo debe ser distinto al actual." }),
+                ResultadoCambioCorreoCliente.Espera => StatusCode(StatusCodes.Status429TooManyRequests, new { mensaje = "Espera un minuto antes de solicitar otro cambio de correo." }),
+                ResultadoCambioCorreoCliente.SinCuenta => NotFound(new { mensaje = "No se encontró una cuenta activa para este cliente." }),
+                ResultadoCambioCorreoCliente.Invalido => BadRequest(new { mensaje = "Ingresa un correo electrónico válido de hasta 100 caracteres." }),
+                _ => StatusCode(StatusCodes.Status503ServiceUnavailable, new { mensaje = "No fue posible enviar el correo de confirmación. Inténtalo nuevamente." })
+            };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            logger.LogError("Falló la solicitud de cambio de correo de cliente ({TipoError}).", ex.GetType().Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo solicitar el cambio de correo." });
+        }
     }
 
     [AllowAnonymous]

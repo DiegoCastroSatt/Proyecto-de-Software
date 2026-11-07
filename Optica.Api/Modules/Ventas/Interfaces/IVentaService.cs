@@ -4,5 +4,5 @@ namespace Optica.Api.Modules.Ventas.Interfaces;
 public interface IVentaService
 {
     Task<IReadOnlyList<VentaResponseDto>> Listar();
-    Task<VentaCreadaResponseDto> Crear(CrearVentaDto dto);
+    Task<VentaCreadaResponseDto> Crear(CrearVentaDto dto, int idResponsable);
 }

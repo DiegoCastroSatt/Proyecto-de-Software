@@ -1,0 +1,113 @@
+<section class="stock-page">
+  <header class="stock-heading">
+    <div>
+      <p class="eyebrow">Inventario</p>
+      <h1>Historial de stock</h1>
+      <p class="page-description">Consulta los movimientos recientes de stock o busca un producto para filtrar.</p>
+    </div>
+  </header>
+
+  <div class="search-controls">
+    <label class="search-field" for="buscar-producto-historial">
+      <span>Buscar producto</span>
+      <input
+        id="buscar-producto-historial"
+        type="search"
+        placeholder="Buscar por nombre o código"
+        autocomplete="off"
+        [value]="busquedaProducto()"
+        [disabled]="cargandoProductos() || cargandoHistorial()"
+        (input)="buscarProducto($event)">
+    </label>
+    @if (productoSeleccionadoId() !== null || busquedaProducto()) {
+      <button class="secondary-button" type="button" (click)="limpiarFiltro()" [disabled]="cargandoHistorial()">Mostrar todos</button>
+    }
+  </div>
+
+  @if (cargandoProductos()) {
+    <p class="status" role="status">Cargando productos...</p>
+  } @else if (errorProductos()) {
+    <div class="status error" role="alert">
+      <p>{{ errorProductos() }}</p>
+      <button type="button" (click)="cargarProductos()">Reintentar</button>
+    </div>
+  } @else if (productos().length === 0) {
+    <p class="status">No hay productos registrados.</p>
+  }
+
+  @if (productosCoincidentes().length > 0) {
+    <ul class="product-suggestions" aria-label="Productos coincidentes">
+      @for (producto of productosCoincidentes(); track producto.id) {
+        <li>
+          <button type="button" (click)="seleccionarProducto(producto)">
+            {{ etiquetaProducto(producto) }}
+          </button>
+        </li>
+      }
+    </ul>
+  } @else if (busquedaProducto().trim() && productoSeleccionadoId() === null && !cargandoProductos() && !errorProductos()) {
+    <p class="status">No se encontraron productos coincidentes.</p>
+  }
+
+  @if (cargandoHistorial()) {
+    <p class="status" role="status">Cargando historial...</p>
+  } @else if (errorHistorial()) {
+    <div class="status error" role="alert">
+      <p>{{ errorHistorial() }}</p>
+      <button type="button" (click)="reintentarHistorial()">Reintentar</button>
+    </div>
+  } @else if (historial(); as resultado) {
+    @if (resultado.movimientos.length === 0) {
+      <p class="status">
+        {{ productoSeleccionadoId() === null
+          ? 'No hay movimientos recientes de stock.'
+          : 'Este producto todavía no tiene movimientos de stock.' }}
+      </p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Tipo de stock</th>
+              <th scope="col">Motivo</th>
+              <th scope="col">Valor anterior</th>
+              <th scope="col">Valor actual</th>
+              <th scope="col">Responsable</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (movimiento of resultado.movimientos; track movimiento.idCambio) {
+              <tr>
+                <td>{{ movimiento.fechaCambio | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ nombreProducto(movimiento.idProducto) }}</td>
+                <td>{{ movimiento.tipoStock === 'Normal' ? 'Normal' : 'Mínimo' }}</td>
+                <td>{{ movimiento.motivoMovimiento }}</td>
+                <td>{{ movimiento.valorAnterior }}</td>
+                <td>{{ movimiento.valorActual }}</td>
+                <td>{{ movimiento.nombreResponsable }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="pagination" aria-label="Paginación del historial de stock">
+        <button
+          type="button"
+          (click)="cambiarPagina(pagina() - 1)"
+          [disabled]="cargandoHistorial() || pagina() <= 1">
+          Anterior
+        </button>
+        <span>Página {{ resultado.pagina }} de {{ resultado.totalPaginas }}</span>
+        <button
+          type="button"
+          (click)="cambiarPagina(pagina() + 1)"
+          [disabled]="cargandoHistorial() || pagina() >= resultado.totalPaginas">
+          Siguiente
+        </button>
+      </nav>
+    }
+  }
+</section>

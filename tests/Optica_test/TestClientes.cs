@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
 using Optica.Api.Modules.Clientes.Controllers;
@@ -24,6 +26,56 @@ public class TestClientes : IDisposable
         var repo = new ClienteRepository(db);
         var service = new ClienteService(repo);
         return new ClientesController(service);
+    }
+
+    private PerfilClienteController ControladorPerfil(int? idCliente)
+    {
+        var controlador = new PerfilClienteController(new ClienteService(new ClienteRepository(db)));
+        var identidad = idCliente.HasValue
+            ? new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, idCliente.Value.ToString()) }, "Prueba")
+            : new ClaimsIdentity();
+        controlador.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identidad) } };
+        return controlador;
+    }
+
+    [Fact]
+    public async Task Perfil_ConsultaYActualizaSoloElClienteDeLaSesion()
+    {
+        var propio = new Cliente { Rut = "11111111-1", Nombre = "Ana", Apellido = "Uno", Correo = "ana@example.test", Estado = "Activo" };
+        var ajeno = new Cliente { Rut = "22222222-2", Nombre = "Luis", Apellido = "Dos", Correo = "luis@example.test", Estado = "Activo" };
+        db.Clientes.AddRange(propio, ajeno);
+        await db.SaveChangesAsync();
+        var controlador = ControladorPerfil(propio.IdCliente);
+
+        var lectura = Assert.IsType<OkObjectResult>((await controlador.Obtener()).Result);
+        Assert.Equal(propio.Rut, Assert.IsType<PerfilClienteDto>(lectura.Value).Rut);
+        var actualizacion = Assert.IsType<OkObjectResult>((await controlador.Actualizar(new ActualizarPerfilClienteDto
+            { Nombre = "Ana María", Apellido = "Uno", Telefono = "+56 9 1234 5678" })).Result);
+        Assert.Equal("Ana María", Assert.IsType<PerfilClienteDto>(actualizacion.Value).Nombre);
+        db.ChangeTracker.Clear();
+        Assert.Equal("Ana María", (await db.Clientes.SingleAsync(c => c.IdCliente == propio.IdCliente)).Nombre);
+        Assert.Equal("Luis", (await db.Clientes.SingleAsync(c => c.IdCliente == ajeno.IdCliente)).Nombre);
+        Assert.Equal("11111111-1", (await db.Clientes.SingleAsync(c => c.IdCliente == propio.IdCliente)).Rut);
+    }
+
+    [Fact]
+    public async Task Perfil_SinIdentidadDevuelve401YEndpointExigeAutenticacion()
+    {
+        var controlador = ControladorPerfil(null);
+        Assert.IsType<UnauthorizedResult>((await controlador.Obtener()).Result);
+        var autorizacion = Assert.Single(typeof(PerfilClienteController).GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true));
+        Assert.Equal("ClienteAutenticado", ((Microsoft.AspNetCore.Authorization.AuthorizeAttribute)autorizacion).Policy);
+    }
+
+    [Fact]
+    public async Task Perfil_RechazaTelefonoInvalido()
+    {
+        var cliente = new Cliente { Rut = "12345678-5", Nombre = "Ana", Apellido = "Pérez", Correo = "ana@example.test", Estado = "Activo" };
+        db.Clientes.Add(cliente);
+        await db.SaveChangesAsync();
+        var respuesta = await ControladorPerfil(cliente.IdCliente).Actualizar(new ActualizarPerfilClienteDto
+            { Nombre = "Ana", Apellido = "Pérez", Telefono = "123" });
+        Assert.IsType<BadRequestObjectResult>(respuesta.Result);
     }
 
     private static CrearClienteDto ValidoDto() => new()

@@ -1,3 +1,4 @@
+import { ComprobanteVentaService } from '../../shared/services/comprobante-venta.service';
 import { AutocompletadoRutService } from '../../shared/components/autocompletado-rut/autocompletado-rut.service';
 import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
 import { By } from '@angular/platform-browser';
@@ -47,6 +48,38 @@ describe('Registro de ventas', () => {
     registrar().click(); fixture.detectChanges();
     expect(servicio.crear).toHaveBeenCalledWith([{ codigoProducto: 'A', cantidad: 1 }], '12.345.678-5');
     expect(control.value()).toBe('');
+  });
+
+  it('conserva los datos confirmados para descargar el comprobante después de vaciar la caja', () => {
+    servicio.crear.mockReturnValueOnce(of({ idVenta: 42, fecha: '2026-11-04T15:30:00', total: 180,
+      productos: [{ productoId: 1, cantidad: 2, precioUnitario: 90, subtotal: 180 }] }));
+    const descargar = vi.spyOn(TestBed.inject(ComprobanteVentaService), 'descargar').mockResolvedValue();
+    const { fixture, dom, agregar, registrar } = preparar();
+    expect(dom.querySelector('.comprobante')).toBeNull();
+    agregar('A'); agregar('A'); registrar().click(); fixture.detectChanges();
+    expect(dom.querySelectorAll('.linea')).toHaveLength(0);
+    expect(dom.querySelector('.comprobante')?.textContent).toContain('No es un documento tributario legal.');
+    dom.querySelector<HTMLButtonElement>('.comprobante button:last-child')!.click();
+    expect(descargar).toHaveBeenCalledWith(expect.objectContaining({ idVenta: 42, total: 180,
+      productos: [{ productoId: 1, nombre: 'Lentes', cantidad: 2, precioUnitario: 90, subtotal: 180 }] }));
+  });
+
+  it('permite ver y descargar el comprobante de cada venta anterior del historial', () => {
+    const ventas = [1, 2].map(id => ({ idVenta: id, fecha: '2026-10-01T12:00:00', total: 100,
+      productos: [{ productoId: 1, nombre: 'Lentes', cantidad: 1, precioUnitario: 100, subtotal: 100 }] }));
+    servicio.listar.mockReturnValueOnce(of(ventas));
+    const comprobantes = TestBed.inject(ComprobanteVentaService);
+    const descargar = vi.spyOn(comprobantes, 'descargar').mockResolvedValue();
+    const mostrar = vi.spyOn(comprobantes, 'mostrar').mockResolvedValue();
+    const fixture = TestBed.createComponent(VerVentasComponent); fixture.detectChanges();
+    const filas = fixture.nativeElement.querySelectorAll('.venta-historial') as NodeListOf<HTMLElement>;
+    expect(filas).toHaveLength(2);
+    filas.forEach((fila, i) => {
+      const botones = fila.querySelectorAll('button');
+      botones[0].click(); botones[1].click();
+      expect(mostrar).toHaveBeenCalledWith(ventas[i]);
+      expect(descargar).toHaveBeenCalledWith(ventas[i]);
+    });
   });
 
   it('permite quitar el cliente y registrar una venta sin asociación', () => {
