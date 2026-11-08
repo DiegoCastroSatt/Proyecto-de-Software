@@ -18,7 +18,7 @@
 	@if (cargando()) {
 		<p class="status" role="status">Consultando existencias...</p>
 	} @else if (error()) {
-		<div class="status error" role="alert">
+		<div class="notificacion-sistema" data-tipo="error" role="alert">
 			<p>{{ error() }}</p>
 			<button type="button" (click)="cargarProductos()">Reintentar</button>
 		</div>
@@ -80,6 +80,6 @@
 		</div>
 	}
 	@if (errorStock()) {
-		<p class="status error" role="alert">{{ errorStock() }}</p>
+		<p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorStock() }}</p>
 	}
 </section>

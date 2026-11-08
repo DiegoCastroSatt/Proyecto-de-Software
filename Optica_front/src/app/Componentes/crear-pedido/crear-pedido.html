@@ -8,6 +8,13 @@
           <button type="button" class="btn-secondary" routerLink="/admin/panel/pedido">Volver a Pedidos</button>
         </div>
 
+        @if (errorMessage()) {
+          <div class="error-banner notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
+        }
+        @if (successMessage()) {
+          <div class="success-banner notificacion-sistema" data-tipo="success" role="status">{{ successMessage() }}</div>
+        }
+
         <div class="form-container">
           <form [formGroup]="pedidoForm" (ngSubmit)="submitPedido()">
 
@@ -64,13 +71,6 @@
                 {{ isSubmitting() ? 'Guardando...' : 'Guardar Pedido' }}
               </button>
             </div>
-
-            @if (errorMessage()) {
-            <div class="error-banner">{{ errorMessage() }}</div>
-            }
-            @if (successMessage()) {
-            <div class="success-banner">{{ successMessage() }}</div>
-            }
 
           </form>
         </div>

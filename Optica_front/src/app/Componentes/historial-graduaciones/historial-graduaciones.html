@@ -15,7 +15,7 @@
     @if (cargandoClientes()) {
       <p role="status">Cargando clientes...</p>
     } @else if (errorClientes()) {
-      <div class="error-message" role="alert">{{ errorClientes() }}</div>
+      <div class="notificacion-sistema" data-tipo="error" role="alert">{{ errorClientes() }}</div>
       <button type="button" (click)="cargarClientes()">Reintentar</button>
     } @else {
       <section class="clientes-lista" aria-label="Lista de clientes">
@@ -48,7 +48,7 @@
   }
 
   @if (errorMessage()) {
-    <div class="error-message" role="alert">{{ errorMessage() }}</div>
+    <div class="notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
   }
 
   @if (yaBusco() && !isLoading() && !errorMessage() && recetas().length === 0) {

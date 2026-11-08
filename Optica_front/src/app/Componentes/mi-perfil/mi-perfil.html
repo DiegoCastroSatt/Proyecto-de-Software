@@ -6,8 +6,8 @@
   </header>
 
   @if (cargando()) { <p class="notice" role="status">Cargando tu perfil…</p> }
-  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
-  @if (confirmacion()) { <p class="notice success" role="status">{{ confirmacion() }}</p> }
+  @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
+  @if (confirmacion()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ confirmacion() }}</p> }
 
   @if (!cargando() && perfil(); as datos) {
     <form class="profile-card" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
@@ -27,8 +27,8 @@
       <div class="card-heading"><div><h2 id="email-title">Cambiar correo electrónico</h2><p>Ingresa tu contraseña actual para verificar tu identidad.</p></div>
         @if (!editandoCorreo()) { <button type="button" class="button secondary" (click)="editandoCorreo.set(true)">Cambiar correo</button> }
       </div>
-      @if (mensajeCorreo()) { <p class="notice success" role="status">{{ mensajeCorreo() }}</p> }
-      @if (errorCorreo()) { <p class="notice error" role="alert">{{ errorCorreo() }}</p> }
+      @if (mensajeCorreo()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ mensajeCorreo() }}</p> }
+      @if (errorCorreo()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorCorreo() }}</p> }
       @if (editandoCorreo()) {
         <form class="email-form" [formGroup]="formularioCorreo" (ngSubmit)="solicitarCambioCorreo()" novalidate>
           <label>Nuevo correo electrónico<input type="email" formControlName="correo" autocomplete="email" maxlength="100"><small *ngIf="formularioCorreo.controls.correo.touched && formularioCorreo.controls.correo.invalid">Ingresa un correo válido de hasta 100 caracteres.</small></label>

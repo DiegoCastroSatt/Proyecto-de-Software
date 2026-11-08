@@ -3,8 +3,8 @@
     <p>Administra las opciones del recomendador y los marcos sugeridos para cada rostro.</p>
     <p>Desactivar oculta el rostro y conserva sus asociaciones para reactivarlo después.</p>
   </header>
-  @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
-  @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
+  @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
+  @if (aviso()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ aviso() }}</p> }
   <form #formulario="ngForm" (ngSubmit)="crear(archivo)" class="crear">
     <h2>Crear tipo de rostro</h2>
     <div class="campos">
@@ -15,7 +15,7 @@
     </div>
     <fieldset><legend>Marcos recomendados</legend>
       @if (cargandoMarcos()) { <p role="status">Cargando marcos…</p> }
-      @else if (errorMarcos()) { <p role="alert">No se pudieron cargar los marcos.</p><button type="button" (click)="cargarMarcos()">Reintentar</button> }
+      @else if (errorMarcos()) { <p class="notificacion-sistema" data-tipo="error" role="alert">No se pudieron cargar los marcos.</p><button type="button" (click)="cargarMarcos()">Reintentar</button> }
       @else if (!marcos().length) { <p>No hay tipos de marco. Puedes asociarlos después de crear el rostro.</p> }
       <div class="rostros">
         @for (marco of marcos(); track marco.id) {

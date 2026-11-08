@@ -42,7 +42,7 @@
             {{ cerrandoSesion() ? 'Cerrando sesión…' : 'Cerrar sesión' }}
           </button>
           @if (errorSesion()) {
-            <p role="alert">{{ errorSesion() }}</p>
+            <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorSesion() }}</p>
           }
         </div>
       </details>

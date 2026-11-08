@@ -27,7 +27,7 @@
   @if (cargandoProductos()) {
     <p class="status" role="status">Cargando productos...</p>
   } @else if (errorProductos()) {
-    <div class="status error" role="alert">
+    <div class="notificacion-sistema" data-tipo="error" role="alert">
       <p>{{ errorProductos() }}</p>
       <button type="button" (click)="cargarProductos()">Reintentar</button>
     </div>
@@ -52,7 +52,7 @@
   @if (cargandoHistorial()) {
     <p class="status" role="status">Cargando historial...</p>
   } @else if (errorHistorial()) {
-    <div class="status error" role="alert">
+    <div class="notificacion-sistema" data-tipo="error" role="alert">
       <p>{{ errorHistorial() }}</p>
       <button type="button" (click)="reintentarHistorial()">Reintentar</button>
     </div>

@@ -59,7 +59,7 @@
   @if (cargando()) {
     <p class="status">Consultando productos...</p>
   } @else if (error()) {
-    <p class="status error">{{ error() }}</p>
+    <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p>
   } @else if (mensaje()) {
     <p class="status">{{ mensaje() }}</p>
   } @else {
@@ -135,7 +135,7 @@
             </div>
 
             @if (cargandoResenas()) { <p class="status">Cargando reseñas…</p> }
-            @if (errorResena()) { <p class="review-error" role="alert">{{ errorResena() }}</p> }
+            @if (errorResena()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorResena() }}</p> }
             @for (resena of resenas(); track resena.id) {
               <article class="review-item">
                 <div class="review-meta"><strong>{{ resena.nombreCliente }}</strong><time>{{ fechaResena(resena.fechaCreacionUtc) }}</time></div>
@@ -162,8 +162,8 @@
                   @if (resenaForm.controls.comentario.touched && resenaForm.controls.comentario.invalid) { <small class="review-error">Escribe un comentario de al menos 3 caracteres.</small> }
                 </label>
                 <button class="primary" type="submit" [disabled]="publicandoResena()">{{ publicandoResena() ? 'Publicando…' : 'Publicar reseña' }}</button>
-                @if (mensajeResena()) { <p class="review-success" role="status">{{ mensajeResena() }}</p> }
-                @if (errorResena()) { <p class="review-error" role="alert">{{ errorResena() }}</p> }
+                @if (mensajeResena()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ mensajeResena() }}</p> }
+                @if (errorResena()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorResena() }}</p> }
               </form>
             } @else if (yaReseno(producto.id)) {
               <p class="review-note">Ya publicaste una reseña para este producto.</p>

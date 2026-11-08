@@ -10,7 +10,7 @@
     @if (cargando()) {
       <div class="estado" role="status">Cargando productos…</div>
     } @else if (error()) {
-      <div class="estado" role="alert"><h2>No pudimos cargar los productos</h2><p>Inténtalo nuevamente en unos momentos.</p><button type="button" (click)="cargar()">Reintentar</button></div>
+      <div class="notificacion-sistema" data-tipo="error" role="alert"><h2>No pudimos cargar los productos</h2><p>Inténtalo nuevamente en unos momentos.</p><button type="button" (click)="cargar()">Reintentar</button></div>
     } @else if (actual(); as producto) {
       <div class="diapositiva" aria-live="off" aria-atomic="true">
         <div class="foto">

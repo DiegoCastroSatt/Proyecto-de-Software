@@ -8,7 +8,7 @@
   @if (isLoading()) { <p role="status">Cargando tus recetas...</p> }
 
   @if (errorMessage()) {
-    <div class="error-message" role="alert">{{ errorMessage() }}</div>
+    <div class="notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
   }
 
   @if (yaBusco() && !isLoading() && !errorMessage() && recetas().length === 0) {

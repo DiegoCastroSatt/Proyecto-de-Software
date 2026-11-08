@@ -6,8 +6,8 @@
     <p>Armazones y marcos son el mismo producto. Vincula aquí los armazones del inventario; sus existencias se usarán en el recomendador y simulador.</p>
   </header>
 
-  @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
-  @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
+  @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
+  @if (aviso()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ aviso() }}</p> }
 
 
 
@@ -47,7 +47,7 @@
               <p>Solo se muestran productos de la categoría Armazones. Los lentes de sol, ópticos, de contacto y accesorios no se pueden vincular. El precio y stock se conservan en el inventario.</p>
               <p>Cada producto puede pertenecer a un solo marco. Si eliges uno vinculado a otro, se trasladará al guardar. Desmarcarlo retira únicamente el vínculo.</p>
               @if (cargandoProductos()) { <p role="status">Cargando productos…</p> }
-              @else if (errorProductos()) { <p class="error" role="alert">{{ errorProductos() }}</p><button type="button" (click)="abrirVinculos(marco)">Reintentar</button> }
+              @else if (errorProductos()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorProductos() }}</p><button type="button" (click)="abrirVinculos(marco)">Reintentar</button> }
               @else {
                 <label>Buscar por nombre, código o categoría<input type="search" [(ngModel)]="filtroProductos" [ngModelOptions]="{standalone: true}" /></label>
                 <p>{{ productosSeleccionados.size }} productos seleccionados</p>

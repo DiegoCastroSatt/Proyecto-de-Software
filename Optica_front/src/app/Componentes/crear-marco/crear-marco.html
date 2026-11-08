@@ -6,8 +6,8 @@
     <p>Prepara el diseño y selecciona los rostros para los que se recomienda.</p>
     <a routerLink="/admin/panel/marcos/rostros">Administrar tipos de rostro</a>
   </header>
-  @if (error()) { <p class="mensaje error" role="alert">{{ error() }}</p> }
-  @if (aviso()) { <p class="mensaje" role="status">{{ aviso() }}</p> }
+  @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
+  @if (aviso()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ aviso() }}</p> }
   <form #formulario="ngForm" (ngSubmit)="crear(archivo)" class="crear">
     <h2>Crear tipo de marco</h2>
     <div class="campos">
