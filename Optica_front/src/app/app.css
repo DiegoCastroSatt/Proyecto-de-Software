@@ -773,3 +773,61 @@ app-cliente {
 .boton-visibilidad-contrasena svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 .boton-visibilidad-contrasena svg circle { fill: currentColor; stroke: none; }
 .boton-visibilidad-contrasena .oculto { display: none; }
+
+/* Notificaciones del sistema */
+.notificacion-sistema {
+	margin-block: 0 1rem;
+	padding: 0.875rem 1rem;
+	border-inline-start: 0.25rem solid currentColor;
+	border-radius: 0.5rem;
+	overflow-wrap: anywhere;
+	line-height: 1.5;
+}
+
+.notificacion-sistema--flotante {
+	position: fixed;
+	inset-block-start: 1rem;
+	inset-inline-end: 1rem;
+	z-index: 10001;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin: 0;
+	inline-size: min(26rem, calc(100% - 2rem));
+	box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 18%);
+}
+
+.notificacion-sistema:is([data-tipo='success'], [data-tipo='exito']) {
+	background: var(--color-exito-fondo);
+	color: var(--color-exito-texto);
+}
+
+.notificacion-sistema[data-tipo='error'] {
+	background: var(--color-error-fondo);
+	color: var(--color-error-oscuro);
+}
+
+.notificacion-sistema:is([data-tipo='warning'], [data-tipo='advertencia']) {
+	background: var(--color-aviso-fondo);
+	color: var(--color-aviso-dashboard);
+}
+
+.notificacion-sistema > button {
+	flex: none;
+	min-inline-size: 2rem;
+	min-block-size: 2rem;
+	padding: 0;
+	border: 0;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 1.25rem;
+	cursor: pointer;
+}
+
+.notificacion-sistema > button:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}

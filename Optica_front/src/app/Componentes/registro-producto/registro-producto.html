@@ -7,14 +7,14 @@
     </div>
 
     @if (savedName()) {
-    <div class="success-message" role="status">
+    <div class="notificacion-sistema" data-tipo="success" role="status">
       <strong>Producto guardado.</strong>
       <span>{{ savedName() }} ya quedó registrado en el inventario.</span>
     </div>
     }
 
     @if (errorMessage()) {
-    <div class="error-message" role="alert">{{ errorMessage() }}</div>
+    <div class="notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
     }
 
     <form class="product-card" [formGroup]="productForm" (ngSubmit)="submitProduct()" novalidate>

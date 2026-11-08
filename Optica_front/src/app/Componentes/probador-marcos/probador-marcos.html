@@ -71,7 +71,7 @@
         }
       </div>
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p>
       }
       <p class="privacidad">
         Solo tú lo ves. La foto y el video se procesan en tu navegador y no se guardan en el
@@ -87,7 +87,7 @@
       @if (cargandoModelos()) {
         <p role="status">Consultando marcos disponibles…</p>
       } @else if (errorModelos()) {
-        <p class="error" role="alert">{{ errorModelos() }}</p>
+        <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorModelos() }}</p>
       } @else if (!modelos().length) {
         <p role="status">No hay tipos de marco disponibles para probar en este momento.</p>
       }

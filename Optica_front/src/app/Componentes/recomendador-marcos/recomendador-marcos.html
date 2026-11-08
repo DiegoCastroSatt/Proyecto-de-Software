@@ -24,7 +24,7 @@
     </div>
   </div>
   @if (cargandoRostros()) { <p role="status">Cargando tipos de rostro…</p> }
-  @else if (errorRostros()) { <p role="alert">{{ errorRostros() }}</p> }
+  @else if (errorRostros()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorRostros() }}</p> }
   @else if (!rostros().length) { <p role="status">No hay tipos de rostro activos para recomendar en este momento.</p> }
   <div class="rostros" role="group" aria-label="Selecciona la forma de tu rostro">
     @for (rostro of rostros(); track rostro.id) {
@@ -70,7 +70,7 @@
         @if (cargando()) {
           <p role="status">Consultando marcos disponibles…</p>
         } @else if (errorStock()) {
-          <p role="alert">{{ errorStock() }}</p>
+          <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorStock() }}</p>
         } @else if (!resultado.marcos.length) {
           <p role="status">No hay marcos recomendados para este rostro con stock disponible.</p>
         }

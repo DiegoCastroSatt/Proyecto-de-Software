@@ -1,6 +1,6 @@
 <div class="app-shell"><main class="ventas">
 <div class="encabezado-ventas"><h1>Ver ventas</h1><a class="boton-ventas" routerLink="/admin/panel/ventas">Registrar venta</a></div>
-@if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+@if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
     <section class="panel-administracion" aria-labelledby="titulo-informe">
       <div class="encabezado-informe">
         <div>
@@ -66,7 +66,7 @@
           @if (cargandoHistorial()) {
             <p role="status">Cargando productos más vendidos…</p>
           } @else if (errorHistorial()) {
-            <p role="alert">No se pudo cargar el rank.</p>
+            <p class="notificacion-sistema" data-tipo="error" role="alert">No se pudo cargar el rank.</p>
             <button type="button" (click)="cargarVentas()">Reintentar</button>
           } @else if (!rank().length) {
             <p class="vacio">No hay ventas en el período seleccionado.</p>
@@ -86,7 +86,7 @@
 
       <h3>Historial de ventas</h3>
       <p>Los comprobantes son de uso interno. No son documentos tributarios legales.</p>
-      @if (comprobantes.error()) { <p class="error" role="alert">{{ comprobantes.error() }}</p> }
+      @if (comprobantes.error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ comprobantes.error() }}</p> }
       @if (!ventas().length) { <p class="vacio">Aún no hay ventas registradas.</p> }
       <div class="historial">
         @for (venta of ventas(); track venta.idVenta) {

@@ -24,7 +24,7 @@
           aria-controls="sugerencias-clientes"
           [attr.aria-expanded]="clientes().length > 0">
         @if (buscandoClientes()) { <p class="estado-busqueda" aria-live="polite">Buscando clientes…</p> }
-        @if (errorClientes()) { <p class="mensaje-error" role="alert">No se pudieron buscar clientes. Inténtalo nuevamente.</p> }
+        @if (errorClientes()) { <p class="notificacion-sistema" data-tipo="error" role="alert">No se pudieron buscar clientes. Inténtalo nuevamente.</p> }
         @if (clientes().length > 0) {
           <ul id="sugerencias-clientes" class="sugerencias-clientes" role="listbox" aria-label="Clientes encontrados">
             @for (cliente of clientes(); track cliente.Rut) {
@@ -47,7 +47,7 @@
           @if (cargandoPedidos()) {
             <p class="estado-busqueda">Cargando pedidos…</p>
           } @else if (mensajeError()) {
-            <p class="mensaje-error" role="alert">{{ mensajeError() }}</p>
+            <p class="notificacion-sistema" data-tipo="error" role="alert">{{ mensajeError() }}</p>
           } @else if (pedidos().length === 0) {
             <div class="empty-state">
               <p class="empty-title">Sin pedidos</p>

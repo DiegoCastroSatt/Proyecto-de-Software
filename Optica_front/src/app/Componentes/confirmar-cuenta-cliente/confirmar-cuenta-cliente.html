@@ -14,7 +14,7 @@
     @if (estado() === 'cargando') {
       <p class="confirmar-mensaje">Estamos validando el enlace de confirmación.</p>
     } @else {
-      <div class="confirmar-estado" [class.exito]="estado() === 'exito'" [class.error]="estado() === 'error'">
+      <div class="confirmar-estado notificacion-sistema" [attr.data-tipo]="estado() === 'exito' ? 'success' : 'error'">
         <p>{{ mensaje() }}</p>
         <button type="button" class="btn-principal" (click)="irAlLogin()">
           {{ estado() === 'exito' ? 'Ir a iniciar sesión' : 'Volver al inicio de sesión' }}
