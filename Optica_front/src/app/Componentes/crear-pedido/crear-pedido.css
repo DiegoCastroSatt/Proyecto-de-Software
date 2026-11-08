@@ -44,24 +44,6 @@
   display: block;
 }
 
-.error-banner {
-  background: var(--color-error-fondo-pedido);
-  color: var(--color-error-alternativo);
-  padding: 12px;
-  border-radius: 4px;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.success-banner {
-  background: var(--color-exito-fondo);
-  color: var(--color-exito);
-  padding: 12px;
-  border-radius: 4px;
-  margin-top: 20px;
-  text-align: center;
-}
-
 .form-actions {
   margin-top: 30px;
   text-align: right;

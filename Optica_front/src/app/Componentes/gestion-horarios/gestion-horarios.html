@@ -8,10 +8,10 @@
     </header>
 
     @if (errorMessage()) {
-        <p class="message message-error" role="alert">{{ errorMessage() }}</p>
+        <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</p>
     }
     @if (successMessage()) {
-        <p class="message message-success" role="status">{{ successMessage() }}</p>
+        <p class="notificacion-sistema" data-tipo="success" role="status">{{ successMessage() }}</p>
     }
 
     <section class="schedule-layout" aria-label="Configuración de horarios">

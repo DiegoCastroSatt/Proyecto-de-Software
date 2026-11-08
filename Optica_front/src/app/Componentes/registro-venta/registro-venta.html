@@ -2,7 +2,7 @@
   <main class="ventas">
     <div class="encabezado-ventas"><h1>Registrar venta</h1><a class="boton-ventas" routerLink="/admin/panel/ventas/historial">Ver ventas</a></div>
     <p>Escanea un código o busca el producto por su nombre o código para agregarlo a la venta.</p>
-    @if (mensaje()) { <p class="exito" role="status">{{ mensaje() }}</p> }
+    @if (mensaje()) { <p class="notificacion-sistema" data-tipo="success" role="status">{{ mensaje() }}</p> }
     @if (ultimaVenta(); as venta) {
       <section class="comprobante" aria-label="Comprobante de la última venta">
         <strong>Comprobante de venta #{{ venta.idVenta }}</strong>
@@ -17,8 +17,8 @@
         </div>
       </section>
     }
-    @if (comprobantes.error()) { <p class="error" role="alert">{{ comprobantes.error() }}</p> }
-    @if (error()) { <p class="error" role="alert">{{ error() }} <button type="button"
+    @if (comprobantes.error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ comprobantes.error() }}</p> }
+    @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }} <button type="button"
         (click)="error.set('')">Cerrar</button></p> }
     <div class="caja">
       <section>

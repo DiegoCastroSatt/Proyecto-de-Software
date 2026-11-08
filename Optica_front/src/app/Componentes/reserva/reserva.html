@@ -22,13 +22,13 @@
       </div>
 
       @if (confirmedName()) {
-        <div class="success-message" role="status">
+        <div class="notificacion-sistema" data-tipo="success" role="status">
           <strong>Reserva registrada, {{ confirmedName() }}.</strong>
         </div>
       }
 
       @if (errorMessage()) {
-        <div class="error-message" role="alert">{{ errorMessage() }}</div>
+        <div class="notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
       }
 
       <form [formGroup]="reservationForm" (ngSubmit)="submitReservation()" novalidate>

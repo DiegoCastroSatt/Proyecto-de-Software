@@ -7,14 +7,14 @@
     </div>
 
     @if (successMessage()) {
-      <div class="success-message" role="status">
+      <div class="notificacion-sistema" data-tipo="success" role="status">
         <strong>Receta guardada.</strong>
         <span>{{ successMessage() }}</span>
       </div>
     }
 
     @if (errorMessage()) {
-      <div class="error-message" role="alert">{{ errorMessage() }}</div>
+      <div class="notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
     }
 
     @if (isLoading()) { <p role="status">Cargando receta...</p> }
