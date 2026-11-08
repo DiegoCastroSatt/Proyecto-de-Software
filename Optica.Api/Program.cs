@@ -221,6 +221,17 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
     });
 });
 
+if (builder.Environment.IsEnvironment("E2E"))
+{
+    app.MapGet("/health/db", async Task<IResult> (OpticaDbContext db, CancellationToken cancellationToken) =>
+    {
+        var conectado = await db.Database.CanConnectAsync(cancellationToken);
+        return conectado
+            ? Results.Ok(new { estado = "disponible" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }).AllowAnonymous();
+}
+
 app.Run();
 
 static bool IsAllowedFrontendOrigin(string origin, IConfiguration configuration)
