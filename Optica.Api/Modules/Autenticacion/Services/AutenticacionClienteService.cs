@@ -21,7 +21,7 @@ public sealed class AutenticacionClienteService(
     ILogger<AutenticacionClienteService> logger,
     IConfiguration configuracion)
 {
-    private const string NombreCentro = "Centro Ã“ptico San Francisco";
+    private const string NombreCentro = "Centro Óptico San Francisco";
     private static readonly TimeSpan VigenciaConfirmacion = TimeSpan.FromHours(24);
 
     public async Task<(ClienteSesionResponse? Sesion, bool CredencialesValidas)> IniciarSesionAsync(
@@ -75,16 +75,16 @@ public sealed class AutenticacionClienteService(
         if (nombre.Length == 0 || apellido.Length == 0)
             return ResultadoRegistroCliente.Invalido("Ingresa nombre y apellido.");
         if (!RutChilenoValidator.EsValido(request.Rut))
-            return ResultadoRegistroCliente.Invalido("El RUT ingresado no es vÃ¡lido.");
+            return ResultadoRegistroCliente.Invalido("El RUT ingresado no es válido.");
         if (correo.Length > 100 || !MailAddress.TryCreate(correo, out var direccion)
             || !string.Equals(direccion.Address, correo, StringComparison.OrdinalIgnoreCase))
-            return ResultadoRegistroCliente.Invalido("Ingresa un correo electrÃ³nico vÃ¡lido de hasta 100 caracteres.");
+            return ResultadoRegistroCliente.Invalido("Ingresa un correo electrónico válido de hasta 100 caracteres.");
         if (!TelefonoChilenoValidator.EsValido(telefono))
-            return ResultadoRegistroCliente.Invalido("Ingresa un celular vÃ¡lido de 9 dÃ­gitos; puedes incluir el prefijo +56.");
+            return ResultadoRegistroCliente.Invalido("Ingresa un celular válido de 9 dígitos; puedes incluir el prefijo +56.");
         if (!ContrasenaValida(request.Contrasena))
-            return ResultadoRegistroCliente.Invalido("La contraseÃ±a debe tener al menos 8 caracteres e incluir letras, nÃºmeros y un sÃ­mbolo.");
+            return ResultadoRegistroCliente.Invalido("La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo.");
         if (!string.Equals(request.Contrasena, request.ConfirmarContrasena, StringComparison.Ordinal))
-            return ResultadoRegistroCliente.Invalido("Las contraseÃ±as no coinciden.");
+            return ResultadoRegistroCliente.Invalido("Las contraseñas no coinciden.");
 
         var rutExistente = await db.Clientes.AnyAsync(c =>
             c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut, cancellationToken);
@@ -130,7 +130,7 @@ public sealed class AutenticacionClienteService(
 
             var correoEnviado = await EnviarCorreoConfirmacionAsync(cuenta, cliente.Nombre, token, cancellationToken);
             if (!correoEnviado)
-                logger.LogWarning("La cuenta de cliente {ClienteId} quedÃ³ pendiente de confirmaciÃ³n; no se pudo enviar el correo.", cliente.IdCliente);
+                logger.LogWarning("La cuenta de cliente {ClienteId} quedó pendiente de confirmación; no se pudo enviar el correo.", cliente.IdCliente);
             return ResultadoRegistroCliente.Exitoso(correoEnviado);
         }
         catch (DbUpdateException ex) when (EsDuplicadoMySql(ex))
@@ -275,7 +275,7 @@ public sealed class AutenticacionClienteService(
         await db.SaveChangesAsync(cancellationToken);
         var enviado = await EnviarCorreoConfirmacionAsync(cuenta, cuenta.Cliente.Nombre, token, cancellationToken);
         if (!enviado)
-            logger.LogWarning("No se pudo reenviar la confirmaciÃ³n de la cuenta de cliente {ClienteId}.", cuenta.IdCliente);
+            logger.LogWarning("No se pudo reenviar la confirmación de la cuenta de cliente {ClienteId}.", cuenta.IdCliente);
     }
 
     private async Task<bool> EnviarCorreoConfirmacionAsync(
@@ -290,7 +290,7 @@ public sealed class AutenticacionClienteService(
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px"><tr><td align="center">
             <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border-radius:14px;padding:32px">
             <tr><td><p style="margin:0 0 8px;color:#176b6c;font-weight:bold">{NombreCentro}</p>
-            <h1 style="font-size:24px">Confirma tu correo electrÃ³nico</h1>
+            <h1 style="font-size:24px">Confirma tu correo electrónico</h1>
             <p>Hola {nombreHtml}, para activar tu cuenta confirma que tienes acceso a este correo.</p>
             <p style="margin:24px 0"><a href="{enlaceHtml}" style="background:#176b6c;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block">Confirmar mi cuenta</a></p>
             <p>Este enlace vence en 24 horas y solo puede utilizarse una vez.</p>

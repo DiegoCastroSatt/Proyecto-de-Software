@@ -119,6 +119,7 @@ public class PedidoRepository : IPedidoRepository
             )
             .FirstOrDefaultAsync();
     }
+
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetallePorRutAsync(string rut)
     {
         return await _context.Pedidos
@@ -140,4 +141,3 @@ public class PedidoRepository : IPedidoRepository
             .ToListAsync();
     }
 }
-

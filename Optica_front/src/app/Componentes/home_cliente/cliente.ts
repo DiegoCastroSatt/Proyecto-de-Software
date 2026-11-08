@@ -38,7 +38,7 @@ export class ClienteLayoutComponent implements OnInit {
     if (!isPlatformBrowser(this.plataforma) || this.autenticacion.cliente()) return;
     this.autenticacion.verificarSesion().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       // Sin sesión, se conserva la navegación pública.
-      error: () => { }
+      error: () => {}
     });
   }
 }
