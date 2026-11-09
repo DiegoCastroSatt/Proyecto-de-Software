@@ -8,13 +8,13 @@
       <a [routerLink]="autenticacion.cliente() ? '/cliente/inicio' : '/inicio'" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
       <a routerLink="/reservas" routerLinkActive="is-active">Agendar reserva</a>
       @if (autenticacion.cliente()) {
-      <details class="client-tools" #herramientas (keydown.escape)="herramientas.open = false">
-        <summary routerLinkActive="is-active">Probador y simulador</summary>
-        <div class="client-tools-options">
-          <a routerLink="/recomendador-marcos" routerLinkActive="is-active" (click)="herramientas.open = false">Recomendador de marcos</a>
-          <a routerLink="/probador-marcos" routerLinkActive="is-active" (click)="herramientas.open = false">Probar marcos</a>
-        </div>
-      </details>
+        <details class="client-tools" #herramientas (keydown.escape)="herramientas.open = false">
+          <summary routerLinkActive="is-active">Probador y simulador</summary>
+          <div class="client-tools-options">
+            <a routerLink="/recomendador-marcos" routerLinkActive="is-active" (click)="herramientas.open = false">Recomendador de marcos</a>
+            <a routerLink="/probador-marcos" routerLinkActive="is-active" (click)="herramientas.open = false">Probar marcos</a>
+          </div>
+        </details>
       } @else {
         <a routerLink="/recomendador-marcos" routerLinkActive="is-active">Recomendador de marcos</a>
         <a routerLink="/probador-marcos" routerLinkActive="is-active">Probar marcos</a>

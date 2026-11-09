@@ -25,10 +25,7 @@
     </div>
 
     @if (cargando()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando tus pedidos…</p>
-    </div>
+    <p role="status" class="estado-cargando">Cargando tus pedidos…</p>
     } @else if (error()) {
     <div class="error-state">
       <svg class="error-icon" viewBox="0 0 24 24" width="48" height="48" aria-hidden="true">
@@ -51,7 +48,7 @@
       @for (pedido of pedidos(); track pedido.idPedido) {
       <article class="pedido-card">
         <div class="pedido-top">
-          <span class="pedido-id">Pedido #{{ pedido.idPedido }}</span>
+          <span class="pedido-id">Número de Pedido #{{ pedido.idPedido }}</span>
           <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
         </div>
 
