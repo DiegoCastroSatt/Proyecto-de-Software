@@ -7,6 +7,21 @@
   box-sizing: border-box;
 }
 
+:host(.clientes-campo-busqueda) .autocompletado-rut__input {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-borde-control-activo);
+  border-radius: 6px;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+}
+
+:host(.clientes-campo-busqueda) .autocompletado-rut__input:focus {
+  outline: 2px solid var(--color-principal);
+  outline-offset: 1px;
+}
+
 .autocompletado-rut__lista {
   position: absolute;
   top: 100%;
