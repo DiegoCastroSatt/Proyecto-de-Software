@@ -39,7 +39,6 @@ public class PedidosController : ControllerBase
         return Ok(clientes);
     }
 
-    [AllowAnonymous]
     [HttpGet("cliente/{rut}")]
     public async Task<IActionResult> GetPedidosPorRut(string rut)
     {
