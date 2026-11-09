@@ -21,3 +21,10 @@ public sealed class SolicitarCambioCorreoClienteRequest
     [Required]
     public string ContrasenaActual { get; set; } = string.Empty;
 }
+
+// Solicitud de eliminación de cuenta: la contraseña actual confirma la identidad del cliente.
+public sealed class EliminarCuentaClienteRequest
+{
+    [Required]
+    public string ContrasenaActual { get; set; } = string.Empty;
+}

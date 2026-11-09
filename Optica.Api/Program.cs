@@ -93,6 +93,7 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
+builder.Services.AddScoped<EliminacionCuentaClienteService>();
 builder.Services.AddScoped<InicioSesionService>();
 builder.Services.AddSingleton<EstadoRecuperacion>();
 builder.Services.AddScoped<RecuperacionService>();

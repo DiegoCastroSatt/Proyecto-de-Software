@@ -7,6 +7,7 @@ using Optica.Api.Data;
 using Optica.Api.Modules.Accesos;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Services;
+using Optica.Api.Modules.Clientes.Services;
 
 namespace Optica.Api.Modules.Autenticacion.Controllers;
 
@@ -224,6 +225,39 @@ public sealed class AutenticacionClientesController(
         if (cuenta?.Cliente is null)
             return Unauthorized();
         return Ok(AutenticacionClienteService.CrearSesion(cuenta));
+    }
+
+    [Authorize(Policy = Politica)]
+    [HttpDelete("cuenta")]
+    public async Task<IActionResult> EliminarCuenta(
+        [FromBody] EliminarCuentaClienteRequest request,
+        [FromServices] EliminacionCuentaClienteService eliminacion,
+        CancellationToken cancellationToken)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)) return Unauthorized();
+        try
+        {
+            var resultado = await eliminacion.EliminarAsync(idCliente, request.ContrasenaActual, cancellationToken);
+            switch (resultado)
+            {
+                case ResultadoEliminacionCuenta.Eliminada:
+                    // Cierra la sesión actual; las demás sesiones dejan de ser válidas al no existir la cuenta.
+                    await HttpContext.SignOutAsync(Esquema);
+                    return Ok(new { mensaje = "Tu cuenta fue eliminada y tus datos personales fueron anonimizados." });
+                case ResultadoEliminacionCuenta.ContrasenaIncorrecta:
+                    return BadRequest(new { mensaje = "La contraseña ingresada no es válida." });
+                case ResultadoEliminacionCuenta.PedidosEnCurso:
+                    return Conflict(new { mensaje = "Tienes pedidos en curso. Podrás eliminar tu cuenta cuando se entreguen o se cancelen." });
+                default:
+                    return NotFound(new { mensaje = "No se encontró una cuenta activa para este cliente." });
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            logger.LogError("Falló la eliminación de cuenta de cliente ({TipoError}).", ex.GetType().Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo eliminar la cuenta. Inténtalo nuevamente más tarde." });
+        }
     }
 
     [Authorize(Policy = Politica)]
