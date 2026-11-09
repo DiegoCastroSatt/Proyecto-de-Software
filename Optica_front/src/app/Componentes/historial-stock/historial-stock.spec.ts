@@ -124,23 +124,33 @@ it('debería crear el componente', () => {
   expect(tabla.textContent).toContain('Armazon 1 · ARM-001');
   expect(tabla.textContent).toContain('Nuevo producto');
   expect(tabla.textContent).toContain('Ajuste de stock minimo');
-  expect(tabla.textContent).toContain('Minimo');
+  expect(tabla.textContent).toContain('Mínimo');
   expect(tabla.textContent).toContain('Juan Pérez');
 });
 
-it('debería mostrar historial filtrado por busqueda', async () => {
+it('filtra el historial al seleccionar un producto sugerido', async () => {
   const input = fixture.nativeElement.querySelector('#buscar-producto-historial') as HTMLInputElement;
   input.value = 'Armazon 1';
   input.dispatchEvent(new Event('input'));
   fixture.detectChanges();
   await fixture.whenStable();
 
-  const sugerencias = fixture.nativeElement.querySelectorAll('.product-suggestions button') as NodeListOf<HTMLButtonElement>;
+  const sugerencias = fixture.nativeElement.querySelectorAll(
+    '.product-suggestions button'
+  ) as NodeListOf<HTMLButtonElement>;
   expect(sugerencias.length).toBe(1);
   expect(sugerencias[0].textContent).toContain('Armazon 1 · ARM-001');
+
+  sugerencias[0].click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(productoServiceMock.consultarHistorialStock).toHaveBeenCalledWith(1, 1, 20);
+  expect(fixture.nativeElement.textContent).toContain('Armazon 1 · ARM-001');
+  expect(fixture.nativeElement.textContent).not.toContain('Lentes Polarizados · LEN-002');
 });
 
-it('deberia informar que la busqueda no tiene resultados', async () => {
+it('informa que la búsqueda no tiene resultados', async () => {
   const input = fixture.nativeElement.querySelector('#buscar-producto-historial') as HTMLInputElement;
   input.value = 'inexistente';
   input.dispatchEvent(new Event('input'));
