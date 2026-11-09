@@ -1,9 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
 import { PerfilCliente, PerfilService } from './perfil.service';
+
+// Texto que el cliente debe escribir para confirmar la eliminación definitiva.
+export const TEXTO_CONFIRMACION_ELIMINAR = 'ELIMINAR';
+
+function textoConfirmacionValido(control: AbstractControl<string>): ValidationErrors | null {
+  return control.value.trim() === TEXTO_CONFIRMACION_ELIMINAR ? null : { confirmacion: true };
+}
 
 @Component({
   selector: 'app-mi-perfil',
@@ -16,6 +25,18 @@ export class MiPerfilComponent implements OnInit {
   private readonly servicio = inject(PerfilService);
   private readonly formularioBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly autenticacion = inject(AutenticacionClienteService);
+  private readonly router = inject(Router);
+  @ViewChild('eliminarDialog') private eliminarDialog?: ElementRef<HTMLElement>;
+  @ViewChild('eliminarTrigger') private eliminarTrigger?: ElementRef<HTMLButtonElement>;
+  readonly textoConfirmacionEliminar = TEXTO_CONFIRMACION_ELIMINAR;
+  readonly modalEliminarAbierto = signal(false);
+  readonly eliminando = signal(false);
+  readonly errorEliminar = signal('');
+  readonly formularioEliminar = this.formularioBuilder.nonNullable.group({
+    contrasenaActual: ['', [Validators.required]],
+    confirmacion: ['', [textoConfirmacionValido]],
+  });
   readonly cargando = signal(true);
   readonly guardando = signal(false);
   readonly editando = signal(false);
@@ -81,5 +102,60 @@ export class MiPerfilComponent implements OnInit {
     this.formularioCorreo.reset();
     this.errorCorreo.set('');
     this.editandoCorreo.set(false);
+  }
+
+  abrirEliminarCuenta(): void {
+    this.formularioEliminar.reset();
+    this.errorEliminar.set('');
+    this.modalEliminarAbierto.set(true);
+    setTimeout(() => this.eliminarDialog?.nativeElement.querySelector<HTMLInputElement>('#eliminar-contrasena')?.focus());
+  }
+
+  cerrarEliminarCuenta(): void {
+    if (this.eliminando()) return;
+    this.modalEliminarAbierto.set(false);
+    this.formularioEliminar.reset();
+    this.errorEliminar.set('');
+    setTimeout(() => this.eliminarTrigger?.nativeElement.focus());
+  }
+
+  // No devuelve valor: si el manejador devolviera false, Angular cancelaría el envío del formulario.
+  cerrarEliminarDesdeFondo(evento: MouseEvent): void {
+    if (evento.target === evento.currentTarget) this.cerrarEliminarCuenta();
+  }
+
+  eliminarCuenta(): void {
+    if (this.formularioEliminar.invalid || this.eliminando()) { this.formularioEliminar.markAllAsTouched(); return; }
+    this.eliminando.set(true); this.errorEliminar.set('');
+    this.servicio.eliminarCuenta(this.formularioEliminar.getRawValue().contrasenaActual)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          // La API ya cerró la sesión; se limpia el estado local y se vuelve al inicio.
+          this.autenticacion.cliente.set(null);
+          this.eliminando.set(false);
+          this.modalEliminarAbierto.set(false);
+          void this.router.navigateByUrl('/inicio');
+        },
+        error: (respuesta: HttpErrorResponse) => {
+          this.eliminando.set(false);
+          this.formularioEliminar.controls.contrasenaActual.reset();
+          this.errorEliminar.set(respuesta.error?.mensaje ?? 'No fue posible eliminar la cuenta. Inténtalo nuevamente.');
+        },
+      });
+  }
+
+  // Cierre con Escape y foco atrapado dentro de la ventana de eliminación.
+  @HostListener('document:keydown', ['$event'])
+  controlarTeclado(evento: KeyboardEvent): void {
+    if (!this.modalEliminarAbierto()) return;
+    if (evento.key === 'Escape') { evento.preventDefault(); this.cerrarEliminarCuenta(); return; }
+    if (evento.key !== 'Tab') return;
+    const elementos = Array.from(this.eliminarDialog?.nativeElement.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled)') ?? []);
+    if (!elementos.length) return;
+    const primero = elementos[0];
+    const ultimo = elementos[elementos.length - 1];
+    if (evento.shiftKey && document.activeElement === primero) { evento.preventDefault(); ultimo.focus(); }
+    else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primero.focus(); }
   }
 }

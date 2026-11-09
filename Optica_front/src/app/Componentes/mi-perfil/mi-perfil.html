@@ -37,5 +37,59 @@
         </form>
       }
     </section>
+
+    <!-- Eliminación de cuenta: acción definitiva, separada de las demás -->
+    <section class="profile-card danger-card" aria-labelledby="eliminar-cuenta-titulo">
+      <div class="card-heading"><div><h2 id="eliminar-cuenta-titulo">Eliminar mi cuenta</h2><p>Deja de utilizar la plataforma. Esta acción es inmediata y no se puede deshacer.</p></div>
+        <button #eliminarTrigger type="button" class="button danger" (click)="abrirEliminarCuenta()">Eliminar mi cuenta</button>
+      </div>
+    </section>
   }
 </section>
+
+@if (modalEliminarAbierto()) {
+  <div class="modal-backdrop" role="presentation" (click)="cerrarEliminarDesdeFondo($event)">
+    <section #eliminarDialog class="modal-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="eliminar-dialog-titulo" aria-describedby="eliminar-dialog-descripcion">
+      <header class="modal-cabecera">
+        <div><p class="eyebrow danger-text">Acción definitiva</p><h2 id="eliminar-dialog-titulo">¿Eliminar tu cuenta?</h2></div>
+        <button type="button" class="modal-cerrar" aria-label="Cerrar ventana" [disabled]="eliminando()" (click)="cerrarEliminarCuenta()">×</button>
+      </header>
+      <p id="eliminar-dialog-descripcion" class="modal-descripcion">Tu cuenta se eliminará de inmediato y se cerrará tu sesión. Revisa qué ocurre con tu información:</p>
+
+      <div class="data-summary">
+        <div class="data-group removed">
+          <h3>Se elimina</h3>
+          <ul>
+            <li>Tu acceso a la plataforma (correo y contraseña).</li>
+            <li>Tu nombre, RUT, teléfono y correo, que se reemplazan por datos anónimos.</li>
+            <li>Los correos enviados sobre tus pedidos y reservas.</li>
+            <li>Las anotaciones de tus pedidos y los motivos de tus reservas.</li>
+            <li>Las imágenes asociadas a tus recetas.</li>
+            <li>Tus reservas futuras, que se cancelan.</li>
+          </ul>
+        </div>
+        <div class="data-group kept">
+          <h3>Se conserva sin identificarte</h3>
+          <ul>
+            <li>Ventas y pedidos (montos, fechas y estados), por obligaciones comerciales y tributarias.</li>
+            <li>Recetas y graduaciones.</li>
+            <li>Tus reseñas, que se mostrarán como “Cliente anónimo”.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="modal-nota">Si tienes pedidos pendientes, en proceso o listos para retirar, podrás eliminar tu cuenta cuando se entreguen o se cancelen.</p>
+
+      @if (errorEliminar()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorEliminar() }}</p> }
+
+      <form class="delete-form" [formGroup]="formularioEliminar" (ngSubmit)="eliminarCuenta()" novalidate>
+        <label>Contraseña actual<input id="eliminar-contrasena" type="password" formControlName="contrasenaActual" autocomplete="current-password"><small *ngIf="formularioEliminar.controls.contrasenaActual.touched && formularioEliminar.controls.contrasenaActual.invalid">Ingresa tu contraseña actual.</small></label>
+        <label>Escribe {{ textoConfirmacionEliminar }} para confirmar<input type="text" formControlName="confirmacion" autocomplete="off" spellcheck="false" autocapitalize="characters"><small *ngIf="formularioEliminar.controls.confirmacion.touched && formularioEliminar.controls.confirmacion.invalid">Escribe {{ textoConfirmacionEliminar }} en mayúsculas.</small></label>
+        <div class="actions">
+          <button type="button" class="button secondary" (click)="cerrarEliminarCuenta()" [disabled]="eliminando()">Cancelar</button>
+          <button type="submit" class="button danger" [disabled]="eliminando() || formularioEliminar.invalid">{{ eliminando() ? 'Eliminando…' : 'Eliminar definitivamente' }}</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
