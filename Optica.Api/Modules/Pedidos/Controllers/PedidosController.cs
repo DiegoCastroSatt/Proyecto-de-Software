@@ -39,6 +39,7 @@ public class PedidosController : ControllerBase
         return Ok(clientes);
     }
 
+    [AllowAnonymous]
     [HttpGet("cliente/{rut}")]
     public async Task<IActionResult> GetPedidosPorRut(string rut)
     {
@@ -105,5 +106,4 @@ public class PedidosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
-
 }

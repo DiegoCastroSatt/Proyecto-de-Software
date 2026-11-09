@@ -311,7 +311,8 @@ public sealed class AutenticacionClienteService(
     public static ClienteSesionResponse CrearSesion(CuentaCliente cuenta) => new(
         cuenta.IdCliente,
         $"{cuenta.Cliente?.Nombre} {cuenta.Cliente?.Apellido}".Trim(),
-        cuenta.Correo)
+        cuenta.Correo,
+        cuenta.Cliente?.Rut ?? string.Empty)
     { VersionCredencial = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(cuenta.ContrasenaHash))) };
 
     public static string NormalizarCorreo(string correo) => correo.Trim().ToUpperInvariant();

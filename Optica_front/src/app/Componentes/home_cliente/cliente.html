@@ -21,7 +21,10 @@
       }
       <a routerLink="/productos" routerLinkActive="is-active">Productos</a>
       @if (autenticacion.cliente()) {
-        <a routerLink="/cliente/en-trabajo" routerLinkActive="is-active">Mis recetas</a>
+      <a routerLink="/cliente/en-trabajo" routerLinkActive="is-active">Mis recetas</a>
+      }
+      @if (autenticacion.cliente()) {
+      <a routerLink="/consultar-pedido" routerLinkActive="is-active">Mis pedidos</a>
       }
     </nav>
     @if (autenticacion.cliente(); as cliente) {

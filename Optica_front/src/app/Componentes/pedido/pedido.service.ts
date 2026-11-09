@@ -62,5 +62,5 @@ export class PedidoService {
   obtenerPedidoPorId(id: number): Observable<PedidoResponse> {
     return this.http.get<PedidoResponse>(`${this.apiUrl}/${id}`);
   }
-
+  
 }

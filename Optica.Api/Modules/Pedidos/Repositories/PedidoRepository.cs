@@ -126,8 +126,8 @@ public class PedidoRepository : IPedidoRepository
             .Where(p => p.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut)
             .Join(
                 _context.Clientes,
-                p => p.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
-                c => c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper(),
+                p => p.Rut,
+                c => c.Rut,
                 (p, c) => new PedidoResponseDto
                 {
                     IdPedido = p.IdPedido,
@@ -140,5 +140,4 @@ public class PedidoRepository : IPedidoRepository
             .OrderByDescending(p => p.Fecha)
             .ToListAsync();
     }
-
 }
