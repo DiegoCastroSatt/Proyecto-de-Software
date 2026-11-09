@@ -35,6 +35,7 @@ import { HistorialGraduaciones } from './Componentes/historial-graduaciones/hist
 import { EnTrabajoComponent } from './Componentes/en-trabajo/en-trabajo';
 import { authClienteGuard } from './guards/auth-cliente-guard';
 import { HistorialPedidosComponent } from './Componentes/historial-pedidos/historial-pedidos';
+import { ConsultarPedidoComponent } from './Componentes/consultar-pedido/consultar-pedido';
 import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
 import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
@@ -57,8 +58,10 @@ export const routes: Routes = [
       { path: 'probador-marcos', component: ProbadorMarcosComponent },
       { path: 'recomendador-marcos', component: RecomendadorMarcosComponent },
       { path: 'productos', component: BuscarProductoCliente },
+      { path: 'consultar-pedido', component: ConsultarPedidoComponent, canActivate: [authClienteGuard] },
       { path: 'mis-recetas', component: MisRecetas, canActivate: [authClienteGuard] }
     ]
+
   },
 
   {
