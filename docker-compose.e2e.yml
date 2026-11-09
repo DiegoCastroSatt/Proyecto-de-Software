@@ -1,0 +1,88 @@
+name: optica-e2e
+
+services:
+  database:
+    image: mysql:8.0@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${E2E_MYSQL_ROOT_PASSWORD:?Define E2E_MYSQL_ROOT_PASSWORD en el entorno}
+      MYSQL_DATABASE: optica_db
+    tmpfs:
+      - /var/lib/mysql:size=1g
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/e2e/02-datos-sinteticos.sql:/docker-entrypoint-initdb.d/02-datos-sinteticos.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --user=root --password=\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - e2e
+
+  mailpit:
+    image: axllent/mailpit@sha256:aef2aacc11f075ec0fb6874275ee4a421e688e11a96ebb296134d1735c7761ce
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    networks:
+      - e2e
+
+  backend:
+    build:
+      context: ./Optica.Api
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: E2E
+      ConnectionStrings__OpticaDb: "Server=database;Port=3306;Database=optica_db;User=root;Password=${E2E_MYSQL_ROOT_PASSWORD:?Define E2E_MYSQL_ROOT_PASSWORD en el entorno};"
+      Correo__SmtpHost: mailpit
+      Correo__Puerto: "1025"
+      Correo__Usuario: ""
+      Correo__Clave: ""
+      Correo__Remitente: pruebas-e2e@optica.invalid
+      Correo__NombreRemitente: Centro Óptico San Francisco - E2E
+      Correo__UrlBaseApi: http://localhost:8080
+      Correo__UrlBaseFrontend: http://localhost:4200
+      Correo__UsarTls: "false"
+      DataProtection__KeysPath: /tmp/optica-e2e-dp-keys
+    depends_on:
+      database:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health/db HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && IFS= read -r response <&3 && [[ \"$$response\" == *'200 OK'* ]]"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
+    networks:
+      - e2e
+
+  frontend:
+    build:
+      context: ./Optica_front
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:4200:4000"
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - e2e
+
+networks:
+  e2e:
+    name: optica-e2e-network

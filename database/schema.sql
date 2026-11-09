@@ -103,9 +103,12 @@ estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado')
 NOT NULL DEFAULT 'Pendiente',
 total DECIMAL(10,2) NOT NULL DEFAULT 0,
 anotaciones TEXT,
+-- RESTRICT evita borrar pedidos al eliminar un cliente; CASCADE en UPDATE permite
+-- anonimizar el RUT del cliente (ANON-{id}) conservando sus pedidos.
 CONSTRAINT fk_pedidos_cliente
 FOREIGN KEY (rut) REFERENCES clientes(rut)
-ON DELETE CASCADE,
+ON DELETE RESTRICT
+ON UPDATE CASCADE,
 CONSTRAINT fk_pedidos_receta
 FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 ON DELETE SET NULL

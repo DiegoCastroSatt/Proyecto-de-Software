@@ -41,4 +41,11 @@ export class PerfilService {
     return this.http.post<RespuestaCambioCorreo>(
       'http://localhost:8080/api/Autenticacion/cliente/correo/cambio', datos, { withCredentials: true });
   }
+
+  // Elimina la cuenta web y anonimiza la ficha; la contraseña actual confirma la identidad.
+  eliminarCuenta(contrasenaActual: string): Observable<RespuestaCambioCorreo> {
+    return this.http.delete<RespuestaCambioCorreo>(
+      'http://localhost:8080/api/Autenticacion/cliente/cuenta',
+      { body: { contrasenaActual }, withCredentials: true });
+  }
 }
