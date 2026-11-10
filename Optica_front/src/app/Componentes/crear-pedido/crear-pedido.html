@@ -51,6 +51,12 @@
             </div>
 
             <div class="form-group">
+              <label for="productos">Productos</label>
+              <textarea id="productos" formControlName="productos" class="form-control" rows="3"
+                placeholder="Detalla los productos (ej. armazón, cristales, tratamientos)..."></textarea>
+            </div>
+
+            <div class="form-group">
               <label for="total">Total a pagar</label>
               <input type="number" id="total" formControlName="total" class="form-control" placeholder="0">
               @if (hasError('total', 'required')) {
@@ -67,6 +73,16 @@
             </div>
 
             <div class="form-actions">
+              <button type="button" class="btn-cotizacion" (click)="generarCotizacion()" [disabled]="generandoCotizacion()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                {{ generandoCotizacion() ? 'Generando...' : 'Generar Cotización' }}
+              </button>
               <button type="submit" class="btn-primary" [disabled]="isSubmitting()">
                 {{ isSubmitting() ? 'Guardando...' : 'Guardar Pedido' }}
               </button>
@@ -77,4 +93,34 @@
       </div>
     </section>
   </main>
+
+  @if (mostrarModalCotizacion() && pdfPreviewUrl()) {
+    <div class="modal-fondo" (click)="cerrarModalCotizacion()" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-cotizacion">
+      <div class="modal-cotizacion" (click)="$event.stopPropagation()">
+
+        <div class="modal-cotizacion__visor">
+          <iframe [src]="pdfPreviewUrl()" title="Vista previa de la cotización en PDF" class="modal-cotizacion__iframe"></iframe>
+        </div>
+
+        <div class="modal-cotizacion__acciones">
+          <button type="button" class="btn-secundario-modal" (click)="cerrarModalCotizacion()">
+            Seguir editando
+          </button>
+          <div class="modal-cotizacion__acciones-principales">
+            <button type="button" class="btn-descargar-modal" (click)="descargarCotizacion()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Descargar Cotización
+            </button>
+            <button type="button" class="btn-primary" (click)="finalizarPedidoDesdeModal()" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Guardando...' : 'Confirmar Pedido' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
