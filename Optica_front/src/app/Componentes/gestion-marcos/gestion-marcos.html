@@ -3,7 +3,7 @@
     <p class="eyebrow">Inventario</p>
     <div class="encabezado-inventario"><h1 id="titulo-marcos">Marcos</h1><a class="boton-inventario" routerLink="/admin/panel/marcos/crear">Crear marco</a><a class="boton-inventario" routerLink="/admin/panel/marcos/rostros">Tipos de rostro</a></div>
     <p>Administra los tipos que se muestran en el recomendador y el simulador.</p>
-    <p>Armazones y marcos son el mismo producto. Vincula aquí los armazones del inventario; sus existencias se usarán en el recomendador y simulador.</p>
+    <p>Vincula armazones y lentes del inventario con su estilo. Sus existencias se usarán en el recomendador y el probador.</p>
   </header>
 
   @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
@@ -27,11 +27,11 @@
       @for (marco of marcosFiltrados; track marco.id) {
         <li [class.inactivo]="!marco.activo">
           <img [src]="imagenMarco(marco.id)" [alt]="'Ilustración de ' + marco.nombre" width="160" height="80" />
-          <div class="detalle"><h3>{{ marco.nombre }}</h3><p>Armazones vinculados: {{ marco.productosVinculados ?? 0 }}</p><p>Stock disponible: {{ marco.stock }}</p>
+          <div class="detalle"><h3>{{ marco.nombre }}</h3><p>Productos vinculados: {{ marco.productosVinculados ?? 0 }}</p><p>Stock disponible: {{ marco.stock }}</p>
             <span class="etiqueta" [class.apagado]="!marco.activo">{{ !marco.activo ? 'Inactivo' : marco.stock > 0 ? 'Visible para clientes' : 'Activo · sin stock' }}</span>
           </div>
           <div class="acciones">
-            <button type="button" (click)="abrirVinculos(marco)" [disabled]="ocupado() !== null">Vincular armazones</button>
+            <button type="button" (click)="abrirVinculos(marco)" [disabled]="ocupado() !== null">Vincular productos</button>
             <button type="button" (click)="alternar(marco)" [disabled]="ocupado() !== null">{{ marco.activo ? 'Desactivar' : 'Activar' }}</button>
             @if (confirmarBorrado() !== marco.id) {
               <button class="peligro" type="button" (click)="confirmarBorrado.set(marco.id)" [disabled]="ocupado() !== null">Borrar</button>
@@ -43,8 +43,8 @@
             }
           </div>
           @if (vinculando() === marco.id) {
-            <fieldset class="vinculos"><legend>Armazones de {{ marco.nombre }}</legend>
-              <p>Solo se muestran productos de la categoría Armazones. Los lentes de sol, ópticos, de contacto y accesorios no se pueden vincular. El precio y stock se conservan en el inventario.</p>
+            <fieldset class="vinculos"><legend>Productos de {{ marco.nombre }}</legend>
+              <p>Puedes vincular armazones, lentes ópticos y lentes de sol. El precio y stock se conservan en el inventario.</p>
               <p>Cada producto puede pertenecer a un solo marco. Si eliges uno vinculado a otro, se trasladará al guardar. Desmarcarlo retira únicamente el vínculo.</p>
               @if (cargandoProductos()) { <p role="status">Cargando productos…</p> }
               @else if (errorProductos()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorProductos() }}</p><button type="button" (click)="abrirVinculos(marco)">Reintentar</button> }

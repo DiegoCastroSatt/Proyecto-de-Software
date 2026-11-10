@@ -49,7 +49,7 @@ export class GestionMarcosComponent {
       next: () => {
         this.marcos.update(marcos => marcos.map(item => item.id === marco.id ? { ...item, activo: !item.activo } : item));
         this.ocupado.set(null);
-        this.aviso.set(marco.activo ? 'Marco desactivado: ya no se mostrará en las vistas de clientes.' : 'Marco activado. Se mostrará si sus armazones vinculados tienen stock disponible.');
+        this.aviso.set(marco.activo ? 'Marco desactivado: ya no se mostrará en las vistas de clientes.' : 'Marco activado. Se mostrará si sus productos vinculados tienen stock disponible.');
       },
       error: error => { this.error.set(this.mensajeError(error)); this.ocupado.set(null); },
     });
@@ -104,7 +104,7 @@ export class GestionMarcosComponent {
     this.servicio.vincularProductos(marco.id, [...this.productosSeleccionados]).subscribe({
       next: marcos => {
         this.marcos.set(marcos); this.vinculando.set(null); this.ocupado.set(null);
-        this.aviso.set('Armazones vinculados. El stock se obtiene de esos mismos productos; no se duplicaron existencias.');
+        this.aviso.set('Productos vinculados. El stock se obtiene de esos mismos productos; no se duplicaron existencias.');
       },
       error: error => { this.error.set(this.mensajeError(error)); this.ocupado.set(null); },
     });
