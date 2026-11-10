@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { HistorialStock } from './historial-stock';
@@ -129,6 +129,9 @@ it('debería crear el componente', () => {
 });
 
 it('filtra el historial al seleccionar un producto sugerido', async () => {
+  productoServiceMock.consultarHistorialStock.mockImplementation(
+    (idProducto: number, pagina: number) => of({ ...mockFiltro, pagina, totalPaginas: 2, totalRegistros: 2 })
+  );
   const input = fixture.nativeElement.querySelector('#buscar-producto-historial') as HTMLInputElement;
   input.value = 'Armazon 1';
   input.dispatchEvent(new Event('input'));
@@ -148,6 +151,13 @@ it('filtra el historial al seleccionar un producto sugerido', async () => {
   expect(productoServiceMock.consultarHistorialStock).toHaveBeenCalledWith(1, 1, 20);
   expect(fixture.nativeElement.textContent).toContain('Armazon 1 · ARM-001');
   expect(fixture.nativeElement.textContent).not.toContain('Lentes Polarizados · LEN-002');
+
+  const siguiente = fixture.nativeElement.querySelector('.pagination button:last-child') as HTMLButtonElement;
+  siguiente.click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(productoServiceMock.consultarHistorialStock).toHaveBeenLastCalledWith(1, 2, 20);
 });
 
 it('informa que la búsqueda no tiene resultados', async () => {
@@ -159,6 +169,65 @@ it('informa que la búsqueda no tiene resultados', async () => {
 
   const status = fixture.nativeElement.querySelector('.status') as HTMLElement;
   expect(status?.textContent).toContain('No se encontraron productos coincidentes.');
+});
+
+it('permite avanzar y retroceder páginas del historial reciente', async () => {
+  productoServiceMock.consultarHistorialStockReciente.mockImplementation(
+    (pagina: number) => of({ ...mockHistorial, pagina, totalPaginas: 3 })
+  );
+  const botones = fixture.nativeElement.querySelectorAll('.pagination button') as NodeListOf<HTMLButtonElement>;
+  botones[1].click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(productoServiceMock.consultarHistorialStockReciente).toHaveBeenLastCalledWith(2, 20);
+  expect(fixture.nativeElement.querySelector('.pagination')?.textContent).toContain('Página 2 de 3');
+
+  const botonesPaginaDos = fixture.nativeElement.querySelectorAll('.pagination button') as NodeListOf<HTMLButtonElement>;
+  botonesPaginaDos[0].click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(productoServiceMock.consultarHistorialStockReciente).toHaveBeenLastCalledWith(1, 20);
+});
+
+it('muestra el estado vacío cuando la consulta no devuelve movimientos', async () => {
+  productoServiceMock.consultarHistorialStockReciente.mockReturnValueOnce(of({
+    pagina: 2,
+    tamanoPagina: 20,
+    totalRegistros: 0,
+    totalPaginas: 0,
+    movimientos: []
+  }));
+  const siguiente = fixture.nativeElement.querySelector('.pagination button:last-child') as HTMLButtonElement;
+  siguiente.click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.textContent).toContain('No hay movimientos recientes de stock.');
+  expect(fixture.nativeElement.querySelector('table')).toBeNull();
+});
+
+it('informa errores al consultar el historial y permite reintentar', async () => {
+  productoServiceMock.consultarHistorialStockReciente.mockReturnValueOnce(
+    throwError(() => ({ error: { mensaje: 'No fue posible consultar el historial.' } }))
+  );
+  const siguiente = fixture.nativeElement.querySelector('.pagination button:last-child') as HTMLButtonElement;
+  siguiente.click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent)
+    .toContain('No fue posible consultar el historial.');
+
+  const reintentar = fixture.nativeElement.querySelector('[role="alert"] button') as HTMLButtonElement;
+  reintentar.click();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(productoServiceMock.consultarHistorialStockReciente).toHaveBeenLastCalledWith(2, 20);
+  expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  expect(fixture.nativeElement.querySelector('table')).not.toBeNull();
 });
 
 });
