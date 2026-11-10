@@ -1,5 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { BuscarProductoService, Producto, ProductoEditable } from './buscar-producto.service';
@@ -9,12 +11,16 @@ import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
   selector: 'app-busqueda-producto',
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, RouterLink],
   templateUrl: './buscar-producto.html',
   styleUrl: './buscar-producto.css'
 })
 export class BuscarProductoComponent implements OnInit {
   @Input() esAdministrador = false;
+
+  private readonly ruta = inject(ActivatedRoute, { optional: true });
+  private readonly parametros = this.ruta?.queryParamMap.pipe(takeUntilDestroyed());
+  protected readonly idMarco = signal<number | null>(null);
 
   protected readonly productos = signal<Producto[]>([]);
   protected readonly productosVisibles = signal<Producto[]>([]);
@@ -81,6 +87,12 @@ export class BuscarProductoComponent implements OnInit {
   ngOnInit(): void {
     if (!this.esAdministrador) {
       this.filtrosForm.controls.estado.setValue('');
+      this.parametros?.subscribe(parametros => {
+        const valor = parametros.get('marco');
+        const id = Number(valor);
+        this.idMarco.set(valor && /^\d+$/.test(valor) && Number.isSafeInteger(id) && id > 0 ? id : null);
+        this.aplicarFiltros();
+      });
       this.cargarSesionYProductosResenables();
     }
     if (this.esAdministrador) {
@@ -142,7 +154,9 @@ export class BuscarProductoComponent implements OnInit {
 
   protected aplicarFiltros(): void {
     const { estado, categoria, color, marca, ordenPrecio } = this.filtrosForm.getRawValue();
+    const idMarco = this.idMarco();
     const filtrados = this.productos().filter(producto =>
+      (idMarco === null || producto.idTipoMarco === idMarco) &&
       (!estado || producto.estado === estado) &&
       (!categoria || producto.categoria === categoria) &&
       (!color || producto.color === color) &&
@@ -156,7 +170,9 @@ export class BuscarProductoComponent implements OnInit {
     }
 
     this.productosVisibles.set(filtrados);
-    this.mensaje.set(filtrados.length ? '' : 'No hay existencias o no se encuentra el producto.');
+    this.mensaje.set(filtrados.length ? '' : idMarco !== null
+      ? 'No hay productos de este estilo que coincidan con los filtros.'
+      : 'No hay existencias o no se encuentra el producto.');
   }
 
   protected limpiarFiltros(): void {
