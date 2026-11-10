@@ -40,6 +40,7 @@ import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
 import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
 import { HistorialStock } from './Componentes/historial-stock/historial-stock';
+import { ReporteStock } from './Componentes/reporte-stock/reporte-stock';
 
 export const routes: Routes = [
   {
