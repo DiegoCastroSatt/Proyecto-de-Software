@@ -6,6 +6,7 @@ using Optica.Api.Data;
 using Optica.Api.Modules.AgendaReservas.Models;
 using Optica.Api.Modules.Clientes.Models;
 using Optica.Api.Modules.Clientes.Services;
+using Optica.Api.Modules.Encuestas.Models;
 using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Productos.Models;
 using Optica.Api.Modules.RegistroRecetas.Models;
@@ -151,6 +152,38 @@ public sealed class TestEliminacionCuentaCliente : IDisposable
 
         Assert.Equal("otro@example.test", (await db.CorreosPedido.SingleAsync()).Destinatario);
         Assert.Empty(await db.CorreosReserva.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Eliminar_AnulaEncuestasPendientesYConservaRespuestasAnonimas()
+    {
+        var cliente = await CrearClienteConCuentaAsync();
+        var horario = new Horario { Fecha = DateTime.Today.AddDays(-1), HoraInicio = TimeSpan.FromHours(10), HoraFin = TimeSpan.FromHours(11), Estado = "Habilitada" };
+        db.Horarios.Add(horario);
+        await db.SaveChangesAsync();
+        var pendiente = new Reserva { ClienteId = cliente.IdCliente, HorarioId = horario.Id, Estado = "Realizada" };
+        var respondida = new Reserva { ClienteId = cliente.IdCliente, HorarioId = horario.Id, Estado = "Realizada" };
+        db.Reservas.AddRange(pendiente, respondida);
+        await db.SaveChangesAsync();
+        db.EncuestasAtencion.AddRange(
+            new EncuestaAtencion { ReservaId = pendiente.Id, TokenHash = new string('a', 64), TokenExpiraUtc = DateTime.UtcNow.AddDays(10), FechaEnvioUtc = DateTime.UtcNow },
+            new EncuestaAtencion { ReservaId = respondida.Id, FechaEnvioUtc = DateTime.UtcNow, Respondida = true });
+        db.RespuestasEncuestaAtencion.Add(new RespuestaEncuestaAtencion
+        {
+            CalificacionGeneral = 5, CalificacionTrato = 5, CalificacionPuntualidad = 4,
+            Comentario = "Muy bien", FechaRespuesta = DateTime.Today
+        });
+        db.CorreosReserva.Add(new CorreoReservaPendiente { ReservaId = pendiente.Id, HorarioId = horario.Id, Tipo = "Encuesta", Destinatario = "ana@example.test", Asunto = "Encuesta", CuerpoHtmlProtegido = "x" });
+        await db.SaveChangesAsync();
+
+        await Servicio().EliminarAsync(cliente.IdCliente, Contrasena, CancellationToken.None);
+
+        var encuesta = await db.EncuestasAtencion.SingleAsync(e => e.ReservaId == pendiente.Id);
+        Assert.Null(encuesta.TokenHash);
+        Assert.Null(encuesta.TokenExpiraUtc);
+        Assert.False(encuesta.Respondida);
+        Assert.Empty(await db.CorreosReserva.ToListAsync());
+        Assert.Equal("Muy bien", (await db.RespuestasEncuestaAtencion.SingleAsync()).Comentario);
     }
 
     [Fact]

@@ -29,6 +29,11 @@ using Optica.Api.Modules.Notificaciones.Services;
 using Optica.Api.Modules.Resenas.Interfaces;
 using Optica.Api.Modules.Resenas.Repositories;
 using Optica.Api.Modules.Resenas.Services;
+using Optica.Api.Modules.Encuestas.Interfaces;
+using Optica.Api.Modules.Encuestas.Services;
+using Optica.Api.Modules.AvisosReposicion.Interfaces;
+using Optica.Api.Modules.AvisosReposicion.Repositories;
+using Optica.Api.Modules.AvisosReposicion.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +82,9 @@ builder.Services.AddScoped<IRecetaRepository, RecetaRepository>();
 builder.Services.AddScoped<IRecetaService, RecetaService>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IAvisoReposicionRepository, AvisoReposicionRepository>();
+builder.Services.AddScoped<IAvisoReposicionService, AvisoReposicionService>();
+builder.Services.AddHostedService<AvisoReposicionBackgroundService>();
 builder.Services.AddScoped<ICatalogoRepository, CatalogoRepository>();
 builder.Services.AddScoped<ICatalogoService, CatalogoService>();
 
@@ -86,6 +94,10 @@ builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
 builder.Services.AddScoped<IResenaRepository, ResenaRepository>();
 builder.Services.AddScoped<IResenaService, ResenaService>();
+builder.Services.AddScoped<IEncuestaService, EncuestaService>();
+builder.Services.AddScoped<EncuestaCorreoService>();
+builder.Services.AddScoped<ISolicitudEncuestasService, SolicitudEncuestasService>();
+builder.Services.AddHostedService<SolicitudEncuestasBackgroundService>();
 
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();

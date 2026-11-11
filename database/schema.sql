@@ -94,6 +94,23 @@ id_tipo_marco INT NULL,
 CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL
 );
 
+CREATE TABLE avisos_reposicion (
+    id_aviso INT AUTO_INCREMENT PRIMARY KEY,
+    rut VARCHAR(12) NOT NULL,
+    id_producto INT NOT NULL,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado ENUM('Abierta', 'Cerrada') NOT NULL DEFAULT 'Abierta',
+    CONSTRAINT fk_avisos_reposicion_cliente
+        FOREIGN KEY (rut) REFERENCES clientes(rut)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_avisos_reposicion_producto
+        FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+        ON DELETE RESTRICT,
+    INDEX idx_avisos_reposicion_producto_estado (id_producto, estado),
+    INDEX idx_avisos_reposicion_rut_estado (rut, estado)
+);
+
 CREATE TABLE pedidos (
 id_pedido INT AUTO_INCREMENT PRIMARY KEY,
 rut VARCHAR(12) NOT NULL,
@@ -326,4 +343,37 @@ CREATE TABLE IF NOT EXISTS resenas_productos (
     CONSTRAINT ck_resena_calificacion CHECK (calificacion BETWEEN 1 AND 5),
     CONSTRAINT fk_resena_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE RESTRICT,
     CONSTRAINT fk_resena_producto FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE RESTRICT
+);
+
+-- Encuestas de satisfacción por atención: control de envío y de respuesta única.
+-- No guarda el contenido de la respuesta para mantenerla anónima.
+CREATE TABLE IF NOT EXISTS encuestas_atencion (
+    id_encuesta INT AUTO_INCREMENT PRIMARY KEY,
+    id_reserva INT NOT NULL,
+    token_hash CHAR(64) NULL,
+    token_expira_utc DATETIME NULL,
+    fecha_envio_utc DATETIME NOT NULL,
+    respondida BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT uq_encuesta_reserva UNIQUE (id_reserva),
+    CONSTRAINT uq_encuesta_token UNIQUE (token_hash),
+    CONSTRAINT fk_encuesta_reserva FOREIGN KEY (id_reserva)
+        REFERENCES reservas(id_reserva) ON DELETE RESTRICT,
+    INDEX idx_encuestas_fecha_envio (fecha_envio_utc)
+);
+
+-- Respuestas anónimas: sin referencia a la reserva, al cliente ni a la encuesta.
+-- La fecha se guarda sin hora para dificultar el cruce con encuestas_atencion.
+CREATE TABLE IF NOT EXISTS respuestas_encuesta_atencion (
+    id_respuesta INT AUTO_INCREMENT PRIMARY KEY,
+    calificacion_general TINYINT NOT NULL,
+    calificacion_trato TINYINT NOT NULL,
+    calificacion_puntualidad TINYINT NOT NULL,
+    comentario VARCHAR(1000) NULL,
+    -- El personal puede ocultar un comentario inapropiado sin borrar la respuesta.
+    comentario_oculto BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_respuesta DATE NOT NULL,
+    CONSTRAINT ck_respuesta_general CHECK (calificacion_general BETWEEN 1 AND 5),
+    CONSTRAINT ck_respuesta_trato CHECK (calificacion_trato BETWEEN 1 AND 5),
+    CONSTRAINT ck_respuesta_puntualidad CHECK (calificacion_puntualidad BETWEEN 1 AND 5),
+    INDEX idx_respuestas_encuesta_fecha (fecha_respuesta)
 );

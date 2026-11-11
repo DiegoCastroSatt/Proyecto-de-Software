@@ -5,7 +5,7 @@
     <h1>Hola, {{ sesion.administrador()?.nombre }}</h1>
     <p>Estas son las funciones habilitadas para tu cuenta.</p>
     <div class="opciones">
-      @for (opcion of opciones(); track opcion.permiso) {
+      @for (opcion of opciones(); track opcion.nombre) {
         <a [routerLink]="opcion.ruta">{{ opcion.nombre }}</a>
       }
     </div>

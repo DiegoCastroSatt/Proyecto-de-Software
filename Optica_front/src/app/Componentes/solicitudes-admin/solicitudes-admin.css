@@ -1,0 +1,266 @@
+:host {
+  display: block;
+}
+
+.solicitudes-admin {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px);
+  color: var(--color-texto);
+}
+
+.page-header,
+.list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-acento-hover);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  color: var(--color-texto);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: var(--color-texto-secundario);
+  line-height: 1.5;
+}
+
+button,
+select {
+  border: 1px solid var(--color-borde-control);
+  border-radius: 4px;
+  padding: 10px 14px;
+  background: var(--color-superficie-calida);
+  color: var(--color-texto);
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.summary article {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-borde-pedido);
+  border-radius: 8px;
+  background: var(--color-superficie-calida);
+}
+
+.summary span {
+  color: var(--color-texto-secundario);
+  font-size: .85rem;
+}
+
+.summary strong {
+  color: var(--color-principal);
+  font: 1.8rem Georgia, 'Times New Roman', serif;
+}
+
+.list-toolbar {
+  margin-bottom: 14px;
+}
+
+.list-toolbar h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.list-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-texto-secundario);
+  font-size: .9rem;
+}
+
+.state-message {
+  padding: 32px 20px;
+  border-radius: 8px;
+  background: var(--color-superficie-calida);
+  color: var(--color-texto-secundario);
+  text-align: center;
+}
+
+.state-message p {
+  margin: 0 0 16px;
+}
+
+.state-message h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.state-message.error {
+  border: 1px solid var(--color-error);
+}
+
+.state-message.error p {
+  color: var(--color-error);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-borde-pedido);
+  border-radius: 8px;
+  background: var(--color-superficie-calida);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-borde-pedido);
+  vertical-align: middle;
+}
+
+th {
+  color: var(--color-texto-secundario);
+  font-size: .76rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+td strong,
+td small {
+  display: block;
+}
+
+td small {
+  margin-top: 4px;
+  color: var(--color-texto-secundario);
+}
+
+.status {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 5px 10px;
+  background: var(--color-aviso-fondo);
+  color: var(--color-aviso-texto);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.status[data-estado='cerrada'] {
+  background: var(--color-fondo-panel);
+  color: var(--color-texto-secundario);
+}
+
+@media (max-width: 760px) {
+  .page-header,
+  .list-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .refresh-button {
+    align-self: flex-start;
+  }
+
+  .summary {
+    gap: 8px;
+  }
+
+  .summary article {
+    padding: 14px;
+  }
+
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  table,
+  tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  tr {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid var(--color-borde-pedido);
+    border-radius: 8px;
+    background: var(--color-superficie-calida);
+  }
+
+  td {
+    display: grid;
+    grid-template-columns: minmax(75px, .7fr) 1.3fr;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+
+  td::before {
+    content: attr(data-label);
+    color: var(--color-texto-secundario);
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+}
+
+@media (max-width: 420px) {
+  .summary {
+    grid-template-columns: 1fr;
+  }
+}

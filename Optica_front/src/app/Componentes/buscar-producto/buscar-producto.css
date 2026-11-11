@@ -61,6 +61,8 @@ dt { color: var(--color-texto-catalogo); font-size: .75rem; } dd { margin: 4px 0
 .review-error { color: var(--color-error-catalogo); }
 .review-success { color: #276c41; }
 .review-note { margin: 18px 0 0; color: var(--color-texto-catalogo); font-size: .9rem; }
+.restock-notice { display: grid; justify-items: start; gap: 10px; margin: 0 0 24px; }
+.restock-notice p { margin: 0; }
 .review-badge { justify-self: start; border-radius: 20px; padding: 4px 9px; background: color-mix(in srgb, var(--color-acento) 15%, white); color: var(--color-principal); font-size: .75rem; font-weight: 700; }
 .review-badge.reviewed { background: var(--color-fondo-imagen); color: var(--color-texto-catalogo); }
 button:disabled { cursor: wait; opacity: .65; }

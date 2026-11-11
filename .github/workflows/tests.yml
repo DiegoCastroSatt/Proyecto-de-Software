@@ -15,7 +15,7 @@ permissions:
 jobs:
   backend:
     name: API y pruebas .NET
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -42,7 +42,7 @@ jobs:
 
   frontend:
     name: Pruebas y compilación Angular
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: Optica_front
@@ -61,10 +61,16 @@ jobs:
 
   e2e:
     name: E2E con Playwright
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - name: Configurar estabilidad de red y APT
+        run: |
+          echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+          echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+          echo 'Acquire::Retries "3";' | sudo tee /etc/apt/apt.conf.d/80-retries > /dev/null
+          echo 'Acquire::http::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/80-timeouts > /dev/null
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -75,7 +81,17 @@ jobs:
         run: npm ci
       - name: Instalar Chromium y dependencias de Playwright
         working-directory: Optica_front
-        run: npx playwright install --with-deps chromium
+        run: |
+          for i in 1 2 3; do
+            npx playwright install --with-deps chromium && break || {
+              if [ "$i" -eq 3 ]; then
+                echo "Error: Fallaron los reintentos de instalación de Playwright."
+                exit 1
+              fi
+              echo "Aviso: Reintentando instalación de Playwright ($i/3)..."
+              sleep 5
+            }
+          done
       - name: Generar contraseña temporal de MySQL E2E
         id: password
         shell: bash

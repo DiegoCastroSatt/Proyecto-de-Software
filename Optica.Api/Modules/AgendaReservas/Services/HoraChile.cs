@@ -6,4 +6,8 @@ public static class HoraChile
 
     public static DateTimeOffset ObtenerAhora(TimeProvider proveedorTiempo) =>
         TimeZoneInfo.ConvertTime(proveedorTiempo.GetUtcNow(), ZonaHoraria);
+
+    /// <summary>Convierte una fecha y hora locales de Chile a UTC.</summary>
+    public static DateTime ConvertirAUtc(DateTime fecha, TimeSpan hora) =>
+        TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(fecha.Date.Add(hora), DateTimeKind.Unspecified), ZonaHoraria);
 }
