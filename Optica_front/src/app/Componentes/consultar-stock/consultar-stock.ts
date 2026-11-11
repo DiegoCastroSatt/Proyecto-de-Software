@@ -146,7 +146,7 @@ export class ConsultarStock implements OnInit {
     const dibujarEncabezado = (primeraPagina: boolean): number => {
       fondo(0, 0, ancho, primeraPagina ? 132 : 72, verde);
       texto('CENTRO ÓPTICO SAN FRANCISCO', margen, 30, 9, '#e5c58d', true);
-      texto('Reporte de inventario', margen, primeraPagina ? 68 : 54, primeraPagina ? 24 : 16, '#ffffff', true);
+      texto('Reporte de Inventario', margen, primeraPagina ? 68 : 54, primeraPagina ? 24 : 16, '#ffffff', true);
       if (primeraPagina) {
         texto(`Creado el ${fecha}`, margen, 94, 9, '#ffffff');
         texto('Estado actual de los productos registrados.', margen, 113, 9, '#ffffff');
