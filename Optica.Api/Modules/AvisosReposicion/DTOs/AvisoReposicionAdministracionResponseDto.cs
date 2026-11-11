@@ -1,6 +1,5 @@
 namespace Optica.Api.Modules.AvisosReposicion.DTOs;
 
-/// <summary>Representa una solicitud de reposición para su consulta administrativa.</summary>
 public sealed record AvisoReposicionAdministracionResponseDto(
     int IdAviso,
     string RutCliente,
