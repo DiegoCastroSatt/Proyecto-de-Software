@@ -80,6 +80,33 @@ public class ProductoService : IProductoService
     public async Task<List<ProductoResponseDto>> BuscarProductos(string termino) =>
         (await _productoRepository.Buscar(termino)).Select(Mapear).ToList();
 
+    public async Task<ReporteInventarioResponseDto> ConsultarReporteInventario(CancellationToken cancellationToken)
+    {
+        var productos = await _productoRepository.ObtenerParaReporteInventario(cancellationToken);
+        var agotados = productos
+            .Where(producto => producto.Stock <= 0)
+            .Select(MapearProductoReporte)
+            .ToList();
+        var stockBajo = productos
+            .Where(producto => producto.Stock > 0 && producto.Stock <= producto.StockMinimo)
+            .Select(MapearProductoReporte)
+            .ToList();
+        var disponibles = productos
+            .Where(producto => producto.Stock > producto.StockMinimo)
+            .Select(MapearProductoReporte)
+            .ToList();
+
+        return new ReporteInventarioResponseDto(
+            DateTimeOffset.UtcNow,
+            productos.Count,
+            disponibles.Count,
+            agotados.Count,
+            stockBajo.Count,
+            disponibles,
+            agotados,
+            stockBajo);
+    }
+
     public async Task<ProductoResponseDto?> ObtenerProducto(int id)
     {
         var producto = await _productoRepository.ObtenerPorId(id);
@@ -229,6 +256,15 @@ public class ProductoService : IProductoService
         RutaImagen = producto.RutaImagen,
         TieneVentas = producto.TieneVentas
     };
+
+    private static ProductoReporteInventarioDto MapearProductoReporte(Producto producto) =>
+        new(
+            producto.IdProducto,
+            producto.Codigo,
+            producto.Nombre,
+            producto.Categoria,
+            producto.Stock,
+            producto.StockMinimo);
 
     private static void ValidarResponsableYMotivo(int idResponsable, string? motivo)
     {
