@@ -30,6 +30,9 @@ public static class ValidacionMarco
 
     public static bool EsArmazon(string categoria) => Normalizar(categoria) is "armazon" or "armazones";
 
+    public static bool EsProductoVinculable(string categoria) =>
+        EsArmazon(categoria) || Normalizar(categoria) is "lente optico" or "lentes opticos" or "lente de sol" or "lentes de sol";
+
     public static string ValidarSvg(string svg)
     {
         if (string.IsNullOrWhiteSpace(svg) || Encoding.UTF8.GetByteCount(svg) > 100_000)

@@ -206,8 +206,6 @@ public class TestMarcos
     [InlineData("Accesorios")]
     [InlineData("Cordones para marcos")]
     [InlineData("Lentes de contacto")]
-    [InlineData("Lentes de sol")]
-    [InlineData("Lentes ópticos")]
     [InlineData("Marcos redondos")]
     [InlineData("Monturas")]
     public async Task Vincular_RechazaAccesoriosAunqueSuNombreMencioneMarcos(string categoria)
@@ -220,6 +218,26 @@ public class TestMarcos
         Assert.Null(accesorio.IdTipoMarco); Assert.Equal(marco.Id, armazon.IdTipoMarco);
         var vinculables = Assert.IsType<List<ProductoVinculableMarcoResponse>>(Assert.IsType<OkObjectResult>(await controller.ProductosVinculables(default)).Value);
         Assert.Equal(armazon.IdProducto, Assert.Single(vinculables).Id);
+    }
+
+    [Theory]
+    [InlineData("Lentes de sol")]
+    [InlineData("Lentes ópticos")]
+    public async Task Vincular_AceptaLentesQueTienenMontura(string categoria)
+    {
+        await using var db = Contexto();
+        var marco = Marco("redondo", "Armazones");
+        var lente = Producto(categoria, 4);
+        db.TiposMarco.Add(marco);
+        db.Productos.Add(lente);
+        await db.SaveChangesAsync();
+
+        var controller = new MarcosController(db);
+        Assert.IsType<OkObjectResult>(await controller.VincularProductos(marco.Id, new([lente.IdProducto]), default));
+        Assert.Equal(marco.Id, lente.IdTipoMarco);
+        var resultado = Assert.IsType<OkObjectResult>((await controller.Disponibles(default)).Result);
+        var disponible = Assert.Single(Assert.IsType<List<TipoMarcoResponse>>(resultado.Value));
+        Assert.Equal(4, disponible.Stock);
     }
 
     [Fact]

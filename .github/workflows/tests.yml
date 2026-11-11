@@ -2,7 +2,11 @@ name: Pruebas del sistema
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -54,3 +58,58 @@ jobs:
         run: npm test -- --watch=false
       - name: Compilar frontend
         run: npm run build
+
+  e2e:
+    name: E2E con Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Optica_front/package-lock.json
+      - name: Instalar dependencias del frontend
+        working-directory: Optica_front
+        run: npm ci
+      - name: Instalar Chromium y dependencias de Playwright
+        working-directory: Optica_front
+        run: npx playwright install --with-deps chromium
+      - name: Generar contraseña temporal de MySQL E2E
+        id: password
+        shell: bash
+        run: |
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$password"
+          printf 'E2E_MYSQL_ROOT_PASSWORD=%s\n' "$password" >> "$GITHUB_ENV"
+      - name: Construir e iniciar Compose E2E
+        id: compose_up
+        run: docker compose -f docker-compose.e2e.yml up --build --force-recreate --remove-orphans --detach --wait --wait-timeout 180
+      - name: Ejecutar prueba E2E completa
+        working-directory: Optica_front
+        run: npm run e2e
+      - name: Guardar logs de servicios E2E si falla
+        if: failure() && steps.compose_up.outcome != 'skipped'
+        shell: bash
+        run: |
+          mkdir -p Optica_front/test-results
+          docker compose -f docker-compose.e2e.yml logs --no-color database backend frontend mailpit \
+            | sed -E 's/(Password|password)=([^;[:space:]]+)/\1=[REDACTED]/g; s#(/acciones/(confirmar|cancelar)/)[A-Za-z0-9_-]+#\1[REDACTED]#g; s/E2E-Admin-Acceso-[A-Za-z0-9_-]+!?/[REDACTED-E2E-PASSWORD]/g' \
+            > Optica_front/test-results/compose-services.log
+      - name: Redactar secretos de las evidencias E2E
+        if: failure()
+        run: python .github/scripts/sanitize-e2e-artifacts.py
+      - name: Retirar únicamente el entorno E2E
+        if: always() && steps.password.outcome == 'success'
+        run: docker compose -f docker-compose.e2e.yml down --remove-orphans
+      - name: Guardar evidencias Playwright si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-e2e-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            Optica_front/playwright-report/
+            Optica_front/test-results/
+          if-no-files-found: warn
+          retention-days: 14

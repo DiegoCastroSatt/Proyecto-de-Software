@@ -14,6 +14,10 @@
     </form>
   </div>
 
+  @if (idMarco() !== null) {
+    <p class="status">Estilo seleccionado en el probador. <a routerLink="/productos">Ver todo el catálogo</a></p>
+  }
+
   <form class="filter-bar" [formGroup]="filtrosForm" (change)="aplicarFiltros()">
     <label>Estado
       <select formControlName="estado">

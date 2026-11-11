@@ -1,7 +1,7 @@
 import { of } from 'rxjs';
 import { DisponibilidadMarcosService } from '../../shared/services/disponibilidad-marcos.service';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { vi, afterEach } from 'vitest';
 import { ProbadorMarcosComponent } from './probador-marcos';
 import { DetectorRostroService, PuntoFacial } from './detector-rostro.service';
@@ -13,6 +13,7 @@ describe('ProbadorMarcosComponent', () => {
     TestBed.configureTestingModule({
       imports: [ProbadorMarcosComponent],
       providers: [
+        provideRouter([]),
         { provide: DisponibilidadMarcosService, useValue: { consultar: () => of(['rectangular', 'redondo', 'aviador'].map((codigo, i) => ({ id: i + 1, codigo, nombre: codigo === 'aviador' ? 'Aviador' : codigo, categoria: codigo, activo: true, rostros: ['ovalado'], stock: 1 }))) } },
         {
           provide: ActivatedRoute,
@@ -46,7 +47,23 @@ describe('ProbadorMarcosComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.seleccionado()).toBe('aviador');
     expect(fixture.componentInstance.tamano()).toBe(115);
+    expect(fixture.nativeElement.querySelector('.enlace-catalogo').getAttribute('href'))
+      .toBe('/productos?marco=3');
     expect(fixture.nativeElement.querySelectorAll('input[type=range]').length).toBe(1);
+  });
+
+  it('usa el mismo marco con cristales en la miniatura y sobre el rostro', () => {
+    const fixture = crear();
+    fixture.componentInstance.ajuste.set({ x: 50, y: 50, ancho: 40, angulo: 0 });
+    fixture.detectChanges();
+
+    const miniatura = fixture.nativeElement.querySelector('.modelo.seleccionado img');
+    const marco = fixture.nativeElement.querySelector('.marco');
+    expect(marco.getAttribute('src')).toBe(miniatura.getAttribute('src'));
+    expect(decodeURIComponent(marco.getAttribute('src'))).toContain('id="cristal"');
+    expect(fixture.componentInstance.imagenProbador({
+      ...fixture.componentInstance.modelos()[0], codigo: 'personalizado',
+    })).toMatch(/\/api\/Marcos\/1\/imagen$/);
   });
 
   it('usa un modelo válido si la URL solicita uno incompatible', () => {
@@ -123,7 +140,7 @@ describe('ProbadorMarcosComponent', () => {
     detectar.mockResolvedValue(puntos);
     const createObjectURL = vi.fn().mockReturnValue('blob:prueba');
     const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+    vi.stubGlobal('URL', Object.assign(class extends URL {}, { createObjectURL, revokeObjectURL }));
     vi.stubGlobal(
       'Image',
       class {
@@ -157,7 +174,7 @@ describe('ProbadorMarcosComponent', () => {
   });
 
   it('oculta el marco si no detecta ojos', async () => {
-    vi.stubGlobal('URL', { createObjectURL: () => 'blob:sin-rostro', revokeObjectURL: vi.fn() });
+    vi.stubGlobal('URL', Object.assign(class extends URL {}, { createObjectURL: () => 'blob:sin-rostro', revokeObjectURL: vi.fn() }));
     vi.stubGlobal(
       'Image',
       class {
@@ -182,7 +199,7 @@ describe('ProbadorMarcosComponent', () => {
   it('descarta la detección de una foto que fue retirada', async () => {
     let resolver!: (puntos: PuntoFacial[]) => void;
     detectar.mockImplementation(() => new Promise((resolve) => (resolver = resolve)));
-    vi.stubGlobal('URL', { createObjectURL: () => 'blob:retirada', revokeObjectURL: vi.fn() });
+    vi.stubGlobal('URL', Object.assign(class extends URL {}, { createObjectURL: () => 'blob:retirada', revokeObjectURL: vi.fn() }));
     vi.stubGlobal(
       'Image',
       class {
