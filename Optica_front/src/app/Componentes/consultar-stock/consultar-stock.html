@@ -5,10 +5,22 @@
 			<h1>Consultar stock</h1>
 			<p>Existencias actuales de cada producto.</p>
 		</div>
-		<button class="refresh-button" type="button" (click)="cargarProductos()" [disabled]="cargando()">
-			{{ cargando() ? 'Actualizando...' : 'Actualizar' }}
-		</button>
+		<div class="header-actions">
+			<button class="refresh-button" type="button" (click)="cargarProductos()" [disabled]="cargando()">
+				{{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+			</button>
+			<button type="button" (click)="mostrarInforme()" [disabled]="generandoPdf() || cargando() || !!error()">
+				{{ generandoPdf() ? 'Generando PDF...' : 'Ver PDF' }}
+			</button>
+			<button type="button" (click)="descargarInforme()" [disabled]="generandoPdf() || cargando() || !!error()">
+				{{ generandoPdf() ? 'Generando PDF...' : 'Descargar PDF' }}
+			</button>
+		</div>
 	</header>
+
+	@if (errorPdf()) {
+		<p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorPdf() }}</p>
+	}
 
 	<label class="search-field" for="buscar-stock">
 		<span>Buscar producto</span>
