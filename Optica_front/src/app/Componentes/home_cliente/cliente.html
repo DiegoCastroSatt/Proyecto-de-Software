@@ -26,6 +26,9 @@
       @if (autenticacion.cliente()) {
       <a routerLink="/consultar-pedido" routerLinkActive="is-active">Mis pedidos</a>
       }
+      @if (autenticacion.cliente()) {
+      <a routerLink="/cliente/solicitudes" routerLinkActive="is-active">Solicitudes</a>
+      }
     </nav>
     @if (autenticacion.cliente(); as cliente) {
       <details class="client-account">
