@@ -41,6 +41,7 @@ import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-
 import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
 import { HistorialStock } from './Componentes/historial-stock/historial-stock';
 import { ListaSolicitudes } from './Componentes/solicitudes-cliente/solicitudes-cliente';
+import { Solicitudes as SolicitudesAdmin } from './Componentes/solicitudes-admin/solicitudes-admin';
 
 export const routes: Routes = [
   {
@@ -98,6 +99,7 @@ export const routes: Routes = [
           { path: 'clientes', component: ClientesComponent, data: { permiso: 'clientes', tituloInicio: 'Clientes' } },
           { path: 'productos', component: BuscarProductoAdmin, data: { permiso: 'inventario', tituloInicio: 'Inventario' } },
           { path: 'stock', component: ConsultarStock, data: { permiso: 'inventario' } },
+          { path: 'solicitudes', component: SolicitudesAdmin, data: { permiso: 'inventario' } },
           { path: 'marcos', component: GestionMarcosComponent, data: { permiso: 'inventario' } },
           { path: 'marcos/crear', component: CrearMarcoComponent, data: { permiso: 'inventario' } },
           { path: 'marcos/rostros', component: GestionRostrosComponent, data: { permiso: 'inventario' } },

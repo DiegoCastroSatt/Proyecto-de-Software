@@ -48,6 +48,21 @@ public sealed class AvisoReposicionService(
         return avisos.Select(aviso => Mapear(aviso, aviso.Producto.Nombre)).ToList();
     }
 
+    public async Task<IReadOnlyList<AvisoReposicionAdministracionResponseDto>> ListarTodas(
+        CancellationToken cancellationToken)
+    {
+        var avisos = await repositorio.ListarTodas(cancellationToken);
+        return avisos.Select(aviso => new AvisoReposicionAdministracionResponseDto(
+            aviso.IdAviso,
+            aviso.Rut,
+            $"{aviso.Cliente.Nombre} {aviso.Cliente.Apellido}",
+            aviso.Cliente.Correo,
+            aviso.IdProducto,
+            aviso.Producto.Nombre,
+            new DateTimeOffset(DateTime.SpecifyKind(aviso.Fecha, DateTimeKind.Utc)),
+            aviso.Estado)).ToList();
+    }
+
     public async Task ProcesarReposicionesDisponibles(CancellationToken cancellationToken)
     {
         var avisos = await repositorio.ListarPendientesConStock(cancellationToken);

@@ -11,6 +11,7 @@ public interface IAvisoReposicionRepository
     Task<bool> ExisteAvisoAbierto(string rut, int idProducto, CancellationToken cancellationToken);
     Task<AvisoReposicion> Crear(AvisoReposicion aviso, CancellationToken cancellationToken);
     Task<IReadOnlyList<AvisoReposicion>> ListarPorCliente(int idCliente, CancellationToken cancellationToken);
+    Task<IReadOnlyList<AvisoReposicion>> ListarTodas(CancellationToken cancellationToken);
     Task<IReadOnlyList<AvisoReposicion>> ListarPendientesConStock(CancellationToken cancellationToken);
     Task Cerrar(AvisoReposicion aviso, CancellationToken cancellationToken);
 }

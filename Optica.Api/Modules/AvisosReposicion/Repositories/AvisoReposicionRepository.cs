@@ -41,6 +41,14 @@ public sealed class AvisoReposicionRepository(OpticaDbContext db) : IAvisoReposi
             .OrderByDescending(aviso => aviso.Fecha)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<AvisoReposicion>> ListarTodas(CancellationToken cancellationToken) =>
+        await db.AvisosReposicion.AsNoTracking()
+            .Include(aviso => aviso.Cliente)
+            .Include(aviso => aviso.Producto)
+            .OrderByDescending(aviso => aviso.Fecha)
+            .ThenByDescending(aviso => aviso.IdAviso)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<AvisoReposicion>> ListarPendientesConStock(CancellationToken cancellationToken) =>
         await db.AvisosReposicion
             .Where(aviso => aviso.Estado == "Abierta" && aviso.Producto.Stock > 0)

@@ -6,5 +6,6 @@ public interface IAvisoReposicionService
 {
     Task<AvisoReposicionResponseDto> Crear(int idCliente, int idProducto, CancellationToken cancellationToken);
     Task<IReadOnlyList<AvisoReposicionResponseDto>> ListarPorCliente(int idCliente, CancellationToken cancellationToken);
+    Task<IReadOnlyList<AvisoReposicionAdministracionResponseDto>> ListarTodas(CancellationToken cancellationToken);
     Task ProcesarReposicionesDisponibles(CancellationToken cancellationToken);
 }

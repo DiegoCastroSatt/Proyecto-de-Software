@@ -7,11 +7,16 @@ using Optica.Api.Modules.AvisosReposicion.Services;
 
 namespace Optica.Api.Modules.AvisosReposicion.Controllers;
 
-[Authorize(Policy = AutenticacionClientesController.Politica)]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class AvisosReposicionController(IAvisoReposicionService servicio) : ControllerBase
 {
+    [Authorize(Policy = "inventario")]
+    [HttpGet]
+    public async Task<IActionResult> ListarTodas(CancellationToken cancellationToken) =>
+        Ok(await servicio.ListarTodas(cancellationToken));
+
+    [Authorize(Policy = AutenticacionClientesController.Politica)]
     [HttpPost("producto/{idProducto:int}")]
     public async Task<IActionResult> Crear(int idProducto, CancellationToken cancellationToken)
     {
@@ -41,6 +46,7 @@ public sealed class AvisosReposicionController(IAvisoReposicionService servicio)
         }
     }
 
+    [Authorize(Policy = AutenticacionClientesController.Politica)]
     [HttpGet("mis-solicitudes")]
     public async Task<IActionResult> MisSolicitudes(CancellationToken cancellationToken)
     {

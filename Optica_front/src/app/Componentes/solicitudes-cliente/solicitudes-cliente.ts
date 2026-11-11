@@ -1,12 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AvisoReposicion, ListaSolicitudesService } from './lista-solicitudes.service';
+import { AvisoReposicion, ListaSolicitudesService } from './solicitudes-cliente.service';
 
 @Component({
   selector: 'app-lista-solicitudes',
   imports: [RouterLink],
-  templateUrl: './lista-solicitudes.html',
-  styleUrl: './lista-solicitudes.css'
+  templateUrl: './solicitudes-cliente.html',
+  styleUrl: './solicitudes-cliente.css'
 })
 export class ListaSolicitudes implements OnInit {
   private readonly solicitudesService = inject(ListaSolicitudesService);
