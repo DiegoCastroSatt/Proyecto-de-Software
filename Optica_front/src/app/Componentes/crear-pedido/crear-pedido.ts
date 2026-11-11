@@ -28,7 +28,8 @@ export class CrearPedidoComponent implements OnInit {
       fecha: ['', Validators.required],
       estado: ['Pendiente', Validators.required],
       total: [0, [Validators.required, Validators.min(0)]],
-      anotaciones: ['']
+      anotaciones: [''],
+      fechaEntregaEstimada: ['']
     });
   }
 
@@ -55,7 +56,8 @@ export class CrearPedidoComponent implements OnInit {
       fecha: formValue.fecha ?? '',
       estado: formValue.estado ?? 'Pendiente',
       total: formValue.total ?? 0,
-      anotaciones: formValue.anotaciones ?? ''
+      anotaciones: formValue.anotaciones ?? '',
+      fechaEntregaEstimada: formValue.fechaEntregaEstimada || undefined
     }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
