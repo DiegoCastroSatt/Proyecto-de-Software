@@ -98,6 +98,16 @@ public sealed class EliminacionCuentaClienteService(
         db.CorreosReserva.RemoveRange(await db.CorreosReserva.Include(c => c.Historial)
             .Where(c => idsReserva.Contains(c.ReservaId)).ToListAsync(cancellationToken));
 
+        // Encuestas: se anulan los enlaces pendientes. Las respuestas ya son anónimas y se conservan.
+        var encuestasPendientes = await db.EncuestasAtencion
+            .Where(e => idsReserva.Contains(e.ReservaId) && !e.Respondida && e.TokenHash != null)
+            .ToListAsync(cancellationToken);
+        foreach (var encuesta in encuestasPendientes)
+        {
+            encuesta.TokenHash = null;
+            encuesta.TokenExpiraUtc = null;
+        }
+
         // Recetas y graduaciones: se conservan; se quitan las imágenes subidas.
         var recetas = await db.Recetas.Where(r => r.ClienteId == idCliente && r.ImagenPath != null)
             .ToListAsync(cancellationToken);

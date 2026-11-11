@@ -1,0 +1,221 @@
+<section class="encuestas-page">
+  <header class="encuestas-heading">
+    <div>
+      <p class="eyebrow">Agenda</p>
+      <h1>Encuestas de atención</h1>
+      <p class="page-description">Opiniones anónimas de los clientes después de su atención.</p>
+    </div>
+
+    <form class="filtro-fechas" (submit)="$event.preventDefault(); buscar()">
+      <label>
+        <span>Desde</span>
+        <input type="date" [value]="desde()" [max]="hasta()" (change)="cambiarDesde($event)" />
+      </label>
+      <label>
+        <span>Hasta</span>
+        <input type="date" [value]="hasta()" [min]="desde()" (change)="cambiarHasta($event)" />
+      </label>
+      <button type="submit" class="primary-button">Aplicar</button>
+    </form>
+  </header>
+
+  @if (errorFechas()) {
+    <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorFechas() }}</p>
+  }
+
+  @if (cargandoResumen() && !resumen()) {
+    <p class="status" role="status">Cargando resultados...</p>
+  } @else if (errorResumen()) {
+    <div class="notificacion-sistema" data-tipo="error" role="alert">
+      <p>{{ errorResumen() }}</p>
+      <button type="button" (click)="cargarResumen()">Reintentar</button>
+    </div>
+  } @else if (resumen(); as resumen) {
+    <div class="metricas" [class.actualizando]="cargandoResumen()">
+      <article class="metrica">
+        <span>Enviadas</span>
+        <strong>{{ resumen.enviadas }}</strong>
+      </article>
+      <article class="metrica">
+        <span>Respondidas</span>
+        <strong>{{ resumen.respondidas }}</strong>
+      </article>
+      <article class="metrica">
+        <span>Tasa de respuesta</span>
+        <strong>{{ formatearPorcentaje(resumen.tasaRespuesta) }}</strong>
+      </article>
+      <article class="metrica">
+        <span>Promedio general</span>
+        <strong>
+          {{ formatearPromedio(resumen.promedioGeneral) }}
+          @if (resumen.promedioGeneral !== null) {
+            <span class="estrella-texto" aria-hidden="true">★</span>
+          }
+        </strong>
+      </article>
+    </div>
+
+    @if (resumen.respondidas === 0) {
+      <p class="status vacio">Aún no hay respuestas en este periodo.</p>
+    } @else {
+      <div class="paneles">
+        <article class="panel">
+          <h2>Promedio por pregunta</h2>
+          @for (pregunta of preguntas(); track pregunta.texto) {
+            <div class="fila-barra">
+              <span>{{ pregunta.texto }}</span>
+              <div class="barra" aria-hidden="true">
+                <span [style.width.%]="anchoPromedio(pregunta.promedio)"></span>
+              </div>
+              <strong>{{ formatearPromedio(pregunta.promedio) }}</strong>
+            </div>
+          }
+        </article>
+
+        <article class="panel">
+          <h2>Distribución de la satisfacción general</h2>
+          @for (fila of distribucion(); track fila.estrellas) {
+            <div class="fila-barra fila-distribucion">
+              <span class="estrella-texto" [attr.aria-label]="fila.estrellas + ' de 5 estrellas'">{{
+                estrellasTexto(fila.estrellas)
+              }}</span>
+              <div class="barra" aria-hidden="true">
+                <span [style.width.%]="fila.porcentaje"></span>
+              </div>
+              <strong>{{ fila.cantidad }}</strong>
+            </div>
+          }
+        </article>
+      </div>
+
+      <article class="panel">
+        <h2>Evolución mensual del promedio</h2>
+        <div class="grafico">
+          <canvas
+            #graficoEvolucion
+            aria-label="Evolución mensual del promedio de cada pregunta"
+          ></canvas>
+        </div>
+      </article>
+    }
+  }
+
+  <article class="panel comentarios">
+    <div class="comentarios-cabecera">
+      <h2>Comentarios</h2>
+      <label class="filtro-calificacion">
+        <span class="sr-only">Filtrar por satisfacción general</span>
+        <select (change)="cambiarCalificacion($event)">
+          <option value="">Todas las calificaciones</option>
+          @for (estrella of estrellas; track estrella) {
+            <option [value]="estrella">
+              {{ estrella }} {{ estrella === 1 ? 'estrella' : 'estrellas' }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="filtro-check">
+        <input
+          type="checkbox"
+          [checked]="soloConComentario()"
+          (change)="cambiarSoloConComentario($event)"
+        />
+        Solo con comentario
+      </label>
+    </div>
+
+    @if (cargandoComentarios() && comentarios().length === 0) {
+      <p class="status" role="status">Cargando comentarios...</p>
+    } @else if (errorComentarios()) {
+      <div class="notificacion-sistema" data-tipo="error" role="alert">
+        <p>{{ errorComentarios() }}</p>
+        <button type="button" (click)="cargarComentarios()">Reintentar</button>
+      </div>
+    } @else if (comentarios().length === 0) {
+      <p class="status">No hay comentarios con estos filtros.</p>
+    } @else {
+      @if (errorVisibilidad()) {
+        <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorVisibilidad() }}</p>
+      }
+      <ul class="lista-comentarios" [class.actualizando]="cargandoComentarios()">
+        @for (item of comentarios(); track item.id) {
+          <li>
+            @if (item.comentario || item.comentarioOculto) {
+              <button
+                type="button"
+                class="boton-visibilidad"
+                [disabled]="cambiandoVisibilidad() !== null"
+                [attr.aria-label]="
+                  (item.comentarioOculto ? 'Mostrar' : 'Ocultar') +
+                  ' comentario de ' +
+                  textoMes(item.mes)
+                "
+                (click)="cambiarVisibilidad(item)"
+              >
+                {{
+                  cambiandoVisibilidad() === item.id
+                    ? 'Guardando...'
+                    : item.comentarioOculto
+                      ? 'Mostrar'
+                      : 'Ocultar'
+                }}
+              </button>
+            }
+            <p class="comentario-meta">
+              <span>{{ textoMes(item.mes) }}</span>
+              <span
+                >General
+                <span
+                  class="estrella-texto"
+                  [attr.aria-label]="item.calificacionGeneral + ' de 5'"
+                  >{{ estrellasTexto(item.calificacionGeneral) }}</span
+                ></span
+              >
+              <span
+                >Trato
+                <span class="estrella-texto" [attr.aria-label]="item.calificacionTrato + ' de 5'">{{
+                  estrellasTexto(item.calificacionTrato)
+                }}</span></span
+              >
+              <span
+                >Puntualidad
+                <span
+                  class="estrella-texto"
+                  [attr.aria-label]="item.calificacionPuntualidad + ' de 5'"
+                  >{{ estrellasTexto(item.calificacionPuntualidad) }}</span
+                ></span
+              >
+            </p>
+            @if (item.comentarioOculto) {
+              <p class="comentario-texto sin-comentario">Comentario oculto por el personal.</p>
+            } @else if (item.comentario) {
+              <p class="comentario-texto">{{ item.comentario }}</p>
+            } @else {
+              <p class="comentario-texto sin-comentario">Sin comentario.</p>
+            }
+          </li>
+        }
+      </ul>
+
+      <nav class="paginacion" aria-label="Paginación de comentarios">
+        <span>{{ rangoMostrado() }}</span>
+        <div>
+          <button
+            type="button"
+            (click)="irAPagina(pagina() - 1)"
+            [disabled]="pagina() === 1 || cargandoComentarios()"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            (click)="irAPagina(pagina() + 1)"
+            [disabled]="pagina() >= totalPaginas() || cargandoComentarios()"
+          >
+            Siguiente
+          </button>
+        </div>
+      </nav>
+    }
+  </article>
+</section>

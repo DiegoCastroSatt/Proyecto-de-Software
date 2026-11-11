@@ -40,6 +40,8 @@ import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
 import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
 import { HistorialStock } from './Componentes/historial-stock/historial-stock';
+import { ResponderEncuestaComponent } from './Componentes/responder-encuesta/responder-encuesta';
+import { ResultadosEncuestasComponent } from './Componentes/resultados-encuestas/resultados-encuestas';
 
 export const routes: Routes = [
   {
@@ -50,6 +52,7 @@ export const routes: Routes = [
       { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
       { path: 'cliente/login', component: LoginComponent },
       { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
+      { path: 'encuesta', component: ResponderEncuestaComponent },
       { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/perfil', component: MiPerfilComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
@@ -88,6 +91,7 @@ export const routes: Routes = [
           { path: 'sin-acceso', component: SinAccesoComponent },
           { path: 'horarios', component: GestionHorariosComponent, data: { permiso: 'horarios', tituloInicio: 'Horarios' } },
           { path: 'agenda', component: BuscarReservas, data: { permiso: 'agenda', tituloInicio: 'Agenda' } },
+          { path: 'encuestas', component: ResultadosEncuestasComponent, data: { permiso: 'agenda', tituloInicio: 'Encuestas' } },
           {
             path: 'productos/nuevo',
             component: ProductoComponent,

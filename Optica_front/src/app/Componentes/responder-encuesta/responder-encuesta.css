@@ -1,0 +1,137 @@
+:host {
+  display: block;
+  min-height: 80vh;
+  padding: 40px 20px;
+}
+
+.encuesta-contenedor {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Misma tarjeta que la confirmación de cuenta. */
+.encuesta-tarjeta {
+  box-sizing: border-box;
+  width: min(100%, 560px);
+  padding: clamp(24px, 5vw, 40px);
+  border-top: 4px solid var(--color-acento);
+  background: var(--color-superficie-login);
+  color: var(--color-texto-login);
+  box-shadow: 0 16px 40px var(--sombra-principal-08);
+}
+
+.marca-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-acento-login);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.encuesta-cabecera h1 {
+  margin: 0 0 12px;
+  color: var(--color-texto-profundo);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.encuesta-mensaje,
+.encuesta-atencion,
+.notificacion-sistema p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.encuesta-atencion {
+  margin-bottom: 24px;
+  color: var(--color-texto-secundario);
+}
+
+.encuesta-pregunta {
+  margin-bottom: 20px;
+}
+
+.encuesta-pregunta-texto {
+  margin: 0 0 4px;
+  color: var(--color-texto);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.encuesta-comentario {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.encuesta-comentario label {
+  color: var(--color-texto);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.encuesta-opcional,
+.encuesta-contador {
+  color: var(--color-texto-secundario);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.encuesta-contador {
+  justify-self: end;
+}
+
+.encuesta-comentario textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--color-borde-control-login);
+  border-radius: 3px;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+  resize: vertical;
+}
+
+.encuesta-comentario textarea:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 1px;
+}
+
+.btn-principal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-bottom: 3px solid var(--color-acento);
+  border-radius: 2px;
+  background: var(--color-principal);
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.btn-principal:hover {
+  background: var(--color-principal-oscuro);
+}
+
+.btn-principal:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+.btn-principal:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}

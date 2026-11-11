@@ -1,0 +1,28 @@
+<div
+  class="selector-estrellas"
+  role="radiogroup"
+  [attr.aria-labelledby]="etiquetadoPor()"
+  [attr.aria-label]="etiquetadoPor() ? null : etiqueta()"
+  [attr.aria-disabled]="deshabilitado() || null"
+  (mouseleave)="vistaPrevia.set(0)"
+  (focusout)="alSalirDelGrupo($event)"
+>
+  @for (estrella of estrellas; track estrella) {
+    <button
+      #boton
+      type="button"
+      role="radio"
+      class="estrella"
+      [class.rellena]="estaRellena(estrella)"
+      [attr.aria-checked]="valor() === estrella"
+      [attr.aria-label]="textoAccesible(estrella)"
+      [attr.tabindex]="indiceTab(estrella)"
+      [disabled]="deshabilitado()"
+      (mouseenter)="vistaPrevia.set(estrella)"
+      (click)="seleccionar(estrella)"
+      (keydown)="alPresionarTecla($event, estrella)"
+    >
+      <span aria-hidden="true">★</span>
+    </button>
+  }
+</div>

@@ -10,6 +10,7 @@ using Optica.Api.Modules.RegistroRecetas.Models;
 using Optica.Api.Modules.Ventas.Models;
 using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Resenas.Models;
+using Optica.Api.Modules.Encuestas.Models;
 
 namespace Optica.Api.Data;
 
@@ -62,6 +63,8 @@ public class OpticaDbContext : DbContext
     public DbSet<Trabajador> Trabajadores => Set<Trabajador>();
     public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
     public DbSet<Resena> Resenas => Set<Resena>();
+    public DbSet<EncuestaAtencion> EncuestasAtencion => Set<EncuestaAtencion>();
+    public DbSet<RespuestaEncuestaAtencion> RespuestasEncuestaAtencion => Set<RespuestaEncuestaAtencion>();
 
     public DbSet<HistorialStock> HistorialStock => Set<HistorialStock>();
 
@@ -413,6 +416,37 @@ public class OpticaDbContext : DbContext
             entity.Property(i => i.FechaUtc).HasColumnName("fecha_utc");
             entity.Property(i => i.Exitoso).HasColumnName("exitoso");
             entity.Property(i => i.Error).HasColumnName("error").HasColumnType("text");
+        });
+
+        modelBuilder.Entity<EncuestaAtencion>(entity =>
+        {
+            entity.ToTable("encuestas_atencion");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_encuesta");
+            entity.Property(e => e.ReservaId).HasColumnName("id_reserva");
+            // El hash es token de concurrencia: si dos envíos llegan a la vez, solo uno lo anula.
+            entity.Property(e => e.TokenHash).HasColumnName("token_hash").HasMaxLength(64).IsFixedLength().IsConcurrencyToken();
+            entity.Property(e => e.TokenExpiraUtc).HasColumnName("token_expira_utc");
+            entity.Property(e => e.FechaEnvioUtc).HasColumnName("fecha_envio_utc");
+            entity.Property(e => e.Respondida).HasColumnName("respondida");
+            entity.HasIndex(e => e.ReservaId).IsUnique();
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.HasIndex(e => e.FechaEnvioUtc);
+            entity.HasOne<Reserva>().WithMany().HasForeignKey(e => e.ReservaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RespuestaEncuestaAtencion>(entity =>
+        {
+            entity.ToTable("respuestas_encuesta_atencion");
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.Id).HasColumnName("id_respuesta");
+            entity.Property(r => r.CalificacionGeneral).HasColumnName("calificacion_general").HasColumnType("tinyint");
+            entity.Property(r => r.CalificacionTrato).HasColumnName("calificacion_trato").HasColumnType("tinyint");
+            entity.Property(r => r.CalificacionPuntualidad).HasColumnName("calificacion_puntualidad").HasColumnType("tinyint");
+            entity.Property(r => r.Comentario).HasColumnName("comentario").HasMaxLength(1000);
+            entity.Property(r => r.ComentarioOculto).HasColumnName("comentario_oculto");
+            entity.Property(r => r.FechaRespuesta).HasColumnName("fecha_respuesta").HasColumnType("date");
+            entity.HasIndex(r => r.FechaRespuesta);
         });
 
         modelBuilder.Entity<Resena>(entity =>

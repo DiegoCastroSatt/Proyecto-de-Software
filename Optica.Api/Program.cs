@@ -29,6 +29,8 @@ using Optica.Api.Modules.Notificaciones.Services;
 using Optica.Api.Modules.Resenas.Interfaces;
 using Optica.Api.Modules.Resenas.Repositories;
 using Optica.Api.Modules.Resenas.Services;
+using Optica.Api.Modules.Encuestas.Interfaces;
+using Optica.Api.Modules.Encuestas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +88,10 @@ builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICalculoVenta, CalculoVenta>();
 builder.Services.AddScoped<IResenaRepository, ResenaRepository>();
 builder.Services.AddScoped<IResenaService, ResenaService>();
+builder.Services.AddScoped<IEncuestaService, EncuestaService>();
+builder.Services.AddScoped<EncuestaCorreoService>();
+builder.Services.AddScoped<ISolicitudEncuestasService, SolicitudEncuestasService>();
+builder.Services.AddHostedService<SolicitudEncuestasBackgroundService>();
 
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoCorreoService, PedidoCorreoService>();
