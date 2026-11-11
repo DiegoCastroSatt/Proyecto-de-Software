@@ -103,6 +103,14 @@ VALUES
 ('ACC005', 'Toallitas húmedas para lentes', '', '', 'Blanco', 'Accesorios',
 3990, 40, 10, 'Disponible', 'https://www.hema.nl/dw/image/v2/BBRK_PRD/on/demandware.static/-/Sites-HEMA-master-catalog/default/dw6fffcb47/product/11510070_01_001.jpg?bgcolor=FFFFFF&sfrm=png&sw=600');
 
+-- ==========================================
+-- AVISOS DE REPOSICION
+-- ==========================================
+
+INSERT INTO avisos_reposicion (rut, id_producto, fecha, estado) VALUES
+('12345678-7', 1, '2026-09-10 09:00:00', 'Abierta'),
+('98765432-5', 2, '2026-09-12 14:30:00', 'Cerrada');
+
 
 -- ==========================================
 -- PEDIDOS

@@ -1,0 +1,78 @@
+<main class="solicitudes-admin">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Inventario</p>
+      <h1>Solicitudes de reposición</h1>
+      <p class="subtitle">Consulta los productos solicitados por los clientes y el estado de cada aviso.</p>
+    </div>
+    <button class="refresh-button" type="button" (click)="cargarSolicitudes()" [disabled]="cargando()">
+      {{ cargando() ? 'Actualizando…' : 'Actualizar' }}
+    </button>
+  </header>
+
+  @if (!cargando() && !error()) {
+    <section class="summary" aria-label="Resumen de solicitudes">
+      <article><span>Total</span><strong>{{ solicitudes().length }}</strong></article>
+      <article><span>Abiertas</span><strong>{{ abiertas() }}</strong></article>
+      <article><span>Cerradas</span><strong>{{ cerradas() }}</strong></article>
+    </section>
+
+    <div class="list-toolbar">
+      <h2>Solicitudes registradas</h2>
+      <label>
+        Estado
+        <select [value]="filtroEstado()" (change)="cambiarFiltro($event)">
+          <option value="Todas">Todos</option>
+          <option value="Abierta">Abiertas</option>
+          <option value="Cerrada">Cerradas</option>
+        </select>
+      </label>
+    </div>
+  }
+
+  @if (cargando()) {
+    <p class="state-message" role="status">Cargando solicitudes…</p>
+  } @else if (error()) {
+    <section class="state-message error" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="cargarSolicitudes()">Intentar nuevamente</button>
+    </section>
+  } @else if (solicitudesFiltradas().length === 0) {
+    <section class="state-message empty">
+      <h2>{{ solicitudes().length === 0 ? 'No hay solicitudes registradas' : 'No hay solicitudes en este estado' }}</h2>
+      <p>Las solicitudes de aviso de reposición aparecerán aquí.</p>
+    </section>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Producto</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">RUT</th>
+            <th scope="col">Correo</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (solicitud of solicitudesFiltradas(); track solicitud.idAviso) {
+            <tr>
+              <td data-label="Producto">
+                <strong>{{ solicitud.nombreProducto }}</strong>
+                <small>#{{ solicitud.idProducto }}</small>
+              </td>
+              <td data-label="Cliente">{{ solicitud.nombreCliente }}</td>
+              <td data-label="RUT">{{ solicitud.rutCliente }}</td>
+              <td data-label="Correo">{{ solicitud.correoCliente || 'No registrado' }}</td>
+              <td data-label="Fecha">{{ formatearFecha(solicitud.fecha) }}</td>
+              <td data-label="Estado">
+                <span class="status" [attr.data-estado]="solicitud.estado.toLowerCase()">{{ solicitud.estado }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</main>
