@@ -10,6 +10,7 @@ using Optica.Api.Modules.RegistroRecetas.Models;
 using Optica.Api.Modules.Ventas.Models;
 using Optica.Api.Modules.Pedidos.Models;
 using Optica.Api.Modules.Resenas.Models;
+using Optica.Api.Modules.AvisosReposicion.Models;
 
 namespace Optica.Api.Data;
 
@@ -62,6 +63,8 @@ public class OpticaDbContext : DbContext
     public DbSet<Trabajador> Trabajadores => Set<Trabajador>();
     public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
     public DbSet<Resena> Resenas => Set<Resena>();
+
+    public DbSet<AvisoReposicion> AvisosReposicion => Set<AvisoReposicion>();
 
     public DbSet<HistorialStock> HistorialStock => Set<HistorialStock>();
 
@@ -429,6 +432,23 @@ public class OpticaDbContext : DbContext
             entity.HasIndex(r => new { r.IdCliente, r.IdProducto }).IsUnique();
             entity.HasOne(r => r.Cliente).WithMany().HasForeignKey(r => r.IdCliente).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(r => r.Producto).WithMany().HasForeignKey(r => r.IdProducto).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AvisoReposicion>(entity =>
+        {
+            entity.ToTable("avisos_reposicion");
+            entity.HasKey(a => a.IdAviso);
+            entity.Property(a => a.IdAviso).HasColumnName("id_aviso");
+            entity.Property(a => a.Rut).HasColumnName("rut").HasMaxLength(12).IsRequired();
+            entity.Property(a => a.IdProducto).HasColumnName("id_producto");
+            entity.Property(a => a.Fecha).HasColumnName("fecha").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(a => a.Estado).HasColumnName("estado").HasColumnType("enum('Abierta','Cerrada')").IsRequired();
+            entity.HasIndex(a => new { a.IdProducto, a.Estado });
+            entity.HasIndex(a => new { a.Rut, a.Estado });
+            entity.HasOne(a => a.Cliente).WithMany().HasForeignKey(a => a.Rut)
+                .HasPrincipalKey(c => c.Rut).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(a => a.Producto).WithMany().HasForeignKey(a => a.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<HistorialStock>(entity =>
