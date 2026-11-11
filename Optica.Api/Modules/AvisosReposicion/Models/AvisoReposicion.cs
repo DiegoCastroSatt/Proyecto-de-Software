@@ -10,6 +10,5 @@ public sealed class AvisoReposicion
     public int IdProducto { get; set; }
     public DateTime Fecha { get; set; }
     public string Estado { get; set; } = "Abierta";
-    public Cliente Cliente { get; set; } = null!;
     public Producto Producto { get; set; } = null!;
 }

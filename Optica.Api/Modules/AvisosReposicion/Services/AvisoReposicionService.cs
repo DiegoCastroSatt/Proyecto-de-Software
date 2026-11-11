@@ -37,31 +37,22 @@ public sealed class AvisoReposicionService(
             Estado = "Abierta"
         }, cancellationToken);
 
-        return Mapear(aviso, producto.Nombre);
+        return new AvisoReposicionResponseDto(
+            aviso.IdAviso,
+            aviso.IdProducto,
+            producto.Nombre,
+            new DateTimeOffset(DateTime.SpecifyKind(aviso.Fecha, DateTimeKind.Utc)),
+            aviso.Estado);
     }
 
     public async Task<IReadOnlyList<AvisoReposicionResponseDto>> ListarPorCliente(
         int idCliente,
-        CancellationToken cancellationToken)
-    {
-        var avisos = await repositorio.ListarPorCliente(idCliente, cancellationToken);
-        return avisos.Select(aviso => Mapear(aviso, aviso.Producto.Nombre)).ToList();
-    }
+        CancellationToken cancellationToken) =>
+        await repositorio.ListarPorCliente(idCliente, cancellationToken);
 
     public async Task<IReadOnlyList<AvisoReposicionAdministracionResponseDto>> ListarTodas(
-        CancellationToken cancellationToken)
-    {
-        var avisos = await repositorio.ListarTodas(cancellationToken);
-        return avisos.Select(aviso => new AvisoReposicionAdministracionResponseDto(
-            aviso.IdAviso,
-            aviso.Rut,
-            $"{aviso.Cliente.Nombre} {aviso.Cliente.Apellido}",
-            aviso.Cliente.Correo,
-            aviso.IdProducto,
-            aviso.Producto.Nombre,
-            new DateTimeOffset(DateTime.SpecifyKind(aviso.Fecha, DateTimeKind.Utc)),
-            aviso.Estado)).ToList();
-    }
+        CancellationToken cancellationToken) =>
+        await repositorio.ListarTodas(cancellationToken);
 
     public async Task ProcesarReposicionesDisponibles(CancellationToken cancellationToken)
     {
@@ -71,11 +62,11 @@ public sealed class AvisoReposicionService(
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                var nombreProducto = HtmlEncoder.Default.Encode(aviso.Producto.Nombre);
+                var nombreProducto = HtmlEncoder.Default.Encode(aviso.NombreProducto);
                 var resultado = await emailService.EnviarConResultadoAsync(
-                    aviso.Cliente.Correo,
-                    $"Producto disponible nuevamente: {aviso.Producto.Nombre}",
-                    $"<p>Hola {HtmlEncoder.Default.Encode(aviso.Cliente.Nombre)},</p>" +
+                    aviso.CorreoCliente,
+                    $"Producto disponible nuevamente: {aviso.NombreProducto}",
+                    $"<p>Hola {HtmlEncoder.Default.Encode(aviso.NombreCliente)},</p>" +
                     $"<p>El producto <strong>{nombreProducto}</strong> ya está disponible nuevamente.</p>",
                     cancellationToken);
 
@@ -87,7 +78,7 @@ public sealed class AvisoReposicionService(
                     continue;
                 }
 
-                await repositorio.Cerrar(aviso, cancellationToken);
+                await repositorio.Cerrar(aviso.IdAviso, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -103,9 +94,6 @@ public sealed class AvisoReposicionService(
         }
     }
 
-    private static AvisoReposicionResponseDto Mapear(AvisoReposicion aviso, string nombreProducto) =>
-        new(aviso.IdAviso, aviso.IdProducto, nombreProducto,
-            new DateTimeOffset(DateTime.SpecifyKind(aviso.Fecha, DateTimeKind.Utc)), aviso.Estado);
 }
 
 public sealed class AvisoReposicionDuplicadoException()

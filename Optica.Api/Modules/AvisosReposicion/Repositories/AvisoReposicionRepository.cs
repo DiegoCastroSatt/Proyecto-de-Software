@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
+using Optica.Api.Modules.AvisosReposicion.DTOs;
 using Optica.Api.Modules.AvisosReposicion.Interfaces;
 using Optica.Api.Modules.AvisosReposicion.Models;
 using Optica.Api.Modules.Clientes.Models;
@@ -31,37 +32,95 @@ public sealed class AvisoReposicionRepository(OpticaDbContext db) : IAvisoReposi
         return aviso;
     }
 
-    public async Task<IReadOnlyList<AvisoReposicion>> ListarPorCliente(
+    public async Task<IReadOnlyList<AvisoReposicionResponseDto>> ListarPorCliente(
         int idCliente,
-        CancellationToken cancellationToken) =>
-        await db.AvisosReposicion.AsNoTracking()
-            .Where(aviso => db.Clientes.Any(cliente =>
-                cliente.IdCliente == idCliente && cliente.Rut == aviso.Rut))
-            .Include(aviso => aviso.Producto)
-            .OrderByDescending(aviso => aviso.Fecha)
-            .ToListAsync(cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        var resultados = await (
+            from aviso in db.AvisosReposicion.AsNoTracking()
+            join cliente in db.Clientes.AsNoTracking() on aviso.Rut equals cliente.Rut
+            join producto in db.Productos.AsNoTracking() on aviso.IdProducto equals producto.IdProducto
+            where cliente.IdCliente == idCliente
+            orderby aviso.Fecha descending
+            select new
+            {
+                aviso.IdAviso,
+                aviso.IdProducto,
+                NombreProducto = producto.Nombre,
+                aviso.Fecha,
+                aviso.Estado
+            }).ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<AvisoReposicion>> ListarTodas(CancellationToken cancellationToken) =>
-        await db.AvisosReposicion.AsNoTracking()
-            .Include(aviso => aviso.Cliente)
-            .Include(aviso => aviso.Producto)
+        return resultados.Select(aviso => new AvisoReposicionResponseDto(
+            aviso.IdAviso, aviso.IdProducto, aviso.NombreProducto, ComoFechaUtc(aviso.Fecha), aviso.Estado)).ToList();
+    }
+
+    public async Task<IReadOnlyList<AvisoReposicionAdministracionResponseDto>> ListarTodas(
+        CancellationToken cancellationToken)
+    {
+        var resultados = await ConsultaAdministracion()
             .OrderByDescending(aviso => aviso.Fecha)
             .ThenByDescending(aviso => aviso.IdAviso)
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<AvisoReposicion>> ListarPendientesConStock(CancellationToken cancellationToken) =>
-        await db.AvisosReposicion
-            .Where(aviso => aviso.Estado == "Abierta" && aviso.Producto.Stock > 0)
+        return resultados.Select(MapearAdministracion).ToList();
+    }
+
+    public async Task<IReadOnlyList<AvisoReposicionAdministracionResponseDto>> ListarPendientesConStock(
+        CancellationToken cancellationToken)
+    {
+        var resultados = await ConsultaAdministracion()
+            .Where(aviso => aviso.Estado == "Abierta" && aviso.Stock > 0)
             .OrderBy(aviso => aviso.Fecha)
             .ThenBy(aviso => aviso.IdAviso)
             .Take(50)
-            .Include(aviso => aviso.Cliente)
-            .Include(aviso => aviso.Producto)
             .ToListAsync(cancellationToken);
 
-    public async Task Cerrar(AvisoReposicion aviso, CancellationToken cancellationToken)
+        return resultados.Select(MapearAdministracion).ToList();
+    }
+
+    public async Task Cerrar(int idAviso, CancellationToken cancellationToken)
     {
-        aviso.Estado = "Cerrada";
-        await db.SaveChangesAsync(cancellationToken);
+        await db.AvisosReposicion
+            .Where(aviso => aviso.IdAviso == idAviso && aviso.Estado == "Abierta"
+                && aviso.Producto.Stock > 0)
+            .ExecuteUpdateAsync(update => update.SetProperty(aviso => aviso.Estado, "Cerrada"), cancellationToken);
+    }
+
+    private IQueryable<AvisoAdministracionProyeccion> ConsultaAdministracion() =>
+        from aviso in db.AvisosReposicion.AsNoTracking()
+        join cliente in db.Clientes.AsNoTracking() on aviso.Rut equals cliente.Rut
+        join producto in db.Productos.AsNoTracking() on aviso.IdProducto equals producto.IdProducto
+        select new AvisoAdministracionProyeccion
+        {
+            IdAviso = aviso.IdAviso,
+            RutCliente = aviso.Rut,
+            NombreCliente = cliente.Nombre + " " + cliente.Apellido,
+            CorreoCliente = cliente.Correo,
+            IdProducto = aviso.IdProducto,
+            NombreProducto = producto.Nombre,
+            Fecha = aviso.Fecha,
+            Estado = aviso.Estado,
+            Stock = producto.Stock
+        };
+
+    private static AvisoReposicionAdministracionResponseDto MapearAdministracion(AvisoAdministracionProyeccion aviso) =>
+        new(aviso.IdAviso, aviso.RutCliente, aviso.NombreCliente, aviso.CorreoCliente,
+            aviso.IdProducto, aviso.NombreProducto, ComoFechaUtc(aviso.Fecha), aviso.Estado);
+
+    private static DateTimeOffset ComoFechaUtc(DateTime fecha) =>
+        new(DateTime.SpecifyKind(fecha, DateTimeKind.Utc));
+
+    private sealed class AvisoAdministracionProyeccion
+    {
+        public int IdAviso { get; init; }
+        public string RutCliente { get; init; } = string.Empty;
+        public string NombreCliente { get; init; } = string.Empty;
+        public string? CorreoCliente { get; init; }
+        public int IdProducto { get; init; }
+        public string NombreProducto { get; init; } = string.Empty;
+        public DateTime Fecha { get; init; }
+        public string Estado { get; init; } = string.Empty;
+        public int Stock { get; init; }
     }
 }

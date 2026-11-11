@@ -445,8 +445,6 @@ public class OpticaDbContext : DbContext
             entity.Property(a => a.Estado).HasColumnName("estado").HasColumnType("enum('Abierta','Cerrada')").IsRequired();
             entity.HasIndex(a => new { a.IdProducto, a.Estado });
             entity.HasIndex(a => new { a.Rut, a.Estado });
-            entity.HasOne(a => a.Cliente).WithMany().HasForeignKey(a => a.Rut)
-                .HasPrincipalKey(c => c.Rut).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(a => a.Producto).WithMany().HasForeignKey(a => a.IdProducto)
                 .OnDelete(DeleteBehavior.Restrict);
         });
