@@ -6,7 +6,7 @@ Este entorno utiliza `docker-compose.e2e.yml`, un proyecto y una red propios, y 
 
 El único workflow del repositorio es `.github/workflows/tests.yml`. Se ejecuta en Pull Requests dirigidos a `main`, en pushes a `main` y mediante `workflow_dispatch`. Sus jobs de backend, frontend y E2E son independientes y corren en paralelo; si alguno falla, el workflow queda fallido.
 
-Para impedir el merge cuando una validación falle, la protección de rama de `main` en GitHub debe marcar como requeridos los checks `API y pruebas .NET`, `Pruebas y compilación Angular` y `Reserva E2E con Playwright`. Esa configuración vive en GitHub y no se puede establecer desde este workflow local.
+Para impedir el merge cuando una validación falle, la protección de rama de `main` en GitHub debe marcar como requeridos los checks `API y pruebas .NET`, `Pruebas y compilación Angular` y `E2E con Playwright`. Esa configuración vive en GitHub y no se puede establecer desde este workflow local.
 
 - **Backend:** restaura/compila la API .NET 10 y ejecuta los proyectos xUnit existentes; conserva los archivos TRX como artefacto.
 - **Frontend:** instala con `npm ci`, ejecuta Vitest y compila Angular.
