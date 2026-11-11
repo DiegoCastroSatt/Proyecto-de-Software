@@ -387,6 +387,9 @@ internal sealed class ProductoRepositorioPrueba : IProductoRepository
 
     public Task<List<Producto>> Buscar(string termino) => Task.FromResult(Productos);
 
+    public Task<List<Producto>> ObtenerParaReporteInventario(CancellationToken cancellationToken) =>
+        Task.FromResult(Productos);
+
     public Task<Producto?> ObtenerPorId(int id) => Task.FromResult(ProductoActual ?? UltimoProducto);
 
     public Task<Producto> ActualizarConHistorialStock(Producto producto, int idResponsable, string motivoMovimiento)

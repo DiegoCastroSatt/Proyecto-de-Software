@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Optica.Api.Modules.Accesos;
+using Optica.Api.Modules.Productos.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,13 @@ public class ProductosController : ControllerBase
         var producto = await _productoService.ObtenerProducto(id);
         return producto is null ? NotFound(new { mensaje = "No se encuentra el producto." }) : Ok(producto);
     }
+
+    [Authorize(Policy = PermisosAcceso.SoloAdministrador)]
+    [HttpGet("reporte-inventario")]
+    [ProducesResponseType(typeof(ReporteInventarioResponseDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReporteInventarioResponseDto>> ConsultarReporteInventario(
+        CancellationToken cancellationToken) =>
+        Ok(await _productoService.ConsultarReporteInventario(cancellationToken));
 
     [HttpPut("{id:int}")]
     [Consumes("multipart/form-data")]
