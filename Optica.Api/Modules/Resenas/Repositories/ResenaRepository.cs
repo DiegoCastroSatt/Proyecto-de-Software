@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Optica.Api.Data;
+using Optica.Api.Modules.Clientes.Services;
 using Optica.Api.Modules.Resenas.DTOs;
 using Optica.Api.Modules.Resenas.Interfaces;
 using Optica.Api.Modules.Resenas.Models;
@@ -12,7 +13,11 @@ public sealed class ResenaRepository(OpticaDbContext db) : IResenaRepository
         await db.Resenas.AsNoTracking().Where(r => r.IdProducto == idProducto)
             .OrderByDescending(r => r.FechaCreacionUtc)
             .Select(r => new ResenaResponseDto(r.IdResena, r.IdProducto, r.Calificacion, r.Comentario,
-                r.Cliente.Nombre + " " + r.Cliente.Apellido.Substring(0, 1) + ".", r.FechaCreacionUtc, r.FechaActualizacionUtc))
+                // Las reseñas de clientes que eliminaron su cuenta se muestran sin identificar.
+                r.Cliente.Rut.StartsWith(EliminacionCuentaClienteService.PrefijoRutAnonimo)
+                    ? "Cliente anónimo"
+                    : r.Cliente.Nombre + " " + r.Cliente.Apellido.Substring(0, 1) + ".",
+                r.FechaCreacionUtc, r.FechaActualizacionUtc))
             .ToListAsync(cancellationToken);
 
     public async Task<ResumenResenasDto> ObtenerResumen(int idProducto, CancellationToken cancellationToken)

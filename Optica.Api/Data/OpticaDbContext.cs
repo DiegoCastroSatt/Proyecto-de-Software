@@ -63,6 +63,8 @@ public class OpticaDbContext : DbContext
     public DbSet<RolTrabajador> RolesTrabajadores => Set<RolTrabajador>();
     public DbSet<Resena> Resenas => Set<Resena>();
 
+    public DbSet<HistorialStock> HistorialStock => Set<HistorialStock>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -153,6 +155,7 @@ public class OpticaDbContext : DbContext
             entity.Property(c => c.TokenConfirmacionHash).HasColumnName("token_confirmacion_hash").HasMaxLength(64);
             entity.Property(c => c.TokenConfirmacionExpiraUtc).HasColumnName("token_confirmacion_expira_utc");
             entity.Property(c => c.UltimoCorreoConfirmacionUtc).HasColumnName("ultimo_correo_confirmacion_utc");
+            entity.Property(c => c.CorreoPendiente).HasColumnName("correo_pendiente").HasMaxLength(100);
             entity.HasIndex(c => c.IdCliente).IsUnique();
             entity.HasIndex(c => c.CorreoNormalizado).IsUnique();
             entity.HasOne(c => c.Cliente)
@@ -427,6 +430,23 @@ public class OpticaDbContext : DbContext
             entity.HasIndex(r => new { r.IdCliente, r.IdProducto }).IsUnique();
             entity.HasOne(r => r.Cliente).WithMany().HasForeignKey(r => r.IdCliente).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(r => r.Producto).WithMany().HasForeignKey(r => r.IdProducto).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<HistorialStock>(entity =>
+        {
+            entity.ToTable("historial_stock");
+            entity.HasKey(h => h.IdCambio);
+            entity.Property(h => h.IdCambio).HasColumnName("id_cambio");
+            entity.Property(h => h.IdProducto).HasColumnName("id_producto");
+            entity.Property(h => h.MotivoMovimiento).HasColumnName("motivo_movimiento").HasMaxLength(255).IsRequired();
+            entity.Property(h => h.IdResponsable).HasColumnName("id_responsable");
+            entity.Property(h => h.TipoStock).HasColumnName("tipo_stock").HasColumnType("enum('Normal','Minimo')").IsRequired();
+            entity.Property(h => h.ValorAnterior).HasColumnName("valor_anterior");
+            entity.Property(h => h.ValorActual).HasColumnName("valor_actual");
+            entity.Property(h => h.FechaCambio).HasColumnName("fecha_cambio").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(h => new { h.IdProducto, h.FechaCambio });
+            entity.HasOne<Producto>().WithMany().HasForeignKey(h => h.IdProducto).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Trabajador>().WithMany().HasForeignKey(h => h.IdResponsable).OnDelete(DeleteBehavior.Restrict);
         });
 
     }

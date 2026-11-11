@@ -42,6 +42,7 @@
             >
             <a routerLink="/admin/panel/marcos" routerLinkActive="is-active">Marcos</a>
             <a routerLink="/admin/panel/stock" routerLinkActive="is-active">Consultar Stock</a>
+            <a routerLink="/admin/panel/historial-stock" routerLinkActive="is-active">Historial de Stock</a>
           </div>
         </div>
       }
@@ -113,13 +114,17 @@
           >
             <h2>Notificaciones</h2>
             @if (errorInventario()) {
-              <p role="alert">No se pudo verificar el stock.</p>
+              <p class="notificacion-sistema" data-tipo="error" role="alert">No se pudo verificar el stock.</p>
             }
             @if (notificaciones().length) {
               <ul>
                 @for (notificacion of notificaciones(); track notificacion.id) {
                   <li>
-                    <div class="contenido-notificacion">
+                    <div
+                      class="contenido-notificacion"
+                      [class.notificacion-sistema]="notificacion.tipo !== 'informacion'"
+                      [attr.data-tipo]="notificacion.tipo"
+                    >
                       <strong>{{ notificacion.titulo }}</strong>
                       <span>{{ notificacion.mensaje }}</span>
                     </div>
@@ -174,7 +179,7 @@
         </div>
       </details>
       @if (errorSesion()) {
-        <small role="alert">{{ errorSesion() }}</small>
+        <small class="notificacion-sistema" data-tipo="error" role="alert">{{ errorSesion() }}</small>
       }
     </div>
   </header>

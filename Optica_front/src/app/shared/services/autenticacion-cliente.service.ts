@@ -6,7 +6,9 @@ export interface ClienteSesion {
   idCliente: number;
   nombre: string;
   correo: string;
+  rut?: string;
 }
+
 
 export interface RegistroCliente {
   nombre: string;

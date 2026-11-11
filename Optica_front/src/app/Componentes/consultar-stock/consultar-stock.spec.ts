@@ -65,10 +65,11 @@ describe('ConsultarStock', () => {
   it('actualiza existencias y stock mínimo desde el listado', () => {
     component['editarStock'](productos[0]);
     component['borradorStock'].set({ stock: 7, stockMinimo: 2 });
+    component['motivoCambio'].set('Ajuste por inventario');
     component['guardarStock'](productos[0]);
     fixture.detectChanges();
 
-    expect(actualizarStock).toHaveBeenCalledWith(1, 7, 2);
+    expect(actualizarStock).toHaveBeenCalledWith(1, 7, 2, 'Ajuste por inventario');
     expect(component['productos']()[0]).toMatchObject({ stock: 7, stockMinimo: 2 });
     expect(component['productoEditando']()).toBeNull();
   });

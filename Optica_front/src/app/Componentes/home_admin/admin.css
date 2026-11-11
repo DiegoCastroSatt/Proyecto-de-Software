@@ -270,13 +270,15 @@
   min-width: 0;
 }
 
+.contenido-notificacion.notificacion-sistema { margin: 0; flex: 1; }
+
 .panel-notificaciones li:last-child {
   padding-bottom: 0;
   border-bottom: 0;
 }
 
-.panel-notificaciones li span,
-.panel-notificaciones p {
+.panel-notificaciones li :where(.contenido-notificacion:not(.notificacion-sistema) span),
+.panel-notificaciones p:not(.notificacion-sistema) {
   margin: 0;
   color: #455b56;
 }

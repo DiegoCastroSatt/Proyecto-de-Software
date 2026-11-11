@@ -27,7 +27,7 @@
           @if (piezas.length) {
             @if (piezas.includes('lentes')) {
               <label>Forma de los lentes<select [ngModel]="nuevo.forma" (ngModelChange)="seleccionarForma($event)" [ngModelOptions]="{standalone: true}">@for (forma of formasLentes(); track forma.id) { <option [value]="forma.id">{{ forma.nombre }}</option> }</select></label>
-              @if (errorFormas()) { <p role="alert">{{ errorFormas() }}</p><button type="button" (click)="cargarFormas()">Reintentar cargar formas</button> }
+              @if (errorFormas()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorFormas() }}</p><button type="button" (click)="cargarFormas()">Reintentar cargar formas</button> }
             }
             @if (formaSeleccionada?.mantenerProporcion) {
               <small>Esta forma mantiene el ancho y el alto iguales, usando la menor de las dos medidas.</small>
@@ -56,5 +56,5 @@
     </div>
   </div>
   @if (cargando()) { <p role="status">Preparando diseño…</p> }
-  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  @if (error()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p> }
 </fieldset>

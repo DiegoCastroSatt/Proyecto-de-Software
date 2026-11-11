@@ -38,8 +38,8 @@
             </button>
           </div>
         </div>
-        <p class="login-error" [hidden]="!errorLogin()" role="alert">{{ errorLogin() }}</p>
-        <p class="login-success" [hidden]="!mensajeLogin()" role="status">{{ mensajeLogin() }}</p>
+        <p [hidden]="!errorLogin()" class="notificacion-sistema" data-tipo="error" role="alert">{{ errorLogin() }}</p>
+        <p class="notificacion-sistema" data-tipo="success" [hidden]="!mensajeLogin()" role="status">{{ mensajeLogin() }}</p>
         <button type="submit" [disabled]="cargandoLogin() || sesionIniciada()">
           {{ cargandoLogin() ? 'Verificando…' : sesionIniciada() ? 'Sesión iniciada' : 'Ingresar' }}
           <span aria-hidden="true">→</span>
@@ -73,7 +73,7 @@
         </header>
 
         @if (recuperacionEnviada()) {
-          <div class="registro-confirmacion" role="status">
+          <div class="notificacion-sistema" data-tipo="success" role="status">
             @if (recuperacionCompletada()) {
               <h3>Contraseña actualizada</h3>
               <p>Ya puedes iniciar sesión con tu nueva contraseña.</p>
@@ -111,7 +111,7 @@
                     </button>
                   </div>
                 </div>
-                @if (errorRecuperar()) { <p class="registro-error" role="alert">{{ errorRecuperar() }}</p> }
+                @if (errorRecuperar()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorRecuperar() }}</p> }
                 <div class="registro-acciones">
                   <button type="button" class="registro-cancelar" [disabled]="cargandoRecuperar()" (click)="cerrarRecuperar()">Cancelar</button>
                   <button type="submit" class="registro-crear" [disabled]="cargandoRecuperar()" (click)="confirmarCodigoRecuperacion()">{{ cargandoRecuperar() ? 'Validando…' : 'Cambiar contraseña' }}</button>
@@ -132,7 +132,7 @@
             </div>
 
             @if (errorRecuperar()) {
-              <p class="registro-error" role="alert">{{ errorRecuperar() }}</p>
+              <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorRecuperar() }}</p>
             }
 
             <div class="registro-acciones">
@@ -164,7 +164,7 @@
         </p>
 
         @if (registroExitoso()) {
-          <div class="registro-confirmacion" role="status">
+          <div class="notificacion-sistema" data-tipo="success" role="status">
             <h3>Cuenta creada correctamente</h3>
             <p>{{ registroMensaje() }}</p>
             @if (!confirmacionReenviada()) {
@@ -237,7 +237,7 @@
               </div>
             </div>
             <p class="registro-politica">La contraseña debe tener al menos 8 caracteres e incluir letras, números y un símbolo.</p>
-            @if (errorRegistro()) { <p class="registro-error" role="alert">{{ errorRegistro() }}</p> }
+            @if (errorRegistro()) { <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorRegistro() }}</p> }
             <div class="registro-acciones">
               <button type="button" class="registro-cancelar" [disabled]="cargandoRegistro()" (click)="cerrarRegistro()">Cancelar</button>
               <button type="submit" class="registro-crear" [disabled]="cargandoRegistro()" (click)="enviarRegistro()">

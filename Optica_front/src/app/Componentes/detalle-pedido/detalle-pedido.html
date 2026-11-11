@@ -2,8 +2,8 @@
 
   <main class="detail-page">
     @if (mensajeTemporal(); as mensaje) {
-      <div class="pedido-toast" [class]="'pedido-toast pedido-toast--' + mensaje.tipo" [attr.role]="mensaje.tipo === 'error' ? 'alert' : 'status'" aria-live="polite">
-        <span>{{ mensaje.texto }}</span>
+      <div class="pedido-toast notificacion-sistema notificacion-sistema--flotante" [attr.data-tipo]="mensaje.tipo">
+        <span [attr.role]="mensaje.tipo === 'error' ? 'alert' : 'status'">{{ mensaje.texto }}</span>
         <button type="button" aria-label="Cerrar mensaje" (click)="cerrarMensaje()">×</button>
       </div>
     }
@@ -26,7 +26,7 @@
           <p>Cargando detalle del pedido…</p>
         </div>
         } @else if (error()) {
-        <div class="error-state">
+        <div class="error-state notificacion-sistema" data-tipo="error" role="alert">
           <svg class="error-icon" viewBox="0 0 24 24" width="48" height="48">
             <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
             <path d="M12 8v4M12 16h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>

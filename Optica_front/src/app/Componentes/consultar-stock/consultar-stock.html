@@ -18,7 +18,7 @@
 	@if (cargando()) {
 		<p class="status" role="status">Consultando existencias...</p>
 	} @else if (error()) {
-		<div class="status error" role="alert">
+		<div class="notificacion-sistema" data-tipo="error" role="alert">
 			<p>{{ error() }}</p>
 			<button type="button" (click)="cargarProductos()">Reintentar</button>
 		</div>
@@ -66,6 +66,7 @@
 							</td>
 							<td class="stock-column action-column">
 								@if (productoEditando() === producto.id) {
+									<label class="stock-input"><span>Motivo del cambio</span><input type="text" maxlength="255" [value]="motivoCambio()" (input)="actualizarMotivoCambio($event)"></label>
 									<button type="button" (click)="guardarStock(producto)" [disabled]="guardandoStock()">{{ guardandoStock() ? 'Guardando...' : 'Guardar' }}</button>
 									<button type="button" (click)="cancelarEdicionStock()" [disabled]="guardandoStock()">Cancelar</button>
 								} @else {
@@ -79,6 +80,6 @@
 		</div>
 	}
 	@if (errorStock()) {
-		<p class="status error" role="alert">{{ errorStock() }}</p>
+		<p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorStock() }}</p>
 	}
 </section>

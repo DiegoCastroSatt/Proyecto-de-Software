@@ -7,6 +7,7 @@ using Optica.Api.Data;
 using Optica.Api.Modules.Accesos;
 using Optica.Api.Modules.Autenticacion.DTOs;
 using Optica.Api.Modules.Autenticacion.Services;
+using Optica.Api.Modules.Clientes.Services;
 
 namespace Optica.Api.Modules.Autenticacion.Controllers;
 
@@ -102,7 +103,37 @@ public sealed class AutenticacionClientesController(
         var confirmada = await autenticacion.ConfirmarCuentaAsync(request.Token, cancellationToken);
         if (!confirmada)
             return BadRequest(new { mensaje = "El enlace no es válido, venció o ya fue utilizado. Solicita un nuevo correo de confirmación." });
-        return Ok(new { mensaje = "Tu correo fue confirmado y la cuenta ya está activa. Ya puedes iniciar sesión." });
+        return Ok(new { mensaje = "La confirmación se completó. Si estabas cambiando tu correo, ya está actualizado; si estabas activando tu cuenta, ya puedes iniciar sesión." });
+    }
+
+    [Authorize(Policy = Politica)]
+    [HttpPost("correo/cambio")]
+    public async Task<IActionResult> SolicitarCambioCorreo(
+        [FromBody] SolicitarCambioCorreoClienteRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)) return Unauthorized();
+        try
+        {
+            var resultado = await autenticacion.SolicitarCambioCorreoAsync(idCliente, request.Correo, request.ContrasenaActual, cancellationToken);
+            return resultado switch
+            {
+                ResultadoCambioCorreoCliente.ConfirmacionEnviada => Accepted(new { mensaje = "Enviamos un enlace al nuevo correo. Tu correo actual seguirá activo hasta que confirmes el cambio; el enlace vence en 24 horas." }),
+                ResultadoCambioCorreoCliente.Duplicado => Conflict(new { mensaje = "Ese correo ya está asociado a otra cuenta." }),
+                ResultadoCambioCorreoCliente.ContrasenaIncorrecta => BadRequest(new { mensaje = "La contraseña ingresada no es válida." }),
+                ResultadoCambioCorreoCliente.Igual => BadRequest(new { mensaje = "El nuevo correo debe ser distinto al actual." }),
+                ResultadoCambioCorreoCliente.Espera => StatusCode(StatusCodes.Status429TooManyRequests, new { mensaje = "Espera un minuto antes de solicitar otro cambio de correo." }),
+                ResultadoCambioCorreoCliente.SinCuenta => NotFound(new { mensaje = "No se encontró una cuenta activa para este cliente." }),
+                ResultadoCambioCorreoCliente.Invalido => BadRequest(new { mensaje = "Ingresa un correo electrónico válido de hasta 100 caracteres." }),
+                _ => StatusCode(StatusCodes.Status503ServiceUnavailable, new { mensaje = "No fue posible enviar el correo de confirmación. Inténtalo nuevamente." })
+            };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            logger.LogError("Falló la solicitud de cambio de correo de cliente ({TipoError}).", ex.GetType().Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo solicitar el cambio de correo." });
+        }
     }
 
     [AllowAnonymous]
@@ -194,6 +225,39 @@ public sealed class AutenticacionClientesController(
         if (cuenta?.Cliente is null)
             return Unauthorized();
         return Ok(AutenticacionClienteService.CrearSesion(cuenta));
+    }
+
+    [Authorize(Policy = Politica)]
+    [HttpDelete("cuenta")]
+    public async Task<IActionResult> EliminarCuenta(
+        [FromBody] EliminarCuentaClienteRequest request,
+        [FromServices] EliminacionCuentaClienteService eliminacion,
+        CancellationToken cancellationToken)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idCliente)) return Unauthorized();
+        try
+        {
+            var resultado = await eliminacion.EliminarAsync(idCliente, request.ContrasenaActual, cancellationToken);
+            switch (resultado)
+            {
+                case ResultadoEliminacionCuenta.Eliminada:
+                    // Cierra la sesión actual; las demás sesiones dejan de ser válidas al no existir la cuenta.
+                    await HttpContext.SignOutAsync(Esquema);
+                    return Ok(new { mensaje = "Tu cuenta fue eliminada y tus datos personales fueron anonimizados." });
+                case ResultadoEliminacionCuenta.ContrasenaIncorrecta:
+                    return BadRequest(new { mensaje = "La contraseña ingresada no es válida." });
+                case ResultadoEliminacionCuenta.PedidosEnCurso:
+                    return Conflict(new { mensaje = "Tienes pedidos en curso. Podrás eliminar tu cuenta cuando se entreguen o se cancelen." });
+                default:
+                    return NotFound(new { mensaje = "No se encontró una cuenta activa para este cliente." });
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            logger.LogError("Falló la eliminación de cuenta de cliente ({TipoError}).", ex.GetType().Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo eliminar la cuenta. Inténtalo nuevamente más tarde." });
+        }
     }
 
     [Authorize(Policy = Politica)]

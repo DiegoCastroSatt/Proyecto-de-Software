@@ -93,6 +93,7 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddHostedService<CorreoPedidoBackgroundService>();
 builder.Services.AddScoped<IPasswordHasher<CuentaCliente>, PasswordHasher<CuentaCliente>>();
 builder.Services.AddScoped<AutenticacionClienteService>();
+builder.Services.AddScoped<EliminacionCuentaClienteService>();
 builder.Services.AddScoped<InicioSesionService>();
 builder.Services.AddSingleton<EstadoRecuperacion>();
 builder.Services.AddScoped<RecuperacionService>();
@@ -220,6 +221,17 @@ app.MapGet("/test-db", async (OpticaDbContext db) =>
         clientes = cantidad
     });
 });
+
+if (builder.Environment.IsEnvironment("E2E"))
+{
+    app.MapGet("/health/db", async Task<IResult> (OpticaDbContext db, CancellationToken cancellationToken) =>
+    {
+        var conectado = await db.Database.CanConnectAsync(cancellationToken);
+        return conectado
+            ? Results.Ok(new { estado = "disponible" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }).AllowAnonymous();
+}
 
 app.Run();
 

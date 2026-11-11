@@ -22,7 +22,7 @@
           @if (seleccionado() && ajuste(); as posicion) {
             <img
               class="marco"
-              [src]="imagenMarco(modeloActual!.id)"
+              [src]="imagenProbador(modeloActual!)"
               [alt]="'Marco ' + nombreModelo"
               [style.left.%]="posicion.x"
               [style.top.%]="posicion.y"
@@ -71,7 +71,7 @@
         }
       </div>
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <p class="notificacion-sistema" data-tipo="error" role="alert">{{ error() }}</p>
       }
       <p class="privacidad">
         Solo tú lo ves. La foto y el video se procesan en tu navegador y no se guardan en el
@@ -87,7 +87,7 @@
       @if (cargandoModelos()) {
         <p role="status">Consultando marcos disponibles…</p>
       } @else if (errorModelos()) {
-        <p class="error" role="alert">{{ errorModelos() }}</p>
+        <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorModelos() }}</p>
       } @else if (!modelos().length) {
         <p role="status">No hay tipos de marco disponibles para probar en este momento.</p>
       }
@@ -101,7 +101,7 @@
             (click)="seleccionado.set(modelo.codigo)"
           >
             <img
-              [src]="imagenMarco(modelo.id)"
+              [src]="imagenProbador(modelo)"
               alt=""
               width="120"
               height="60"
@@ -111,6 +111,11 @@
           </button>
         }
       </div>
+      @if (modeloActual; as modelo) {
+        <a class="enlace-catalogo primario" routerLink="/productos" [queryParams]="{ marco: modelo.id }">
+          Ver productos de este estilo <span aria-hidden="true">→</span>
+        </a>
+      }
       <div class="ajuste">
         <p class="eyebrow">02 · Dale tu medida</p>
         <label for="tamano"

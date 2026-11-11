@@ -147,10 +147,22 @@ public sealed class AutenticacionClienteService(
         var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
         if (!db.Database.IsRelational())
         {
-            var cuentaEnMemoria = await db.CuentasCliente.SingleOrDefaultAsync(c =>
-                c.TokenConfirmacionHash == hashToken && c.Estado == "PendienteConfirmacion"
+            var cuentaEnMemoria = await db.CuentasCliente.Include(c => c.Cliente).SingleOrDefaultAsync(c =>
+                c.TokenConfirmacionHash == hashToken
+                    && (c.Estado == "PendienteConfirmacion" || c.CorreoPendiente != null)
                     && c.TokenConfirmacionExpiraUtc > ahora, cancellationToken);
             if (cuentaEnMemoria is null) return false;
+            if (cuentaEnMemoria.CorreoPendiente is not null)
+            {
+                var destino = cuentaEnMemoria.CorreoPendiente;
+                var normalizado = NormalizarCorreo(destino);
+                if (await db.CuentasCliente.AnyAsync(c => c.IdCliente != cuentaEnMemoria.IdCliente && c.CorreoNormalizado == normalizado, cancellationToken)
+                    || await db.Clientes.AnyAsync(c => c.IdCliente != cuentaEnMemoria.IdCliente && c.Correo != null && c.Correo.Trim().ToUpper() == normalizado, cancellationToken)) return false;
+                cuentaEnMemoria.Correo = destino;
+                cuentaEnMemoria.CorreoNormalizado = normalizado;
+                if (cuentaEnMemoria.Cliente is not null) cuentaEnMemoria.Cliente.Correo = destino;
+                cuentaEnMemoria.CorreoPendiente = null;
+            }
             cuentaEnMemoria.Estado = "Activa";
             cuentaEnMemoria.TokenConfirmacionHash = null;
             cuentaEnMemoria.TokenConfirmacionExpiraUtc = null;
@@ -159,16 +171,91 @@ public sealed class AutenticacionClienteService(
             return true;
         }
 
+        var cuentaPorConfirmar = await db.CuentasCliente.AsNoTracking().SingleOrDefaultAsync(c =>
+            c.TokenConfirmacionHash == hashToken && (c.Estado == "PendienteConfirmacion" || c.CorreoPendiente != null)
+                && c.TokenConfirmacionExpiraUtc > ahora, cancellationToken);
+        if (cuentaPorConfirmar is null) return false;
+        var correoPendiente = cuentaPorConfirmar.CorreoPendiente;
+        if (correoPendiente is not null)
+        {
+            var normalizado = NormalizarCorreo(correoPendiente);
+            if (await db.CuentasCliente.AnyAsync(c => c.IdCliente != cuentaPorConfirmar.IdCliente && c.CorreoNormalizado == normalizado, cancellationToken)
+                || await db.Clientes.AnyAsync(c => c.IdCliente != cuentaPorConfirmar.IdCliente && c.Correo != null && c.Correo.Trim().ToUpper() == normalizado, cancellationToken)) return false;
+        }
+
+        await using var transaccion = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
         var actualizadas = await db.CuentasCliente
             .Where(c => c.TokenConfirmacionHash == hashToken
-                && c.Estado == "PendienteConfirmacion"
+                && (c.Estado == "PendienteConfirmacion" || c.CorreoPendiente != null)
                 && c.TokenConfirmacionExpiraUtc > ahora)
             .ExecuteUpdateAsync(update => update
                 .SetProperty(c => c.Estado, "Activa")
+                .SetProperty(c => c.Correo, c => c.CorreoPendiente ?? c.Correo)
+                .SetProperty(c => c.CorreoNormalizado, c => c.CorreoPendiente != null ? c.CorreoPendiente.Trim().ToUpper() : c.CorreoNormalizado)
                 .SetProperty(c => c.TokenConfirmacionHash, (string?)null)
                 .SetProperty(c => c.TokenConfirmacionExpiraUtc, (DateTime?)null)
-                .SetProperty(c => c.UltimoCorreoConfirmacionUtc, (DateTime?)null), cancellationToken);
+                .SetProperty(c => c.UltimoCorreoConfirmacionUtc, (DateTime?)null)
+                .SetProperty(c => c.CorreoPendiente, (string?)null), cancellationToken);
+        if (actualizadas == 1 && correoPendiente is not null)
+            await db.Clientes.Where(c => c.IdCliente == cuentaPorConfirmar.IdCliente)
+                .ExecuteUpdateAsync(update => update.SetProperty(c => c.Correo, correoPendiente), cancellationToken);
+        await transaccion.CommitAsync(cancellationToken);
         return actualizadas == 1;
+        }
+        catch (Exception ex) when (EsDuplicadoMySql(ex))
+        {
+            await transaccion.RollbackAsync(cancellationToken);
+            return false;
+        }
+    }
+
+    public async Task<ResultadoCambioCorreoCliente> SolicitarCambioCorreoAsync(
+        int idCliente, string correoIngresado, string contrasenaActual, CancellationToken cancellationToken)
+    {
+        var correo = correoIngresado.Trim();
+        if (correo.Length > 100 || !MailAddress.TryCreate(correo, out var direccion)
+            || !string.Equals(direccion.Address, correo, StringComparison.OrdinalIgnoreCase))
+            return ResultadoCambioCorreoCliente.Invalido;
+
+        var cuenta = await db.CuentasCliente.Include(c => c.Cliente)
+            .SingleOrDefaultAsync(c => c.IdCliente == idCliente && c.Estado == "Activa"
+                && c.Cliente != null && c.Cliente.Estado == "Activo", cancellationToken);
+        if (cuenta is null) return ResultadoCambioCorreoCliente.SinCuenta;
+        if (string.IsNullOrWhiteSpace(contrasenaActual)
+            || passwordHasher.VerifyHashedPassword(cuenta, cuenta.ContrasenaHash, contrasenaActual) == PasswordVerificationResult.Failed)
+            return ResultadoCambioCorreoCliente.ContrasenaIncorrecta;
+
+        var correoNormalizado = NormalizarCorreo(correo);
+        if (correoNormalizado == cuenta.CorreoNormalizado) return ResultadoCambioCorreoCliente.Igual;
+        if (await db.CuentasCliente.AnyAsync(c => c.IdCliente != idCliente && c.CorreoNormalizado == correoNormalizado, cancellationToken)
+            || await db.Clientes.AnyAsync(c => c.IdCliente != idCliente && c.Correo != null && c.Correo.Trim().ToUpper() == correoNormalizado, cancellationToken))
+            return ResultadoCambioCorreoCliente.Duplicado;
+
+        var ahora = proveedorTiempo.GetUtcNow().UtcDateTime;
+        if (cuenta.CorreoPendiente is not null && cuenta.UltimoCorreoConfirmacionUtc is { } ultimo
+            && ahora - ultimo < TimeSpan.FromMinutes(1)) return ResultadoCambioCorreoCliente.Espera;
+        var token = CrearTokenConfirmacion();
+        cuenta.CorreoPendiente = correo;
+        cuenta.TokenConfirmacionHash = HashToken(token);
+        cuenta.TokenConfirmacionExpiraUtc = ahora.Add(VigenciaConfirmacion);
+        cuenta.UltimoCorreoConfirmacionUtc = ahora;
+        try { await db.SaveChangesAsync(cancellationToken); }
+        catch (Exception ex) when (EsDuplicadoMySql(ex)) { return ResultadoCambioCorreoCliente.Duplicado; }
+
+        var baseFrontend = (configuracion["Correo:UrlBaseFrontend"] ?? "http://localhost:4200").TrimEnd('/');
+        var enlace = HtmlEncoder.Default.Encode($"{baseFrontend}/cliente/confirmar-cuenta?token={Uri.EscapeDataString(token)}");
+        var nombreHtml = HtmlEncoder.Default.Encode(cuenta.Cliente!.Nombre);
+        var cuerpoHtml = $"<html lang=\"es\"><body><h1>Confirma tu nuevo correo</h1><p>Hola {nombreHtml}, confirma el cambio de correo para tu cuenta de {NombreCentro}.</p><p><a href=\"{enlace}\">Confirmar nuevo correo</a></p><p>El enlace vence en 24 horas.</p></body></html>";
+        var envio = await emailService.EnviarConResultadoAsync(correo, $"Confirma tu nuevo correo - {NombreCentro}", cuerpoHtml, cancellationToken, importante: true);
+        if (envio.Exitoso) return ResultadoCambioCorreoCliente.ConfirmacionEnviada;
+        cuenta.CorreoPendiente = null;
+        cuenta.TokenConfirmacionHash = null;
+        cuenta.TokenConfirmacionExpiraUtc = null;
+        cuenta.UltimoCorreoConfirmacionUtc = null;
+        await db.SaveChangesAsync(cancellationToken);
+        return ResultadoCambioCorreoCliente.ErrorEnvio;
     }
 
     public async Task ReenviarConfirmacionAsync(string correoIngresado, CancellationToken cancellationToken)
@@ -224,7 +311,8 @@ public sealed class AutenticacionClienteService(
     public static ClienteSesionResponse CrearSesion(CuentaCliente cuenta) => new(
         cuenta.IdCliente,
         $"{cuenta.Cliente?.Nombre} {cuenta.Cliente?.Apellido}".Trim(),
-        cuenta.Correo)
+        cuenta.Correo,
+        cuenta.Cliente?.Rut ?? string.Empty)
     { VersionCredencial = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(cuenta.ContrasenaHash))) };
 
     public static string NormalizarCorreo(string correo) => correo.Trim().ToUpperInvariant();
@@ -242,6 +330,11 @@ public sealed class AutenticacionClienteService(
                 return true;
         return false;
     }
+}
+
+public enum ResultadoCambioCorreoCliente
+{
+    ConfirmacionEnviada, Invalido, SinCuenta, ContrasenaIncorrecta, Duplicado, Igual, Espera, ErrorEnvio
 }
 
 public sealed record ResultadoRegistroCliente(bool Registrado, string? Error, bool ConflictoExistente, bool CorreoConfirmacionEnviado)

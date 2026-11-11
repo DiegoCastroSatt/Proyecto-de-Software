@@ -23,6 +23,7 @@ export class BuscarReservas implements OnInit {
   readonly reservaSeleccionada = signal<ReservaAgenda | null>(null);
   readonly cancelando = signal(false);
   readonly mensajeCancelacion = signal<string | null>(null);
+  protected readonly correoReprogramacionPendiente = signal(false);
   readonly mensajeExitoReprogramacion = signal<string | null>(null);
   readonly mostrarReprogramacion = signal(false);
   readonly fechaNueva = signal('');
@@ -102,6 +103,7 @@ export class BuscarReservas implements OnInit {
           this.reservaSeleccionada.set(actualizada);
           this.reservas.update(items => items.map(item => item.id === reserva.id ? actualizada : item));
         }
+        this.correoReprogramacionPendiente.set(respuesta?.correoEnviado === false);
         this.mensajeExitoReprogramacion.set(respuesta?.correoEnviado === false
           ? respuesta.mensaje
           : 'La reserva fue reprogramada correctamente.');

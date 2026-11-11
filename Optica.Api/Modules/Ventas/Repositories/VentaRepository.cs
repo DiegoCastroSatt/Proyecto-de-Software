@@ -3,6 +3,8 @@ using Optica.Api.Data;
 using Optica.Api.Modules.Ventas.DTOs;
 using Optica.Api.Modules.Ventas.Interfaces;
 using Optica.Api.Modules.Ventas.Models;
+using Optica.Api.Modules.Productos.Models;
+
 namespace Optica.Api.Modules.Ventas.Repositories;
 
 public class VentaRepository(OpticaDbContext db) : IVentaRepository
@@ -21,28 +23,47 @@ public class VentaRepository(OpticaDbContext db) : IVentaRepository
         .Where(c => c.Estado == "Activo" && c.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rutNormalizado)
         .Select(c => (int?)c.IdCliente).SingleOrDefaultAsync();
 
-    public async Task Guardar(Venta venta)
+    public async Task Guardar(Venta venta, int idResponsable)
     {
         await using var transaccion = await db.Database.BeginTransactionAsync();
-        // El descuento condicional impide sobreventas entre solicitudes simultáneas.
         foreach (var detalle in venta.Detalles.OrderBy(d => d.ProductoId))
         {
-            var actualizados = await db.Productos
-                .Where(p => p.IdProducto == detalle.ProductoId && p.Stock >= detalle.Cantidad)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(p => p.Stock, p => p.Stock - detalle.Cantidad));
-            if (actualizados == 0)
+            var productosBloqueados = await db.Productos
+                .FromSqlInterpolated($"SELECT * FROM productos WHERE id_producto = {detalle.ProductoId} FOR UPDATE")
+                .AsNoTracking()
+                .ToListAsync();
+            var producto = productosBloqueados.SingleOrDefault();
+            if (producto is null || producto.Stock < detalle.Cantidad)
             {
-                var stock = await db.Productos.AsNoTracking()
-                    .Where(p => p.IdProducto == detalle.ProductoId)
-                    .Select(p => (int?)p.Stock).SingleOrDefaultAsync();
-                throw new ArgumentException(stock is null or <= 0
+                throw new ArgumentException(producto is null || producto.Stock <= 0
                     ? $"{detalle.NombreProducto}: Sin productos en stock."
-                    : $"{detalle.NombreProducto}: stock insuficiente. Disponibles: {stock}.");
+                    : $"{detalle.NombreProducto}: stock insuficiente. Disponibles: {producto.Stock}.");
             }
-            await db.Productos.Where(p => p.IdProducto == detalle.ProductoId && p.Stock == 0)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.Estado, "Agotado"));
+
+            var stockAnterior = producto.Stock;
+            var stockActual = stockAnterior - detalle.Cantidad;
+            var productoActualizacion = db.Productos
+                .Where(p => p.IdProducto == detalle.ProductoId && p.Stock == stockAnterior);
+            var actualizados = stockActual == 0
+                ? await productoActualizacion.ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.Stock, stockActual)
+                    .SetProperty(p => p.Estado, "Agotado"))
+                : await productoActualizacion.ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.Stock, stockActual));
+            if (actualizados != 1)
+                throw new InvalidOperationException("No se pudo actualizar el stock del producto.");
+
+            db.HistorialStock.Add(new HistorialStock
+            {
+                IdProducto = detalle.ProductoId!.Value,
+                IdResponsable = idResponsable,
+                MotivoMovimiento = "Venta",
+                TipoStock = "Normal",
+                ValorAnterior = stockAnterior,
+                ValorActual = stockActual
+            });
         }
+
         db.Ventas.Add(venta);
         await db.SaveChangesAsync();
         await transaccion.CommitAsync();

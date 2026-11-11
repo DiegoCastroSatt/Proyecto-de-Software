@@ -1,6 +1,7 @@
 import { FormBuilder } from '@angular/forms';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { BuscarProductoComponent } from './buscar-producto';
 import { BuscarProductoService, Producto } from './buscar-producto.service';
 import { ResenasProductoService } from './resenas-producto.service';
@@ -20,6 +21,7 @@ const productos: Producto[] = [
 ];
 
 describe('BuscarProductoComponent', () => {
+  let parametros: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let component: BuscarProductoComponent;
   let fixture: ComponentFixture<BuscarProductoComponent>;
   let service: {
@@ -33,6 +35,7 @@ describe('BuscarProductoComponent', () => {
   };
 
   beforeEach(async () => {
+    parametros = new BehaviorSubject(convertToParamMap({}));
     service = {
       buscar: vi.fn(() => of(productos)),
       actualizar: vi.fn((id: number, producto: Producto) => of({ ...productos[0], ...producto, id }))
@@ -47,6 +50,7 @@ describe('BuscarProductoComponent', () => {
       imports: [BuscarProductoComponent],
       providers: [
         FormBuilder,
+        { provide: ActivatedRoute, useValue: { queryParamMap: parametros } },
         { provide: BuscarProductoService, useValue: service },
         { provide: ResenasProductoService, useValue: resenasService },
         { provide: AutenticacionClienteService, useValue: {
@@ -67,6 +71,17 @@ describe('BuscarProductoComponent', () => {
     expect(component['categorias']()).toEqual(['Armazones', 'Lentes de sol']);
     expect(component['colores']()).toEqual(['Dorado', 'Negro']);
     expect(service.buscar).toHaveBeenCalledWith('');
+  });
+
+  it('muestra solo los armazones y lentes vinculados al marco de la URL', () => {
+    const coincidencias = productos.map(producto => ({ ...producto, idTipoMarco: 7 }));
+    service.buscar.mockReturnValue(of([...coincidencias, { ...productos[0], id: 3, idTipoMarco: 8 }]));
+    parametros.next(convertToParamMap({ marco: '7' }));
+    component['buscar']();
+
+    expect(component['productosVisibles']()).toEqual(coincidencias);
+    parametros.next(convertToParamMap({}));
+    expect(component['productosVisibles']()).toHaveLength(3);
   });
 
   it('filtra por categoria y color y ordena por precio ascendente', () => {

@@ -148,34 +148,6 @@
 }
 
 /* ─── Notificaciones Toast ─── */
-.pedido-toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  max-width: min(440px, calc(100vw - 40px));
-  padding: 14px 18px;
-  border-radius: 8px;
-  color: var(--color-superficie);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
-}
-
-.pedido-toast--warning { background: var(--color-aviso-texto); }
-.pedido-toast--error { background: var(--color-error-oscuro); }
-.pedido-toast--success { background: var(--color-exito); }
-
-.pedido-toast button {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font-size: 1.3rem;
-  cursor: pointer;
-}
-
 /* ─── Diálogo de Confirmación ─── */
 .pedido-confirmacion-fondo {
   position: fixed;

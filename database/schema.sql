@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 
 -- Script autocontenido: puede ejecutarse directamente en MySQL o mediante Docker.
 CREATE DATABASE IF NOT EXISTS optica_db
@@ -28,6 +29,7 @@ CREATE TABLE cuentas_cliente (
     token_confirmacion_hash CHAR(64) NULL,
     token_confirmacion_expira_utc DATETIME NULL,
     ultimo_correo_confirmacion_utc DATETIME NULL,
+    correo_pendiente VARCHAR(100) NULL,
     CONSTRAINT fk_cuentas_cliente_cliente FOREIGN KEY (id_cliente)
         REFERENCES clientes(id_cliente) ON DELETE RESTRICT
 );
@@ -102,9 +104,12 @@ NOT NULL DEFAULT 'Pendiente',
 total DECIMAL(10,2) NOT NULL DEFAULT 0,
 anotaciones TEXT,
 fecha_entrega_estimada DATE NULL,
+-- RESTRICT evita borrar pedidos al eliminar un cliente; CASCADE en UPDATE permite
+-- anonimizar el RUT del cliente (ANON-{id}) conservando sus pedidos.
 CONSTRAINT fk_pedidos_cliente
 FOREIGN KEY (rut) REFERENCES clientes(rut)
-ON DELETE CASCADE,
+ON DELETE RESTRICT
+ON UPDATE CASCADE,
 CONSTRAINT fk_pedidos_receta
 FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 ON DELETE SET NULL
@@ -153,6 +158,22 @@ CREATE TABLE trabajador_optica (
     CONSTRAINT fk_personal_creador FOREIGN KEY (id_administrador_creador) REFERENCES trabajador_optica(id_trabajador),
     CONSTRAINT ck_personal_tipo CHECK (tipo_usuario IN ('Administrador', 'Trabajador')),
     CONSTRAINT ck_personal_rol CHECK (tipo_usuario = 'Administrador' OR id_rol IS NOT NULL)
+);
+
+CREATE TABLE historial_stock (
+    id_cambio INT AUTO_INCREMENT PRIMARY KEY,
+    id_producto INT NOT NULL,
+    motivo_movimiento VARCHAR(255) NOT NULL,
+    id_responsable INT NOT NULL,
+    tipo_stock ENUM('Normal', 'Minimo') NOT NULL,
+    valor_anterior INT NOT NULL,
+    valor_actual INT NOT NULL,
+    fecha_cambio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_historial_stock_producto
+        FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE RESTRICT,
+    CONSTRAINT fk_historial_stock_responsable
+        FOREIGN KEY (id_responsable) REFERENCES trabajador_optica(id_trabajador) ON DELETE RESTRICT,
+    INDEX idx_historial_stock_producto_fecha (id_producto, fecha_cambio)
 );
 
 CREATE TABLE horarios_atencion (
