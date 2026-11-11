@@ -60,7 +60,7 @@ jobs:
         run: npm run build
 
   e2e:
-    name: Reserva E2E con Playwright
+    name: E2E con Playwright
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
