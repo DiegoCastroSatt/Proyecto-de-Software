@@ -12,3 +12,5 @@ public class PedidoResponseDto
     public string? Anotaciones { get; set; }
     public string? EstadoNotificacion { get; set; }
 }
+
+public record PedidosPaginaResponseDto(IReadOnlyList<PedidoResponseDto> Pedidos, bool HaySiguiente);

@@ -19,11 +19,13 @@ public class ReservaRepository : IReservaRepository
     public async Task<IReadOnlyList<Horario>> ObtenerHorariosDisponibles(DateTime? fecha = null, int? excluirReservaId = null)
     {
         var ahoraChile = HoraChile.ObtenerAhora(_proveedorTiempo);
+        var hoy = ahoraChile.Date;
+        var horaActual = ahoraChile.TimeOfDay;
+        var fechaConsultada = fecha?.Date;
         return await _context.Horarios
             .Where(h => h.Estado == "Habilitada"
-                && (h.Fecha.Date > ahoraChile.Date
-                    || (h.Fecha.Date == ahoraChile.Date && h.HoraInicio > ahoraChile.TimeOfDay)))
-            .Where(h => fecha == null || h.Fecha.Date == fecha.Value.Date)
+                && (h.Fecha > hoy || (h.Fecha == hoy && h.HoraInicio > horaActual)))
+            .Where(h => fechaConsultada == null || h.Fecha == fechaConsultada)
             .Where(h => excluirReservaId == null || !_context.Reservas.Any(r => r.Id == excluirReservaId.Value
                 && r.HorarioId == h.Id && r.Estado != "Cancelada"))
             .Where(h => !_context.Reservas.Any(r => r.HorarioId == h.Id && r.Estado != "Cancelada"

@@ -8,6 +8,8 @@ public interface IPedidoRepository
 {
     Task<IEnumerable<Pedido>> ObtenerPedidosAsync();
     Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync();
+    Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino)
+        => throw new NotSupportedException("El listado paginado de pedidos no está implementado.");
     Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync();
     Task<IEnumerable<Cliente>> BuscarClientesPorRutAsync(string rut)
         => throw new NotSupportedException("La búsqueda de clientes por RUT no está implementada en este repositorio.");

@@ -10,17 +10,22 @@
 
         <div class="search-bar-container">
           <input type="search" class="search-input" placeholder="Buscar pedido por cliente"
-                 (input)="terminoBusqueda.set($any($event.target).value)" />
+                 (input)="buscar($any($event.target).value)" />
         </div>
 
-        @if (pedidosFiltrados().length === 0) {
+        @if (cargando()) {
+        <p role="status">Cargando pedidos…</p>
+        } @else if (error()) {
+        <p class="notificacion-sistema" data-tipo="error" role="alert">No se pudieron cargar los pedidos.</p>
+        <button type="button" (click)="cambiarPagina(pagina())">Reintentar</button>
+        } @else if (pedidos().length === 0) {
         <div class="empty-state">
           <p class="empty-title">Sin pedidos</p>
-          <p class="empty-subtitle">No hay pedidos registrados en el sistema.</p>
+          <p class="empty-subtitle">No se encontraron pedidos.</p>
         </div>
         } @else {
         <div class="pedidos-list">
-          @for (pedido of pedidosFiltrados(); track pedido.idPedido) {
+          @for (pedido of pedidos(); track pedido.idPedido) {
           <div class="pedido-card">
             <div class="pedido-info">
               <span class="pedido-cliente">{{ pedido.nombreCliente }}</span>
@@ -34,6 +39,13 @@
           </div>
           }
         </div>
+        }
+        @if (!cargando() && !error() && (pagina() > 1 || haySiguiente())) {
+          <nav class="paginacion-pedidos" aria-label="Paginación de pedidos">
+            <button type="button" (click)="cambiarPagina(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+            <span>Página {{ pagina() }}</span>
+            <button type="button" (click)="cambiarPagina(pagina() + 1)" [disabled]="!haySiguiente()">Siguiente</button>
+          </nav>
         }
       </div>
     </section>

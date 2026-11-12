@@ -24,9 +24,28 @@ public class PedidoRepository : IPedidoRepository
             .ToListAsync();
     }
     
-    public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync()
+    public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync() =>
+        await ConsultarPedidosDetalle().OrderByDescending(p => p.Fecha)
+            .ThenByDescending(p => p.IdPedido).ToListAsync();
+
+    public async Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino)
     {
-        return await _context.Pedidos
+        var consulta = ConsultarPedidosDetalle();
+        if (termino.Length > 0)
+            consulta = consulta.Where(p => p.NombreCliente.Contains(termino));
+
+        var pedidos = await consulta.OrderByDescending(p => p.Fecha)
+            .ThenByDescending(p => p.IdPedido)
+            .Skip((pagina - 1) * tamano).Take(tamano + 1).ToListAsync();
+
+        var haySiguiente = pedidos.Count > tamano;
+        if (haySiguiente)
+            pedidos.RemoveAt(tamano);
+        return new PedidosPaginaResponseDto(pedidos, haySiguiente);
+    }
+
+    private IQueryable<PedidoResponseDto> ConsultarPedidosDetalle() =>
+        _context.Pedidos.AsNoTracking()
             .Join(
                 _context.Clientes,
                 p => p.Rut,
@@ -39,10 +58,7 @@ public class PedidoRepository : IPedidoRepository
                     Estado = p.Estado,
                     Total = p.Total,
                     Anotaciones = p.Anotaciones
-                })
-            .OrderByDescending(p => p.Fecha)
-            .ToListAsync();
-    }
+                });
 
     public async Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync()
     {
@@ -123,7 +139,8 @@ public class PedidoRepository : IPedidoRepository
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetallePorRutAsync(string rut)
     {
         return await _context.Pedidos
-            .Where(p => p.Rut.Replace(".", "").Replace("-", "").Trim().ToUpper() == rut)
+            .AsNoTracking()
+            .Where(p => p.Rut == rut)
             .Join(
                 _context.Clientes,
                 p => p.Rut,
@@ -138,6 +155,7 @@ public class PedidoRepository : IPedidoRepository
                     Anotaciones = p.Anotaciones
                 })
             .OrderByDescending(p => p.Fecha)
+            .ThenByDescending(p => p.IdPedido)
             .ToListAsync();
     }
 }

@@ -39,6 +39,12 @@ export class PedidoService {
     return this.http.get<PedidoResponse[]>(this.apiUrl);
   }
 
+  obtenerPagina(pagina: number, termino: string): Observable<{ pedidos: PedidoResponse[]; haySiguiente: boolean }> {
+    return this.http.get<{ pedidos: PedidoResponse[]; haySiguiente: boolean }>(`${this.apiUrl}/pagina`, {
+      params: { pagina, termino }
+    });
+  }
+
   obtenerClientes(): Observable<ClienteOption[]> {
     return this.http.get<ClienteOption[]>(`${this.apiUrl}/clientes`);
   }

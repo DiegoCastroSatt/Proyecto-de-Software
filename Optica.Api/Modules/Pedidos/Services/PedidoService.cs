@@ -21,6 +21,9 @@ public class PedidoService : IPedidoService
         _dbContext = dbContext;
     }
 
+    public Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino) =>
+        _pedidoRepository.ObtenerPaginaAsync(pagina, tamano, termino.Trim());
+
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosAsync()
     {
         return await _pedidoRepository.ObtenerPedidosDetalleAsync();
@@ -72,7 +75,7 @@ public class PedidoService : IPedidoService
             throw new KeyNotFoundException("No se encontró un cliente con ese RUT.");
         }
 
-        return await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(rutNormalizado);
+        return await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(cliente.Rut);
     }
 
     public async Task<PedidoResponseDto> CrearPedidoAsync(CreatePedidoDto dto)

@@ -72,6 +72,9 @@ public class ProductoRepository : IProductoRepository
 
     private async Task MarcarProductosConVentas(List<Producto> productos)
     {
+        if (productos.Count == 0)
+            return;
+
         var ids = productos.Select(producto => producto.IdProducto).ToList();
         var idsConVentas = await _context.DetallesVenta
             .Where(detalle => detalle.ProductoId.HasValue && ids.Contains(detalle.ProductoId.Value))
@@ -79,9 +82,10 @@ public class ProductoRepository : IProductoRepository
             .Distinct()
             .ToListAsync();
 
+        var productosVendidos = idsConVentas.ToHashSet();
         foreach (var producto in productos)
         {
-            producto.TieneVentas = idsConVentas.Contains(producto.IdProducto);
+            producto.TieneVentas = productosVendidos.Contains(producto.IdProducto);
         }
     }
 
@@ -183,8 +187,14 @@ public class ProductoRepository : IProductoRepository
     {
         var consulta = _context.HistorialStock.AsNoTracking();
         var totalRegistros = await consulta.CountAsync();
+        var paginaHistorial = consulta
+            .OrderByDescending(historial => historial.FechaCambio)
+            .ThenByDescending(historial => historial.IdCambio)
+            .Skip((pagina - 1) * tamanoPagina)
+            .Take(tamanoPagina);
+
         var movimientos = await (
-            from historial in consulta
+            from historial in paginaHistorial
             join responsable in _context.Trabajadores.AsNoTracking()
                 on historial.IdResponsable equals responsable.IdTrabajador
             orderby historial.FechaCambio descending, historial.IdCambio descending
@@ -198,8 +208,6 @@ public class ProductoRepository : IProductoRepository
                 historial.ValorAnterior,
                 historial.ValorActual,
                 historial.FechaCambio))
-            .Skip((pagina - 1) * tamanoPagina)
-            .Take(tamanoPagina)
             .ToListAsync();
 
         return new HistorialStockPaginadoResponseDto(
