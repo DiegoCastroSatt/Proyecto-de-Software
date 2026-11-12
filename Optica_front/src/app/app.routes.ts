@@ -52,6 +52,12 @@ export const routes: Routes = [
       { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
       { path: 'cliente/login', component: LoginComponent },
       { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
+      // Las pantallas de encuestas se cargan bajo demanda para no aumentar el bundle inicial.
+      {
+        path: 'encuesta',
+        loadComponent: () =>
+          import('./Componentes/responder-encuesta/responder-encuesta').then((m) => m.ResponderEncuestaComponent),
+      },
       { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/perfil', component: MiPerfilComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/solicitudes', component: ListaSolicitudes, canActivate: [authClienteGuard] },
@@ -91,6 +97,14 @@ export const routes: Routes = [
           { path: 'sin-acceso', component: SinAccesoComponent },
           { path: 'horarios', component: GestionHorariosComponent, data: { permiso: 'horarios', tituloInicio: 'Horarios' } },
           { path: 'agenda', component: BuscarReservas, data: { permiso: 'agenda', tituloInicio: 'Agenda' } },
+          {
+            path: 'encuestas',
+            loadComponent: () =>
+              import('./Componentes/resultados-encuestas/resultados-encuestas').then(
+                (m) => m.ResultadosEncuestasComponent,
+              ),
+            data: { permiso: 'agenda', tituloInicio: 'Encuestas' },
+          },
           {
             path: 'productos/nuevo',
             component: ProductoComponent,

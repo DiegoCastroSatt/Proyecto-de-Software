@@ -1,0 +1,83 @@
+<main class="encuesta-contenedor">
+  <section class="encuesta-tarjeta" aria-live="polite">
+    <header class="encuesta-cabecera">
+      <span class="marca-eyebrow">CENTRO ÓPTICO SAN FRANCISCO</span>
+      @switch (estado()) {
+        @case ('cargando') {
+          <h1>Cargando encuesta</h1>
+        }
+        @case ('formulario') {
+          <h1>Cuéntanos cómo te fue</h1>
+        }
+        @case ('gracias') {
+          <h1>Gracias por tu opinión</h1>
+        }
+        @default {
+          <h1>Enlace no disponible</h1>
+        }
+      }
+    </header>
+
+    @switch (estado()) {
+      @case ('cargando') {
+        <p class="encuesta-mensaje">Estamos validando el enlace de la encuesta.</p>
+      }
+
+      @case ('formulario') {
+        <p class="encuesta-atencion">Tu atención del {{ atencion() }}</p>
+
+        <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+          @for (pregunta of preguntas; track pregunta.control; let i = $index) {
+            <div class="encuesta-pregunta">
+              <p class="encuesta-pregunta-texto" [id]="'pregunta-' + i">{{ pregunta.texto }}</p>
+              <app-selector-estrellas
+                [formControlName]="pregunta.control"
+                [etiquetadoPor]="'pregunta-' + i"
+              />
+            </div>
+          }
+
+          <div class="encuesta-comentario">
+            <label for="comentario-encuesta">
+              Otros comentarios <span class="encuesta-opcional">(opcional)</span>
+            </label>
+            <textarea
+              id="comentario-encuesta"
+              formControlName="comentario"
+              rows="4"
+              [attr.maxlength]="largoMaximo"
+              aria-describedby="contador-comentario"
+            ></textarea>
+            <small id="contador-comentario" class="encuesta-contador">
+              {{ largoComentario() }} / {{ largoMaximo }}
+            </small>
+          </div>
+
+          @if (errorFormulario()) {
+            <p class="notificacion-sistema" data-tipo="error" role="alert">
+              {{ errorFormulario() }}
+            </p>
+          }
+
+          <button type="submit" class="btn-principal" [disabled]="enviando()">
+            {{ enviando() ? 'Enviando...' : 'Enviar respuesta' }}
+          </button>
+        </form>
+      }
+
+      @case ('gracias') {
+        <div class="notificacion-sistema" data-tipo="success">
+          <p>Tu respuesta es anónima y nos ayuda a mejorar la atención.</p>
+        </div>
+        <a routerLink="/inicio" class="btn-principal">Volver al inicio</a>
+      }
+
+      @default {
+        <div class="notificacion-sistema" data-tipo="error">
+          <p>{{ mensajeError() }}</p>
+        </div>
+        <a routerLink="/inicio" class="btn-principal">Volver al inicio</a>
+      }
+    }
+  </section>
+</main>
