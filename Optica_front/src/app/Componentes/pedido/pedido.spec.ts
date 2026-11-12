@@ -86,12 +86,12 @@ describe('PedidoComponent', () => {
   });
 
   it('solicita la siguiente página y vuelve a la primera al buscar', () => {
-    servicio.obtenerPagina.mockReturnValueOnce(of({ pedidos: mockPedidos, haySiguiente: true }));
+    servicio.obtenerPagina.mockReturnValueOnce(of({ pedidos: mockPedidos, haySiguiente: true, totalPaginas: 3 }));
     fixture.destroy();
     fixture = TestBed.createComponent(PedidoComponent);
     fixture.detectChanges();
 
-    const siguiente = fixture.nativeElement.querySelector('.paginacion-pedidos button:last-child');
+    const siguiente = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página siguiente"]');
     siguiente.click();
     fixture.detectChanges();
     expect(servicio.obtenerPagina).toHaveBeenLastCalledWith(2, '');

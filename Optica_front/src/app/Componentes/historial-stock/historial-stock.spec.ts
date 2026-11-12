@@ -152,7 +152,7 @@ it('filtra el historial al seleccionar un producto sugerido', async () => {
   expect(fixture.nativeElement.textContent).toContain('Armazon 1 · ARM-001');
   expect(fixture.nativeElement.textContent).not.toContain('Lentes Polarizados · LEN-002');
 
-  const siguiente = fixture.nativeElement.querySelector('.pagination button:last-child') as HTMLButtonElement;
+  const siguiente = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página siguiente"]') as HTMLButtonElement;
   siguiente.click();
   fixture.detectChanges();
   await fixture.whenStable();
@@ -175,16 +175,16 @@ it('permite avanzar y retroceder páginas del historial reciente', async () => {
   productoServiceMock.consultarHistorialStockReciente.mockImplementation(
     (pagina: number) => of({ ...mockHistorial, pagina, totalPaginas: 3 })
   );
-  const botones = fixture.nativeElement.querySelectorAll('.pagination button') as NodeListOf<HTMLButtonElement>;
-  botones[1].click();
+  const siguiente = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página siguiente"]') as HTMLButtonElement;
+  siguiente.click();
   fixture.detectChanges();
   await fixture.whenStable();
 
   expect(productoServiceMock.consultarHistorialStockReciente).toHaveBeenLastCalledWith(2, 20);
-  expect(fixture.nativeElement.querySelector('.pagination')?.textContent).toContain('Página 2 de 3');
+  expect(fixture.nativeElement.querySelector('.paginacion-listado [aria-current="page"]')?.textContent?.trim()).toBe('2');
 
-  const botonesPaginaDos = fixture.nativeElement.querySelectorAll('.pagination button') as NodeListOf<HTMLButtonElement>;
-  botonesPaginaDos[0].click();
+  const anterior = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página anterior"]') as HTMLButtonElement;
+  anterior.click();
   fixture.detectChanges();
   await fixture.whenStable();
 
@@ -199,7 +199,7 @@ it('muestra el estado vacío cuando la consulta no devuelve movimientos', async 
     totalPaginas: 0,
     movimientos: []
   }));
-  const siguiente = fixture.nativeElement.querySelector('.pagination button:last-child') as HTMLButtonElement;
+  const siguiente = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página siguiente"]') as HTMLButtonElement;
   siguiente.click();
   fixture.detectChanges();
   await fixture.whenStable();
@@ -212,7 +212,7 @@ it('informa errores al consultar el historial y permite reintentar', async () =>
   productoServiceMock.consultarHistorialStockReciente.mockReturnValueOnce(
     throwError(() => ({ error: { mensaje: 'No fue posible consultar el historial.' } }))
   );
-  const siguiente = fixture.nativeElement.querySelector('.pagination button:last-child') as HTMLButtonElement;
+  const siguiente = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página siguiente"]') as HTMLButtonElement;
   siguiente.click();
   fixture.detectChanges();
   await fixture.whenStable();

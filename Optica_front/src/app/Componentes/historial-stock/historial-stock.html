@@ -93,20 +93,29 @@
         </table>
       </div>
 
-      <nav class="pagination" aria-label="Paginación del historial de stock">
-        <button
-          type="button"
-          (click)="cambiarPagina(pagina() - 1)"
-          [disabled]="cargandoHistorial() || pagina() <= 1">
-          Anterior
-        </button>
-        <span>Página {{ resultado.pagina }} de {{ resultado.totalPaginas }}</span>
-        <button
-          type="button"
-          (click)="cambiarPagina(pagina() + 1)"
-          [disabled]="cargandoHistorial() || pagina() >= resultado.totalPaginas">
-          Siguiente
-        </button>
+      <nav class="paginacion-listado" aria-label="Paginación de historial de stock">
+        <button type="button" aria-label="Primera página" [disabled]="pagina() === 1 || cargandoHistorial()" (click)="cambiarPagina(1)">«</button>
+        <button type="button" aria-label="Página anterior" [disabled]="pagina() === 1 || cargandoHistorial()" (click)="cambiarPagina(pagina() - 1)">‹</button>
+        @let inicio = pagina() <= 2 ? 1 : pagina() === resultado.totalPaginas ? pagina() - 2 : pagina() - 1;
+        @if (inicio > 1) {
+          <button type="button" [disabled]="cargandoHistorial()" (click)="cambiarPagina(1)">1</button>
+        }
+        @if (inicio > 2) {
+          <span class="paginacion-omision" aria-hidden="true">…</span>
+        }
+        @for (numero of [inicio, inicio + 1, inicio + 2]; track numero) {
+          @if (numero >= 1 && numero <= resultado.totalPaginas) {
+            <button type="button" [attr.aria-current]="numero === pagina() ? 'page' : null" [disabled]="cargandoHistorial() || numero === pagina()" (click)="cambiarPagina(numero)">{{ numero }}</button>
+          }
+        }
+        @if (inicio + 3 < resultado.totalPaginas) {
+          <span class="paginacion-omision" aria-hidden="true">…</span>
+        }
+        @if (inicio + 2 < resultado.totalPaginas) {
+          <button type="button" [disabled]="cargandoHistorial()" (click)="cambiarPagina(resultado.totalPaginas)">{{ resultado.totalPaginas }}</button>
+        }
+        <button type="button" aria-label="Página siguiente" [disabled]="pagina() >= resultado.totalPaginas || cargandoHistorial()" (click)="cambiarPagina(pagina() + 1)">›</button>
+        <button type="button" aria-label="Última página" [disabled]="pagina() >= resultado.totalPaginas || cargandoHistorial()" (click)="cambiarPagina(resultado.totalPaginas)">»</button>
       </nav>
     }
   }

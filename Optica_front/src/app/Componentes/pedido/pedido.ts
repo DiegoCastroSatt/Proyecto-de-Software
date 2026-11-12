@@ -14,7 +14,7 @@ import { PedidoService, PedidoResponse } from './pedido.service';
 export class PedidoComponent implements OnInit {
   protected readonly pedidos = signal<PedidoResponse[]>([]);
   protected readonly pagina = signal(1);
-  protected readonly haySiguiente = signal(false);
+  protected readonly totalPaginas = signal(0);
   protected readonly cargando = signal(false);
   protected readonly error = signal(false);
   private termino = '';
@@ -30,7 +30,7 @@ export class PedidoComponent implements OnInit {
       this.cargando.set(false);
       this.error.set(resultado === null);
       this.pedidos.set(resultado?.pedidos ?? []);
-      this.haySiguiente.set(resultado?.haySiguiente ?? false);
+      this.totalPaginas.set(resultado?.totalPaginas ?? 0);
     });
   }
 

@@ -15,6 +15,23 @@ public class VentasController(IVentaService ventas, IConsultaProductoVenta produ
     [HttpGet]
     public async Task<IActionResult> Listar() => Ok(await ventas.Listar());
 
+    [HttpGet("pagina")]
+    public async Task<IActionResult> ListarPagina([FromQuery] int pagina = 1, [FromQuery] int tamano = 20)
+    {
+        if (pagina < 1 || tamano is < 1 or > 100 || (pagina - 1L) * tamano > int.MaxValue)
+            return BadRequest(new ErrorVentaDto("La página o su tamaño no son válidos."));
+        return Ok(await ventas.ListarPagina((pagina - 1) * tamano, tamano));
+    }
+
+    [HttpGet("resumen")]
+    public async Task<IActionResult> Resumir(DateTime desde, DateTime hasta, DateTime desdeRanking, DateTime hastaRanking, int limite = 5)
+    {
+        if (hasta <= desde || (hasta - desde).TotalDays > 366 || hastaRanking < desdeRanking
+            || (hastaRanking - desdeRanking).TotalDays > 366 || limite is not (5 or 10))
+            return BadRequest(new ErrorVentaDto("El período o el límite no son válidos."));
+        return Ok(await ventas.Resumir(desde, hasta, desdeRanking, hastaRanking, limite));
+    }
+
     [HttpGet("producto")]
     public async Task<IActionResult> BuscarProducto([FromQuery] string codigo)
     {

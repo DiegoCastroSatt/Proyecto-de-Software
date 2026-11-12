@@ -15,4 +15,4 @@ public class PedidoResponseDto
     public bool Vencido { get; set; }
 }
 
-public record PedidosPaginaResponseDto(IReadOnlyList<PedidoResponseDto> Pedidos, bool HaySiguiente);
+public record PedidosPaginaResponseDto(IReadOnlyList<PedidoResponseDto> Pedidos, bool HaySiguiente, int TotalPaginas);

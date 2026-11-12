@@ -55,6 +55,22 @@ export class RegistroVentaService {
       }))));
   }
 
+  listarPagina(pagina: number): Observable<{ ventas: Venta[]; haySiguiente: boolean; totalPaginas: number }> {
+    return this.http.get<{ ventas: Venta[]; haySiguiente: boolean; totalPaginas: number }>(`${this.url}/pagina`, { params: { pagina } });
+  }
+
+  resumir(params: Record<string, string | number>): Observable<{
+    total: number;
+    meses: { anio: number; mes: number; ingreso: number; cantidad: number }[];
+    ranking: { productoId: number; nombre: string; unidades: number }[];
+  }> {
+    return this.http.get<{
+      total: number;
+      meses: { anio: number; mes: number; ingreso: number; cantidad: number }[];
+      ranking: { productoId: number; nombre: string; unidades: number }[];
+    }>(`${this.url}/resumen`, { params });
+  }
+
   listar(): Observable<Venta[]> {
     return this.http.get<Venta[]>(this.url);
   }

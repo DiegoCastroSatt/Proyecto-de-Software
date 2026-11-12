@@ -85,6 +85,32 @@
       }
     </div>
   }
+  @if (!cargando() && !error() && totalPaginas() > 1) {
+    <nav class="paginacion-listado" aria-label="Paginación de catálogo">
+      <button type="button" aria-label="Primera página" [disabled]="pagina() === 1" (click)="cambiarPagina(1)">«</button>
+      <button type="button" aria-label="Página anterior" [disabled]="pagina() === 1" (click)="cambiarPagina(pagina() - 1)">‹</button>
+      @let inicio = pagina() <= 2 ? 1 : pagina() === totalPaginas() ? pagina() - 2 : pagina() - 1;
+      @if (inicio > 1) {
+        <button type="button" (click)="cambiarPagina(1)">1</button>
+      }
+      @if (inicio > 2) {
+        <span class="paginacion-omision" aria-hidden="true">…</span>
+      }
+      @for (numero of [inicio, inicio + 1, inicio + 2]; track numero) {
+        @if (numero >= 1 && numero <= totalPaginas()) {
+          <button type="button" [attr.aria-current]="numero === pagina() ? 'page' : null" [disabled]="numero === pagina()" (click)="cambiarPagina(numero)">{{ numero }}</button>
+        }
+      }
+      @if (inicio + 3 < totalPaginas()) {
+        <span class="paginacion-omision" aria-hidden="true">…</span>
+      }
+      @if (inicio + 2 < totalPaginas()) {
+        <button type="button" (click)="cambiarPagina(totalPaginas())">{{ totalPaginas() }}</button>
+      }
+      <button type="button" aria-label="Página siguiente" [disabled]="pagina() >= totalPaginas()" (click)="cambiarPagina(pagina() + 1)">›</button>
+      <button type="button" aria-label="Última página" [disabled]="pagina() >= totalPaginas()" (click)="cambiarPagina(totalPaginas())">»</button>
+    </nav>
+  }
 </section>
 
 @if (productoSeleccionado(); as producto) {

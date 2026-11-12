@@ -5,6 +5,17 @@ using Optica.Api.Modules.Productos.Models;
 
 public class ProductoService : IProductoService
 {
+    public async Task<(List<ProductoResponseDto> Productos, int Total)> BuscarPagina(string termino, string estado, string categoria,
+        string color, string marca, string ordenPrecio, int desplazamiento, int limite)
+    {
+        var (productos, total) = await _productoRepository.BuscarPagina(
+            termino, estado, categoria, color, marca, ordenPrecio, desplazamiento, limite);
+        return (productos.Select(Mapear).ToList(), total);
+    }
+
+    public Task<(string[] Categorias, string[] Colores, string[] Marcas)> OpcionesBusqueda(string termino) =>
+        _productoRepository.OpcionesBusqueda(termino);
+
     private static readonly string[] EstadosValidos = ["Disponible", "Agotado"];
     private static readonly string[] ExtensionesImagenValidas = [".jpg", ".jpeg", ".png", ".webp"];
     private readonly IProductoRepository _productoRepository;

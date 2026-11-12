@@ -308,6 +308,7 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.Estado).HasColumnName("estado").HasMaxLength(9).IsRequired();
             entity.Property(p => p.RutaImagen).HasColumnName("ruta_imagen").HasMaxLength(255);
             entity.HasIndex(p => p.Codigo).IsUnique();
+            entity.HasIndex(p => new { p.Nombre, p.IdProducto }).HasDatabaseName("idx_productos_nombre");
         });
 
         modelBuilder.Entity<Venta>(entity =>
@@ -318,6 +319,7 @@ public class OpticaDbContext : DbContext
             entity.Property(v => v.ClienteId).HasColumnName("id_cliente");
             entity.HasOne(v => v.Cliente).WithMany().HasForeignKey(v => v.ClienteId).OnDelete(DeleteBehavior.SetNull);
             entity.Property(v => v.Fecha).HasColumnName("fecha");
+            entity.HasIndex(v => new { v.Fecha, v.IdVenta }).HasDatabaseName("idx_ventas_fecha");
             entity.Property(v => v.Total).HasColumnName("total").HasPrecision(10, 2);
             entity.HasMany(v => v.Detalles).WithOne().HasForeignKey(d => d.VentaId);
         });

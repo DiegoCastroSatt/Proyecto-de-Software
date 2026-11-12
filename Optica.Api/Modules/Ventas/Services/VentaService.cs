@@ -8,6 +8,10 @@ public class VentaService(IVentaRepository repositorio, IConsultaProductoVenta p
 {
     private static readonly TimeZoneInfo ZonaHoraria = TimeZoneInfo.FindSystemTimeZoneById("America/Santiago");
 
+    public Task<VentasPaginaDto> ListarPagina(int desplazamiento, int tamano) => repositorio.ListarPagina(desplazamiento, tamano);
+    public Task<VentasResumenDto> Resumir(DateTime desde, DateTime hasta, DateTime desdeRanking, DateTime hastaRanking, int limite)
+        => repositorio.Resumir(desde, hasta, desdeRanking, hastaRanking, limite);
+
     public Task<IReadOnlyList<VentaResponseDto>> Listar() => repositorio.Listar();
 
     public async Task<VentaCreadaResponseDto> Crear(CrearVentaDto dto, int idResponsable)

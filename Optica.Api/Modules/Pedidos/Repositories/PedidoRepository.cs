@@ -34,18 +34,28 @@ public class PedidoRepository : IPedidoRepository
         if (termino.Length > 0)
             consulta = consulta.Where(p => p.NombreCliente.Contains(termino));
 
-        var pedidos = await consulta
-            .OrderByDescending(p => p.FechaEntregaEstimada.HasValue
-                && p.FechaEntregaEstimada < hoy && p.Estado != "Entregado" && p.Estado != "Cancelado")
-            .ThenByDescending(p => p.Fecha)
-            .ThenByDescending(p => p.IdPedido)
-            .Skip((pagina - 1) * tamano).Take(tamano + 1).ToListAsync();
+        var vencidos = consulta.Where(p => p.FechaEntregaEstimada.HasValue
+            && p.FechaEntregaEstimada < hoy && p.Estado != "Entregado" && p.Estado != "Cancelado");
+        var vigentes = consulta.Where(p => !p.FechaEntregaEstimada.HasValue
+            || p.FechaEntregaEstimada >= hoy || p.Estado == "Entregado" || p.Estado == "Cancelado");
+        var desplazamiento = (pagina - 1) * tamano;
+        var total = await consulta.CountAsync();
+        var limite = tamano;
+        var pedidos = await OrdenarPagina(vencidos, desplazamiento, limite).ToListAsync();
+        if (pedidos.Count < limite)
+        {
+            // Si la página empieza después de los vencidos, trasladar solo el desplazamiento restante.
+            var omitidos = pedidos.Count == 0 && desplazamiento > 0 ? await vencidos.CountAsync() : desplazamiento;
+            pedidos.AddRange(await OrdenarPagina(vigentes, desplazamiento - omitidos, limite - pedidos.Count).ToListAsync());
+        }
 
-        var haySiguiente = pedidos.Count > tamano;
-        if (haySiguiente)
-            pedidos.RemoveAt(tamano);
-        return new PedidosPaginaResponseDto(pedidos, haySiguiente);
+        var totalPaginas = (int)Math.Ceiling(total / (double)tamano);
+        return new PedidosPaginaResponseDto(pedidos, pagina < totalPaginas, totalPaginas);
     }
+
+    private static IQueryable<PedidoResponseDto> OrdenarPagina(IQueryable<PedidoResponseDto> consulta, int desplazamiento, int limite) =>
+        consulta.OrderByDescending(p => p.Fecha).ThenByDescending(p => p.IdPedido)
+            .Skip(desplazamiento).Take(limite);
 
     private IQueryable<PedidoResponseDto> ConsultarPedidosDetalle() =>
         _context.Pedidos.AsNoTracking()

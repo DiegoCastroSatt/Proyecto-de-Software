@@ -70,3 +70,24 @@ La carpeta `database/migraciones/` contiene `001_fk_pedidos_cliente_on_update_ca
 - **Servidor externo:** el repositorio no describe la instancia remota, su versión efectiva, estrategia de backups/migraciones ni su proceso de actualización. No asumir que coincide con el volumen local o con E2E.
 
 No incluir registros de `insert.sql` ni datos de usuarios en la documentación. La lista de tablas se obtuvo del esquema y debe actualizarse al cambiarlo.
+
+## Verificación de índices y paginación
+
+Medición con `EXPLAIN ANALYZE` en MySQL 8.4, sobre 100.000 filas sintéticas por tabla. Se comparó la primera página (21 filas para detectar si existe una siguiente). Las mediciones se refieren a la selección de filas principales, antes de cargar los detalles de venta.
+
+| Consulta | Antes | Después | Plan observado |
+|---|---:|---:|---|
+| Ventas ordenadas por fecha e ID | 68,5 ms | 0,070 ms | `idx_ventas_fecha`, 21 filas leídas en lugar de 100.000 |
+| Catálogo ordenado por nombre e ID | 192 ms | 0,082 ms | `idx_productos_nombre`, 21 filas leídas en lugar de 100.000 |
+| Pedidos con prioridad por atraso (1 % atrasados) | 197 ms | 5,41 ms | `idx_pedidos_fecha`, 2.100 filas examinadas para devolver 21 atrasados |
+
+MySQL eligió los índices sin hints. El plan de pedidos depende de la proporción de atrasados y de los filtros. La búsqueda por fragmentos de nombre o código puede seguir necesitando un escaneo. El resumen y ranking de ventas se calculan en SQL y se consultan aparte de la página del historial. Las rutas originales de la API siguen disponibles para sus consumidores existentes.
+
+Las instalaciones nuevas reciben los índices de `database/schema.sql`. En bases existentes que aún no tengan los dos índices de ventas y catálogo, verificar primero con `SHOW INDEX` y ejecutar únicamente los cambios pendientes:
+
+```sql
+ALTER TABLE ventas ADD INDEX idx_ventas_fecha (fecha, id_venta), ALGORITHM=INPLACE, LOCK=NONE;
+ALTER TABLE productos ADD INDEX idx_productos_nombre (nombre, id_producto), ALGORITHM=INPLACE, LOCK=NONE;
+```
+
+Si la base aún usa el esquema anterior a la optimización de pedidos, stock, recetas y reseñas, aplicar también los índices correspondientes de `schema.sql`. Crear primero los índices compuestos y luego quitar `idx_pedidos_cliente` e `idx_recetas_cliente` si están presentes. Usar `ALGORITHM=INPLACE, LOCK=NONE` en cada cambio para evitar una copia de las tablas.

@@ -11,7 +11,7 @@ describe('BuscarProductoCliente', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BuscarProductoCliente],
-      providers: [{ provide: BuscarProductoService, useValue: { buscar: () => of([]) } }]
+      providers: [{ provide: BuscarProductoService, useValue: { buscarPagina: () => of({ productos: [], haySiguiente: false }) } }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(BuscarProductoCliente);

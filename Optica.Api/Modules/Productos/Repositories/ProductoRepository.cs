@@ -47,6 +47,43 @@ public class ProductoRepository : IProductoRepository
 
     public async Task<List<Producto>> Buscar(string termino)
     {
+        var productos = await ConsultaProductos(termino).OrderBy(p => p.Nombre).ToListAsync();
+        await MarcarProductosConVentas(productos);
+        return productos;
+    }
+
+    public async Task<(List<Producto> Productos, int Total)> BuscarPagina(string termino, string estado, string categoria,
+        string color, string marca, string ordenPrecio, int desplazamiento, int limite)
+    {
+        var consulta = ConsultaProductos(termino);
+        if (estado.Length > 0) consulta = consulta.Where(p => p.Estado == estado);
+        if (categoria.Length > 0) consulta = consulta.Where(p => p.Categoria == categoria);
+        if (color.Length > 0) consulta = consulta.Where(p => p.Color == color);
+        if (marca.Length > 0) consulta = consulta.Where(p => p.Marca == marca);
+        var total = await consulta.CountAsync();
+        var ordenada = ordenPrecio switch
+        {
+            "menor" => consulta.OrderBy(p => p.Precio).ThenBy(p => p.Nombre),
+            "mayor" => consulta.OrderByDescending(p => p.Precio).ThenBy(p => p.Nombre),
+            _ => consulta.OrderBy(p => p.Nombre)
+        };
+        var productos = await ordenada.ThenBy(p => p.IdProducto).Skip(desplazamiento).Take(limite).ToListAsync();
+        await MarcarProductosConVentas(productos);
+        return (productos, total);
+    }
+
+    public async Task<(string[] Categorias, string[] Colores, string[] Marcas)> OpcionesBusqueda(string termino)
+    {
+        var consulta = ConsultaProductos(termino);
+        return (await Opciones(consulta.Select(p => p.Categoria)), await Opciones(consulta.Select(p => p.Color)),
+            await Opciones(consulta.Select(p => p.Marca)));
+    }
+
+    private static Task<string[]> Opciones(IQueryable<string?> consulta) =>
+        consulta.Where(valor => valor != null && valor != "").Select(valor => valor!).Distinct().OrderBy(valor => valor).ToArrayAsync();
+
+    private IQueryable<Producto> ConsultaProductos(string termino)
+    {
         var consulta = _context.Productos.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(termino))
         {
@@ -54,9 +91,7 @@ public class ProductoRepository : IProductoRepository
             consulta = consulta.Where(producto => producto.Nombre.Contains(filtro) || producto.Categoria.Contains(filtro) || producto.Codigo.Contains(filtro));
         }
 
-        var productos = await consulta.OrderBy(producto => producto.Nombre).ToListAsync();
-        await MarcarProductosConVentas(productos);
-        return productos;
+        return consulta;
     }
 
     public Task<List<Producto>> ObtenerParaReporteInventario(CancellationToken cancellationToken) =>

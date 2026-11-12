@@ -306,6 +306,8 @@ CREATE TABLE intentos_correo_pedidos (
         REFERENCES correos_pedidos(id_correo) ON DELETE CASCADE,
     INDEX idx_intentos_correo_pedidos_fecha (id_correo, fecha_utc)
 );
+CREATE INDEX idx_ventas_fecha ON ventas(fecha, id_venta);
+CREATE INDEX idx_productos_nombre ON productos(nombre, id_producto);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);
 

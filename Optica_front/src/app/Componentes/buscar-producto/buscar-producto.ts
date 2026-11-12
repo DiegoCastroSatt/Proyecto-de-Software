@@ -1,7 +1,8 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { BuscarProductoService, Producto, ProductoEditable } from './buscar-producto.service';
 import { ResenaProducto, ResenasProductoService } from './resenas-producto.service';
 import { AutenticacionClienteService } from '../../shared/services/autenticacion-cliente.service';
@@ -16,7 +17,7 @@ import { obtenerOrigenApi } from '../../shared/services/api-origin';
 export class BuscarProductoComponent implements OnInit {
   @Input() esAdministrador = false;
 
-  protected readonly productos = signal<Producto[]>([]);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly productosVisibles = signal<Producto[]>([]);
   protected readonly categorias = signal<string[]>([]);
   protected readonly colores = signal<string[]>([]);
@@ -128,18 +129,35 @@ export class BuscarProductoComponent implements OnInit {
     });
   }
 
+  protected readonly pagina = signal(1);
+  protected readonly totalPaginas = signal(0);
+  private terminoAplicado = '';
+  private readonly cancelarCatalogo = new Subject<void>();
+
   protected buscar(): void {
+    this.terminoAplicado = this.busquedaForm.controls.termino.value;
+    this.cambiarPagina(1, !this.esAdministrador);
+  }
+
+  protected aplicarFiltros(): void {
+    this.cambiarPagina(1);
+  }
+
+  protected cambiarPagina(pagina: number, incluirOpciones = false): void {
+    this.cancelarCatalogo.next();
     this.cargando.set(true);
     this.error.set('');
-    this.productoService.buscar(this.busquedaForm.controls.termino.value).subscribe({
-      next: (productos) => {
-        this.productos.set(productos);
-        if (!this.esAdministrador) {
-          this.categorias.set(this.opcionesUnicas(productos.map(producto => producto.categoria)));
-          this.colores.set(this.opcionesUnicas(productos.map(producto => producto.color)));
-          this.marcas.set(this.opcionesUnicas(productos.map(producto => producto.marca)));
-        }
-        this.aplicarFiltros();
+    this.productoService.buscarPagina({
+      ...this.filtrosForm.getRawValue(), pagina, termino: this.terminoAplicado, incluirOpciones
+    }).pipe(takeUntil(this.cancelarCatalogo), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: resultado => {
+        this.pagina.set(pagina);
+        this.totalPaginas.set(resultado.totalPaginas);
+        this.productosVisibles.set(resultado.productos);
+        if (resultado.categorias) this.categorias.set(resultado.categorias);
+        if (resultado.colores) this.colores.set(resultado.colores);
+        if (resultado.marcas) this.marcas.set(resultado.marcas);
+        this.mensaje.set(resultado.productos.length ? '' : 'No hay existencias o no se encuentra el producto.');
         this.cargando.set(false);
       },
       error: () => {
@@ -149,33 +167,12 @@ export class BuscarProductoComponent implements OnInit {
     });
   }
 
-  protected aplicarFiltros(): void {
-    const { estado, categoria, color, marca, ordenPrecio } = this.filtrosForm.getRawValue();
-    const filtrados = this.productos().filter(producto =>
-      (!estado || producto.estado === estado) &&
-      (!categoria || producto.categoria === categoria) &&
-      (!color || producto.color === color) &&
-      (!marca || producto.marca === marca)
-    );
-
-    if (ordenPrecio === 'menor') {
-      filtrados.sort((a, b) => a.precio - b.precio);
-    } else if (ordenPrecio === 'mayor') {
-      filtrados.sort((a, b) => b.precio - a.precio);
-    }
-
-    this.productosVisibles.set(filtrados);
-    this.mensaje.set(filtrados.length ? '' : 'No hay existencias o no se encuentra el producto.');
-  }
-
   protected limpiarFiltros(): void {
     this.filtrosForm.reset({ estado: 'Disponible', categoria: '', color: '', marca: '', ordenPrecio: '' });
     this.aplicarFiltros();
   }
 
-  private opcionesUnicas(opciones: string[]): string[] {
-    return [...new Set(opciones.filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  }
+
 
   protected abrirDetalle(producto: Producto): void {
     this.productoSeleccionado.set(producto);
@@ -370,8 +367,8 @@ export class BuscarProductoComponent implements OnInit {
     };
     this.productoService.actualizar(producto.id, productoEditado).subscribe({
       next: (actualizado) => {
-        this.productos.update(items => items.map(item => item.id === actualizado.id ? actualizado : item));
         this.productoSeleccionado.set(actualizado);
+        this.cambiarPagina(this.pagina());
         this.editando.set(false);
         this.guardando.set(false);
       },
@@ -391,7 +388,6 @@ export class BuscarProductoComponent implements OnInit {
     this.guardando.set(true);
     this.productoService.eliminar(producto.id).subscribe({
       next: () => {
-        this.productos.update(items => items.filter(item => item.id !== producto.id));
         this.cerrarDetalle();
         this.aplicarFiltros();
         this.guardando.set(false);

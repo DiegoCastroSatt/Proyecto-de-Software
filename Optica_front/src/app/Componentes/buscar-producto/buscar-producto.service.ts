@@ -64,6 +64,14 @@ export class BuscarProductoService {
     return this.http.get<Producto[]>(this.apiUrl, { params: { termino } });
   }
 
+  buscarPagina(params: Record<string, string | number | boolean>): Observable<{
+    productos: Producto[]; haySiguiente: boolean; totalPaginas: number; categorias?: string[]; colores?: string[]; marcas?: string[];
+  }> {
+    return this.http.get<{
+      productos: Producto[]; haySiguiente: boolean; totalPaginas: number; categorias?: string[]; colores?: string[]; marcas?: string[];
+    }>(`${this.apiUrl}/pagina`, { params });
+  }
+
   solicitarAvisoReposicion(idProducto: number): Observable<AvisoReposicion> {
     return this.http.post<AvisoReposicion>(
       `${this.avisosReposicionUrl}/producto/${idProducto}`,
