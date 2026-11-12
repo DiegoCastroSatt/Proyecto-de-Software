@@ -1,0 +1,159 @@
+:host {
+  display: block;
+}
+
+.solicitudes-page {
+  min-height: 60vh;
+  padding: clamp(32px, 6vw, 72px) clamp(20px, 5vw, 64px);
+}
+
+.solicitudes-section {
+  width: min(820px, 100%);
+  margin: 0 auto;
+}
+
+.section-header {
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-acento-hover);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.section-header h1 {
+  margin: 0;
+  color: var(--color-texto);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -.02em;
+}
+
+.section-subtitle {
+  margin: 8px 0 0;
+  color: var(--color-texto-secundario);
+  font-size: .92rem;
+  line-height: 1.6;
+}
+
+.loading-state,
+.message-state {
+  padding: 28px;
+  border-radius: 8px;
+  background: var(--color-superficie-calida);
+  color: var(--color-texto-secundario);
+  text-align: center;
+}
+
+.error-state {
+  border: 1px solid var(--color-error);
+}
+
+.error-state p {
+  margin: 0 0 16px;
+  color: var(--color-error);
+}
+
+button,
+.empty-state a {
+  display: inline-block;
+  border: 1px solid var(--color-principal);
+  border-radius: 4px;
+  padding: 10px 16px;
+  background: var(--color-principal);
+  color: var(--color-texto-inverso);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.empty-state {
+  border: 1px dashed var(--color-borde-control);
+  background: var(--color-fondo-panel);
+}
+
+.empty-icon {
+  color: var(--color-acento-hover);
+  font-size: 2rem;
+}
+
+.empty-state h2 {
+  margin: 10px 0;
+  color: var(--color-texto);
+  font: 1.35rem Georgia, 'Times New Roman', serif;
+}
+
+.empty-state p {
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+
+.solicitudes-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.solicitud-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 26px;
+  border: 1px solid var(--color-borde-pedido);
+  border-radius: 8px;
+  background: var(--color-superficie-calida);
+  box-shadow: 0 4px 18px var(--sombra-principal-08);
+}
+
+.solicitud-label {
+  margin: 0 0 5px;
+  color: var(--color-texto-secundario);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.solicitud-info h2 {
+  margin: 0;
+  color: var(--color-texto);
+  font: 1.2rem Georgia, 'Times New Roman', serif;
+}
+
+.solicitud-date {
+  margin: 8px 0 0;
+  color: var(--color-texto-secundario);
+  font-size: .88rem;
+}
+
+.solicitud-status {
+  flex: 0 0 auto;
+  border-radius: 20px;
+  padding: 6px 12px;
+  background: var(--color-aviso-fondo);
+  color: var(--color-aviso-texto);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.solicitud-status[data-estado='cerrada'] {
+  background: var(--color-fondo-panel);
+  color: var(--color-texto-secundario);
+}
+
+@media (max-width: 560px) {
+  .solicitud-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+}

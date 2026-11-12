@@ -42,6 +42,8 @@ import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
 import { HistorialStock } from './Componentes/historial-stock/historial-stock';
 import { ResponderEncuestaComponent } from './Componentes/responder-encuesta/responder-encuesta';
 import { ResultadosEncuestasComponent } from './Componentes/resultados-encuestas/resultados-encuestas';
+import { ListaSolicitudes } from './Componentes/solicitudes-cliente/solicitudes-cliente';
+import { Solicitudes as SolicitudesAdmin } from './Componentes/solicitudes-admin/solicitudes-admin';
 
 export const routes: Routes = [
   {
@@ -55,6 +57,7 @@ export const routes: Routes = [
       { path: 'encuesta', component: ResponderEncuestaComponent },
       { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/perfil', component: MiPerfilComponent, canActivate: [authClienteGuard] },
+      { path: 'cliente/solicitudes', component: ListaSolicitudes, canActivate: [authClienteGuard] },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
@@ -100,6 +103,7 @@ export const routes: Routes = [
           { path: 'clientes', component: ClientesComponent, data: { permiso: 'clientes', tituloInicio: 'Clientes' } },
           { path: 'productos', component: BuscarProductoAdmin, data: { permiso: 'inventario', tituloInicio: 'Inventario' } },
           { path: 'stock', component: ConsultarStock, data: { permiso: 'inventario' } },
+          { path: 'solicitudes', component: SolicitudesAdmin, data: { permiso: 'inventario' } },
           { path: 'marcos', component: GestionMarcosComponent, data: { permiso: 'inventario' } },
           { path: 'marcos/crear', component: CrearMarcoComponent, data: { permiso: 'inventario' } },
           { path: 'marcos/rostros', component: GestionRostrosComponent, data: { permiso: 'inventario' } },

@@ -6,6 +6,7 @@ public interface IProductoRepository
     Task<Producto> CrearConHistorialStock(Producto producto, int idResponsable);
     Task<bool> ExisteCodigo(string codigo);
     Task<List<Producto>> Buscar(string termino);
+    Task<List<Producto>> ObtenerParaReporteInventario(CancellationToken cancellationToken);
     Task<Producto?> ObtenerPorId(int id);
     Task<Producto> ActualizarConHistorialStock(Producto producto, int idResponsable, string motivoMovimiento);
     Task<HistorialStockPaginadoResponseDto?> ConsultarHistorialStock(int idProducto, int pagina, int tamanoPagina);

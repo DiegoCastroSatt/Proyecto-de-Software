@@ -3,7 +3,7 @@
 INSERT INTO trabajador_optica
     (nombre, nombre_usuario, correo, contrasena, estado, tipo_usuario)
 VALUES
-    ('Usuario Sintético E2E', 'e2e-fixture-admin', 'admin-e2e@optica.invalid', '', 'Activo', 'Administrador');
+    ('Administrador Sintético E2E', 'e2e-admin', 'admin-e2e@optica.invalid', 'AQAAAAIAAYagAAAAEDxrYdoLcHyNreCTWB4KpTP+pEZ5yh0d/Ho6rPppTaw963mOeQaMGaWuRGu+OcOVLQ==', 'Activo', 'Administrador');
 
 INSERT INTO clientes (rut, nombre, apellido, telefono, correo, estado)
 VALUES ('E2E000001', 'Cliente', 'E2E', '900000000', 'cliente-e2e@optica.invalid', 'Activo');
@@ -19,7 +19,7 @@ VALUES
 INSERT INTO horarios_atencion (id_administrador, fecha, hora_inicio, hora_fin, estado)
 SELECT id_trabajador, DATE_ADD(CURDATE(), INTERVAL 14 DAY), '10:00:00', '10:20:00', 'Habilitada'
 FROM trabajador_optica
-WHERE nombre_usuario = 'e2e-fixture-admin'
+WHERE nombre_usuario = 'e2e-admin'
   AND NOT EXISTS (
       SELECT 1
       FROM horarios_atencion

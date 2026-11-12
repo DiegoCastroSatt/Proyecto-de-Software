@@ -94,6 +94,23 @@ id_tipo_marco INT NULL,
 CONSTRAINT fk_producto_tipo_marco FOREIGN KEY (id_tipo_marco) REFERENCES tipos_marco(id_tipo_marco) ON DELETE SET NULL
 );
 
+CREATE TABLE avisos_reposicion (
+    id_aviso INT AUTO_INCREMENT PRIMARY KEY,
+    rut VARCHAR(12) NOT NULL,
+    id_producto INT NOT NULL,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado ENUM('Abierta', 'Cerrada') NOT NULL DEFAULT 'Abierta',
+    CONSTRAINT fk_avisos_reposicion_cliente
+        FOREIGN KEY (rut) REFERENCES clientes(rut)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_avisos_reposicion_producto
+        FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+        ON DELETE RESTRICT,
+    INDEX idx_avisos_reposicion_producto_estado (id_producto, estado),
+    INDEX idx_avisos_reposicion_rut_estado (rut, estado)
+);
+
 CREATE TABLE pedidos (
 id_pedido INT AUTO_INCREMENT PRIMARY KEY,
 rut VARCHAR(12) NOT NULL,
