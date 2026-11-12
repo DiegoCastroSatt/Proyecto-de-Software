@@ -1,5 +1,5 @@
 import { AutocompletadoRut } from '../../shared/components/autocompletado-rut/autocompletado-rut';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { PedidoService, ClienteOption } from '../pedido/pedido.service';
@@ -21,8 +21,8 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
   protected readonly clientes = signal<ClienteOption[]>([]);
 
   private pdfRawUrl: string | null = null;
-  private pdfBlob: Blob | null = null;
   private pdfNombreArchivo = 'cotizacion-pedido.pdf';
+  private redireccionTimeout?: ReturnType<typeof setTimeout>;
 
   protected readonly pedidoForm;
 
@@ -35,9 +35,12 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
     this.pedidoForm = this.formBuilder.group({
       rut: ['', Validators.required],
       fecha: ['', Validators.required],
+      fechaVencimiento: [''],
       estado: ['Pendiente', Validators.required],
       productos: [''],
-      total: [0, [Validators.required, Validators.min(0)]],
+      servicios: [''],
+      // El total lo ingresa el empleado: el sistema no lo calcula ni lo estima.
+      total: [null as number | null, [Validators.required, Validators.min(1), Validators.pattern(/^\d+$/)]],
       anotaciones: ['']
     });
   }
@@ -50,9 +53,17 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.redireccionTimeout);
     if (this.pdfRawUrl) {
       URL.revokeObjectURL(this.pdfRawUrl);
       this.pdfRawUrl = null;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  protected alPulsarEscape(): void {
+    if (this.mostrarModalCotizacion()) {
+      this.cerrarModalCotizacion();
     }
   }
 
@@ -68,12 +79,16 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
     this.successMessage.set('');
 
     const productos = formValue.productos?.trim() ?? '';
+    const servicios = formValue.servicios?.trim() ?? '';
     const anotaciones = formValue.anotaciones?.trim() ?? '';
+
     let anotacionesFinales = anotaciones;
-    if (productos) {
-      anotacionesFinales = anotaciones
-        ? `Productos:\n${productos}\n\nAnotaciones:\n${anotaciones}`
-        : `Productos:\n${productos}`;
+    if (productos || servicios) {
+      const secciones: string[] = [];
+      if (productos) secciones.push(`Productos:\n${productos}`);
+      if (servicios) secciones.push(`Servicios:\n${servicios}`);
+      if (anotaciones) secciones.push(`Anotaciones:\n${anotaciones}`);
+      anotacionesFinales = secciones.join('\n\n');
     }
 
     this.pedidoService.crearPedido({
@@ -86,8 +101,10 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
       next: () => {
         this.isSubmitting.set(false);
         this.successMessage.set('Pedido guardado exitosamente.');
-        this.pedidoForm.reset();
-        setTimeout(() => this.router.navigate(['/admin/panel/pedido']), 2000);
+        // El modal solo se cierra cuando el guardado fue exitoso.
+        this.cerrarModalCotizacion();
+        this.pedidoForm.reset({ estado: 'Pendiente', total: null });
+        this.redireccionTimeout = setTimeout(() => this.router.navigate(['/admin/panel/pedido']), 2000);
       },
       error: (error: { error?: { mensaje?: string } }) => {
         this.errorMessage.set(
@@ -110,6 +127,18 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.pedidoForm.invalid) {
+      this.pedidoForm.markAllAsTouched();
+      this.errorMessage.set('Completa los datos obligatorios (fecha y un total mayor a 0) para generar la cotización.');
+      return;
+    }
+
+    const errorCotizacion = this.validarDatosCotizacion();
+    if (errorCotizacion) {
+      this.errorMessage.set(errorCotizacion);
+      return;
+    }
+
     this.generandoCotizacion.set(true);
     this.errorMessage.set('');
 
@@ -122,15 +151,15 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
       const pdf = await crearCotizacionPedidoPdf({
         rutCliente: rut,
         nombreCliente: clienteEncontrado?.nombreCompleto,
-        fecha: formValue.fecha || new Date().toISOString().slice(0, 10),
-        total: Number(formValue.total) || 0,
+        fecha: formValue.fecha ?? '',
+        fechaVencimiento: formValue.fechaVencimiento ?? '',
+        total: Number(formValue.total),
         productos: formValue.productos ?? '',
-        anotaciones: formValue.anotaciones ?? '',
-        estado: formValue.estado ?? 'Pendiente'
+        servicios: formValue.servicios ?? '',
+        anotaciones: formValue.anotaciones ?? ''
       });
 
       const blob = pdf.output('blob');
-      this.pdfBlob = blob;
       const rutLimpio = rut.replace(/[.-]/g, '');
       this.pdfNombreArchivo = `cotizacion-pedido-${rutLimpio || 'cliente'}.pdf`;
 
@@ -157,24 +186,42 @@ export class CrearPedidoComponent implements OnInit, OnDestroy {
   }
 
   protected descargarCotizacion(): void {
-    if (!this.pdfBlob) return;
-    const url = URL.createObjectURL(this.pdfBlob);
+    if (!this.pdfRawUrl) return;
     const enlace = document.createElement('a');
-    enlace.href = url;
+    enlace.href = this.pdfRawUrl;
     enlace.download = this.pdfNombreArchivo;
     document.body.appendChild(enlace);
     enlace.click();
     enlace.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  protected abrirCotizacionEnPestana(): void {
+    if (!this.pdfRawUrl) return;
+    window.open(this.pdfRawUrl, '_blank', 'noopener');
   }
 
   protected finalizarPedidoDesdeModal(): void {
-    this.cerrarModalCotizacion();
     this.submitPedido();
   }
 
   protected hasError(controlName: string, error: string): boolean {
     const control = this.pedidoForm.get(controlName);
     return Boolean(control?.touched && control.hasError(error));
+  }
+
+  private validarDatosCotizacion(): string | null {
+    const { productos, servicios, fecha, fechaVencimiento } = this.pedidoForm.getRawValue();
+
+    if (!productos?.trim() && !servicios?.trim()) {
+      return 'Indica al menos un producto o servicio para generar la cotización.';
+    }
+    if (!fechaVencimiento) {
+      this.pedidoForm.controls.fechaVencimiento.markAsTouched();
+      return 'Indica la fecha de vencimiento de la cotización.';
+    }
+    if (fecha && fechaVencimiento < fecha) {
+      return 'La fecha de vencimiento no puede ser anterior a la fecha de la cotización.';
+    }
+    return null;
   }
 }

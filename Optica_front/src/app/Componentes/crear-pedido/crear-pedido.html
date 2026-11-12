@@ -26,8 +26,6 @@
 
               @if (hasError('rut', 'required')) {
               <span class="error-text">El RUT es obligatorio</span>
-              } @else if(hasError('rut', 'maxlength')) {
-              <span class="error-text">El RUT ingresado es demasiado largo</span>
               }
             </div>
 
@@ -37,6 +35,12 @@
               @if (hasError('fecha', 'required')) {
               <span class="error-text">La fecha es obligatoria</span>
               }
+            </div>
+
+            <div class="form-group">
+              <label for="fechaVencimiento">Fecha de vencimiento de la cotización</label>
+              <input type="date" id="fechaVencimiento" formControlName="fechaVencimiento" class="form-control"
+                [min]="pedidoForm.controls.fecha.value">
             </div>
 
             <div class="form-group">
@@ -57,12 +61,20 @@
             </div>
 
             <div class="form-group">
-              <label for="total">Total a pagar</label>
-              <input type="number" id="total" formControlName="total" class="form-control" placeholder="0">
+              <label for="servicios">Servicios</label>
+              <textarea id="servicios" formControlName="servicios" class="form-control" rows="3"
+                placeholder="Detalla los servicios (ej. montaje, ajuste, examen visual)..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="total">Total a pagar (CLP)</label>
+              <input type="number" id="total" formControlName="total" class="form-control" placeholder="0" min="1" step="1">
               @if (hasError('total', 'required')) {
               <span class="error-text">El total es obligatorio</span>
-              } @else if(hasError('total', 'min')) {
-              <span class="error-text">El total no puede ser negativo</span>
+              } @else if (hasError('total', 'min')) {
+              <span class="error-text">El total debe ser mayor a 0</span>
+              } @else if (hasError('total', 'pattern')) {
+              <span class="error-text">El total debe ser un número entero, sin decimales</span>
               }
             </div>
 
@@ -98,15 +110,30 @@
     <div class="modal-fondo" (click)="cerrarModalCotizacion()" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-cotizacion">
       <div class="modal-cotizacion" (click)="$event.stopPropagation()">
 
+        <div class="modal-cotizacion__cabecera">
+          <div>
+            <h2 id="titulo-modal-cotizacion">Vista previa de la cotización</h2>
+            <p class="modal-cotizacion__subtitulo">Revisa el documento antes de descargarlo o confirmar el pedido.</p>
+          </div>
+          <button type="button" class="modal-cotizacion__cerrar" (click)="cerrarModalCotizacion()" aria-label="Cerrar vista previa">&times;</button>
+        </div>
+
         <div class="modal-cotizacion__visor">
           <iframe [src]="pdfPreviewUrl()" title="Vista previa de la cotización en PDF" class="modal-cotizacion__iframe"></iframe>
         </div>
+
+        @if (errorMessage()) {
+          <div class="error-banner notificacion-sistema" data-tipo="error" role="alert">{{ errorMessage() }}</div>
+        }
 
         <div class="modal-cotizacion__acciones">
           <button type="button" class="btn-secundario-modal" (click)="cerrarModalCotizacion()">
             Seguir editando
           </button>
           <div class="modal-cotizacion__acciones-principales">
+            <button type="button" class="btn-secundario-modal" (click)="abrirCotizacionEnPestana()">
+              Abrir en pestaña nueva
+            </button>
             <button type="button" class="btn-descargar-modal" (click)="descargarCotizacion()">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
