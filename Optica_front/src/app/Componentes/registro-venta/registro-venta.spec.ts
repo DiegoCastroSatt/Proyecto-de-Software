@@ -12,11 +12,12 @@ import { RegistroVentaService, ProductoCaja, Venta } from './registro-venta.serv
 
 describe('Registro de ventas', () => {
   const producto = { idProducto: 1, codigoProducto: 'A', nombre: 'Lentes', precio: 100, stock: 2, cantidad: 1 };
-  const servicio = { listar: vi.fn(), buscar: vi.fn(), crear: vi.fn(), buscarCoincidencias: vi.fn() };
+  const servicio = { listarPagina: vi.fn(), resumir: vi.fn(), buscar: vi.fn(), crear: vi.fn(), buscarCoincidencias: vi.fn() };
 
   beforeEach(async () => {
     vi.resetAllMocks();
-    servicio.listar.mockReturnValue(of([]));
+    servicio.listarPagina.mockReturnValue(of({ ventas: [], haySiguiente: false, totalPaginas: 0 }));
+    servicio.resumir.mockReturnValue(of({ total: 0, meses: [], ranking: [] }));
     servicio.buscarCoincidencias.mockReturnValue(of([producto]));
     servicio.buscar.mockReturnValue(of(producto));
     servicio.crear.mockReturnValue(of({ idVenta: 1, fecha: '', total: 200, productos: [] }));
@@ -67,7 +68,7 @@ describe('Registro de ventas', () => {
   it('permite ver y descargar el comprobante de cada venta anterior del historial', () => {
     const ventas = [1, 2].map(id => ({ idVenta: id, fecha: '2026-10-01T12:00:00', total: 100,
       productos: [{ productoId: 1, nombre: 'Lentes', cantidad: 1, precioUnitario: 100, subtotal: 100 }] }));
-    servicio.listar.mockReturnValueOnce(of(ventas));
+    servicio.listarPagina.mockReturnValueOnce(of({ ventas, haySiguiente: false, totalPaginas: 1 }));
     const comprobantes = TestBed.inject(ComprobanteVentaService);
     const descargar = vi.spyOn(comprobantes, 'descargar').mockResolvedValue();
     const mostrar = vi.spyOn(comprobantes, 'mostrar').mockResolvedValue();
@@ -183,7 +184,7 @@ describe('Registro de ventas', () => {
   it('acumula códigos repetidos y registra todos los productos juntos', () => {
     const { dom, agregar, registrar } = preparar();
     agregar('A'); agregar('A');
-    expect(servicio.listar).not.toHaveBeenCalled();
+    expect(servicio.listarPagina).not.toHaveBeenCalled();
     expect(dom.querySelector('a')?.getAttribute('href')).toBe('/admin/panel/ventas/historial');
     expect(dom.querySelector('.panel-administracion')).toBeNull();
     expect(servicio.crear).not.toHaveBeenCalled();
@@ -230,15 +231,14 @@ describe('Registro de ventas', () => {
   });
 
   it('permite cambiar el top y el período desde la pantalla de ventas', () => {
-    const ahora = new Date();
-    const anterior = new Date(ahora);
-    anterior.setDate(anterior.getDate() - 15);
-    servicio.listar.mockReturnValue(of([
-      { idVenta: 1, fecha: ahora.toISOString(), total: 12, productos:
-        Array.from({ length: 12 }, (_, i) => ({ productoId: i + 1, nombre: `Producto ${i + 1}`, cantidad: 1, precioUnitario: 1, subtotal: 1 })) },
-      { idVenta: 2, fecha: anterior.toISOString(), total: 100, productos:
-        [{ productoId: 99, nombre: 'Producto anterior', cantidad: 100, precioUnitario: 1, subtotal: 100 }] }
-    ]));
+    servicio.resumir.mockImplementation(({ limite, desdeRanking, hastaRanking }) => {
+      const dias = (new Date(hastaRanking).getTime() - new Date(desdeRanking).getTime()) / 86_400_000;
+      const ranking = Array.from({ length: limite }, (_, i) => ({
+        productoId: i + 1, nombre: `Producto ${i + 1}`, unidades: 1
+      }));
+      if (dias > 15) ranking[0] = { productoId: 99, nombre: 'Producto anterior', unidades: 100 };
+      return of({ total: 2, meses: [], ranking });
+    });
     const fixture = TestBed.createComponent(VerVentasComponent);
     fixture.detectChanges();
     const dom = fixture.nativeElement as HTMLElement;
@@ -253,12 +253,12 @@ describe('Registro de ventas', () => {
   });
 
   it('distingue una carga fallida de un período sin ventas y permite reintentar', () => {
-    servicio.listar.mockReturnValue(throwError(() => new Error('Sin conexión')));
+    servicio.resumir.mockReturnValue(throwError(() => new Error('Sin conexión')));
     const fixture = TestBed.createComponent(VerVentasComponent);
     fixture.detectChanges();
     const dom = fixture.nativeElement as HTMLElement;
     expect(dom.querySelector('.rank-productos')?.textContent).toContain('No se pudo cargar el rank');
-    servicio.listar.mockReturnValue(of([]));
+    servicio.resumir.mockReturnValue(of({ total: 0, meses: [], ranking: [] }));
     servicio.buscarCoincidencias.mockReturnValue(of([producto]));
     dom.querySelector<HTMLButtonElement>('.rank-productos button')!.click();
     fixture.detectChanges();
