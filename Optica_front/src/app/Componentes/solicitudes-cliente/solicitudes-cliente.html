@@ -1,0 +1,42 @@
+<main class="solicitudes-page">
+  <section class="solicitudes-section" aria-labelledby="solicitudes-title">
+    <header class="section-header">
+      <p class="eyebrow">Mis solicitudes</p>
+      <h1 id="solicitudes-title">Solicitudes de reposición</h1>
+      <p class="section-subtitle">
+        Revisa los productos para los que pediste un aviso de notificación de stock.
+      </p>
+    </header>
+
+    @if (cargando()) {
+      <p class="loading-state" role="status">Cargando tus solicitudes…</p>
+    } @else if (error()) {
+      <section class="message-state error-state" role="alert">
+        <p>{{ error() }}</p>
+        <button type="button" (click)="cargarSolicitudes()">Intentar nuevamente</button>
+      </section>
+    } @else if (solicitudes().length === 0) {
+      <section class="message-state empty-state">
+        <span class="empty-icon" aria-hidden="true">✦</span>
+        <h2>Aún no tienes solicitudes</h2>
+        <p>Cuando un producto esté agotado, podrás pedir que te avisemos al reponerlo.</p>
+        <a routerLink="/productos">Buscar productos</a>
+      </section>
+    } @else {
+      <ul class="solicitudes-list">
+        @for (solicitud of solicitudes(); track solicitud.idAviso) {
+          <li class="solicitud-card">
+            <div class="solicitud-info">
+              <p class="solicitud-label">Producto</p>
+              <h2>{{ solicitud.nombreProducto }}</h2>
+              <p class="solicitud-date">Solicitud del {{ formatearFecha(solicitud.fecha) }}</p>
+            </div>
+            <span class="solicitud-status" [attr.data-estado]="solicitud.estado.toLowerCase()">
+              {{ solicitud.estado }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</main>

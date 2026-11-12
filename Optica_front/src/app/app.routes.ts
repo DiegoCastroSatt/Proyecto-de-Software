@@ -40,6 +40,8 @@ import { MisRecetas } from './Componentes/mis-recetas/mis-recetas';
 import { ConfirmarCuentaClienteComponent } from './Componentes/confirmar-cuenta-cliente/confirmar-cuenta-cliente';
 import { MiPerfilComponent } from './Componentes/mi-perfil/mi-perfil';
 import { HistorialStock } from './Componentes/historial-stock/historial-stock';
+import { ListaSolicitudes } from './Componentes/solicitudes-cliente/solicitudes-cliente';
+import { Solicitudes as SolicitudesAdmin } from './Componentes/solicitudes-admin/solicitudes-admin';
 
 export const routes: Routes = [
   {
@@ -50,8 +52,15 @@ export const routes: Routes = [
       { path: 'logincliente', redirectTo: 'cliente/login', pathMatch: 'full' },
       { path: 'cliente/login', component: LoginComponent },
       { path: 'cliente/confirmar-cuenta', component: ConfirmarCuentaClienteComponent },
+      // Las pantallas de encuestas se cargan bajo demanda para no aumentar el bundle inicial.
+      {
+        path: 'encuesta',
+        loadComponent: () =>
+          import('./Componentes/responder-encuesta/responder-encuesta').then((m) => m.ResponderEncuestaComponent),
+      },
       { path: 'cliente/inicio', component: PortalClienteComponent, canActivate: [authClienteGuard] },
       { path: 'cliente/perfil', component: MiPerfilComponent, canActivate: [authClienteGuard] },
+      { path: 'cliente/solicitudes', component: ListaSolicitudes, canActivate: [authClienteGuard] },
       { path: 'cliente/en-trabajo', component: EnTrabajoComponent, canActivate: [authClienteGuard], data: { titulo: 'Portal del cliente' } },
       { path: 'inicio', component: InicioClienteComponent },
       { path: 'reservas', component: ReservaComponent },
@@ -89,6 +98,14 @@ export const routes: Routes = [
           { path: 'horarios', component: GestionHorariosComponent, data: { permiso: 'horarios', tituloInicio: 'Horarios' } },
           { path: 'agenda', component: BuscarReservas, data: { permiso: 'agenda', tituloInicio: 'Agenda' } },
           {
+            path: 'encuestas',
+            loadComponent: () =>
+              import('./Componentes/resultados-encuestas/resultados-encuestas').then(
+                (m) => m.ResultadosEncuestasComponent,
+              ),
+            data: { permiso: 'agenda', tituloInicio: 'Encuestas' },
+          },
+          {
             path: 'productos/nuevo',
             component: ProductoComponent,
             data: { permiso: 'inventario' },
@@ -96,6 +113,7 @@ export const routes: Routes = [
           { path: 'clientes', component: ClientesComponent, data: { permiso: 'clientes', tituloInicio: 'Clientes' } },
           { path: 'productos', component: BuscarProductoAdmin, data: { permiso: 'inventario', tituloInicio: 'Inventario' } },
           { path: 'stock', component: ConsultarStock, data: { permiso: 'inventario' } },
+          { path: 'solicitudes', component: SolicitudesAdmin, data: { permiso: 'inventario' } },
           { path: 'marcos', component: GestionMarcosComponent, data: { permiso: 'inventario' } },
           { path: 'marcos/crear', component: CrearMarcoComponent, data: { permiso: 'inventario' } },
           { path: 'marcos/rostros', component: GestionRostrosComponent, data: { permiso: 'inventario' } },

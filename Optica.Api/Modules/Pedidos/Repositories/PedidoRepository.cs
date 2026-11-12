@@ -28,13 +28,16 @@ public class PedidoRepository : IPedidoRepository
         await ConsultarPedidosDetalle().OrderByDescending(p => p.Fecha)
             .ThenByDescending(p => p.IdPedido).ToListAsync();
 
-    public async Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino)
+    public async Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino, DateTime hoy)
     {
         var consulta = ConsultarPedidosDetalle();
         if (termino.Length > 0)
             consulta = consulta.Where(p => p.NombreCliente.Contains(termino));
 
-        var pedidos = await consulta.OrderByDescending(p => p.Fecha)
+        var pedidos = await consulta
+            .OrderByDescending(p => p.FechaEntregaEstimada.HasValue
+                && p.FechaEntregaEstimada < hoy && p.Estado != "Entregado" && p.Estado != "Cancelado")
+            .ThenByDescending(p => p.Fecha)
             .ThenByDescending(p => p.IdPedido)
             .Skip((pagina - 1) * tamano).Take(tamano + 1).ToListAsync();
 
@@ -57,7 +60,8 @@ public class PedidoRepository : IPedidoRepository
                     Fecha = p.Fecha,
                     Estado = p.Estado,
                     Total = p.Total,
-                    Anotaciones = p.Anotaciones
+                    Anotaciones = p.Anotaciones,
+                    FechaEntregaEstimada = p.FechaEntregaEstimada
                 });
 
     public async Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync()
@@ -106,7 +110,7 @@ public class PedidoRepository : IPedidoRepository
 
     public Task<Pedido?> ObtenerPedidoPorIdParaActualizarAsync(int id) =>
         _context.Pedidos
-            .FromSqlInterpolated($"SELECT id_pedido, rut, id_receta, fecha, estado, total, anotaciones FROM pedidos WHERE id_pedido = {id} FOR UPDATE")
+            .FromSqlInterpolated($"SELECT id_pedido, rut, id_receta, fecha, estado, total, anotaciones, fecha_entrega_estimada FROM pedidos WHERE id_pedido = {id} FOR UPDATE")
             .SingleOrDefaultAsync();
 
     public async Task ActualizarPedidoAsync(Pedido pedido)
@@ -130,7 +134,8 @@ public class PedidoRepository : IPedidoRepository
                     Fecha = p.Fecha,
                     Estado = p.Estado,
                     Total = p.Total,
-                    Anotaciones = p.Anotaciones
+                    Anotaciones = p.Anotaciones,
+                    FechaEntregaEstimada = p.FechaEntregaEstimada
                 }
             )
             .FirstOrDefaultAsync();
@@ -152,7 +157,8 @@ public class PedidoRepository : IPedidoRepository
                     Fecha = p.Fecha,
                     Estado = p.Estado,
                     Total = p.Total,
-                    Anotaciones = p.Anotaciones
+                    Anotaciones = p.Anotaciones,
+                    FechaEntregaEstimada = p.FechaEntregaEstimada
                 })
             .OrderByDescending(p => p.Fecha)
             .ThenByDescending(p => p.IdPedido)

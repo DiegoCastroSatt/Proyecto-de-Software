@@ -112,6 +112,30 @@
               <div><dt>Stock</dt><dd>{{ producto.stock }}</dd></div>
               <div><dt>Estado</dt><dd>{{ producto.estado }}</dd></div>
             </dl>
+            @if (!esAdministrador && esProductoAgotado(producto)) {
+              <section class="restock-notice" aria-label="Aviso de reposición">
+                @if (autenticacion.cliente()) {
+                  @if (!avisoReposicionEnviado()) {
+                    <button
+                      class="primary"
+                      type="button"
+                      [disabled]="enviandoAvisoReposicion()"
+                      (click)="solicitarAvisoReposicion(producto.id)">
+                      {{ enviandoAvisoReposicion() ? 'Registrando solicitud…' : 'Avisarme cuando vuelva a estar disponible' }}
+                    </button>
+                  }
+                } @else if (sesionClienteVerificada()) {
+                  <p class="review-note">Inicia sesión para solicitar un aviso cuando este producto vuelva a estar disponible.</p>
+                  <a routerLink="/cliente/login">Iniciar sesión</a>
+                }
+                @if (mensajeAvisoReposicion()) {
+                  <p class="notificacion-sistema" data-tipo="success" role="status">{{ mensajeAvisoReposicion() }}</p>
+                }
+                @if (errorAvisoReposicion()) {
+                  <p class="notificacion-sistema" data-tipo="error" role="alert">{{ errorAvisoReposicion() }}</p>
+                }
+              </section>
+            }
             @if (esAdministrador) {
               <div class="detail-actions">
                 <button class="primary" type="button" (click)="activarEdicion()">Editar producto</button>

@@ -59,6 +59,13 @@ public class ProductoRepository : IProductoRepository
         return productos;
     }
 
+    public Task<List<Producto>> ObtenerParaReporteInventario(CancellationToken cancellationToken) =>
+        _context.Productos
+            .AsNoTracking()
+            .OrderBy(producto => producto.Nombre)
+            .ThenBy(producto => producto.Codigo)
+            .ToListAsync(cancellationToken);
+
     public async Task<Producto?> ObtenerPorId(int id)
     {
         var producto = await _context.Productos.FirstOrDefaultAsync(item => item.IdProducto == id);

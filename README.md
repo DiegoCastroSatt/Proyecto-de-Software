@@ -1,87 +1,75 @@
-# Proyecto-de-Software
+# Centro Óptico San Francisco
 
-Equipo 1
+Aplicación web para apoyar la operación de una óptica: administración de clientes, recetas, productos e inventario, ventas, pedidos y agenda de reservas. Busca centralizar información que facilita la atención y el seguimiento de productos y reservas.
 
-Integrantes:
-1. Diego Castro
-2. Diego Peña
-3. Claudio Parra
-4. Alejandro Santibañez
-5. Tomás Marambio
-6. Ricardo Barreto
+## Arquitectura y tecnologías
 
-*Descripción:*
-Nosotros trabajaremos con el Centro óptico San Francisco, creando una aplicación web para solucionar ciertos problemas/deficits que posee,como por ejemplo dificultades a la hora de notificar el estado de los productos a los clientes. El equipo desarrollara una plataforma que permita el seguimiento de las prescripciones, visualizacion y modificacion de stock en el inventario y otros datos. 
+- **Frontend:** Angular 21, TypeScript y SSR de Angular.
+- **API:** ASP.NET Core sobre .NET 10, Entity Framework Core y proveedor MySQL.
+- **Persistencia:** MySQL 8.0.
+- **Pruebas:** Vitest (Angular), xUnit (.NET) y Playwright (E2E).
+- **Entorno local:** Docker Compose. El Compose principal publica la interfaz, API y base de datos.
 
-*Stack:* Para el Backend .NET, para el Frontend es Angular y la base de datos es MySQL.
+El frontend consume la API REST. La API aplica autenticación por cookies para personal y clientes y persiste sus datos en MySQL. La aplicación está organizada por módulos en `Optica.Api/Modules`; Angular vive en `Optica_front/`.
 
-## Ejecucion con Docker
+## Funcionalidades encontradas
 
-### Requisitos
+Incluye gestión administrativa de clientes, recetas y graduaciones, productos/stock, catálogos, tipos de marcos y rostros, pedidos, ventas, agenda y horarios; portal y perfil de cliente, consulta de recetas propias, reservas públicas, reseñas, recomendación y probador de marcos. Existe interfaz de consulta de pedidos para clientes, pero la API de pedidos exige el permiso administrativo `pedidos`; su flujo de cliente no está completo en el estado actual. El acceso administrativo depende del permiso asignado al personal. Hay rutas explícitas de «en trabajo» y no se deben considerar funciones terminadas. El alcance y las restricciones están en [Seguridad y permisos](docs/SEGURIDAD_Y_PERMISOS.md) y [Pruebas](docs/PRUEBAS.md).
 
-- Docker Desktop instalado y ejecutandose.
+## Estructura
+
+```text
+Optica.Api/                 API ASP.NET Core
+Optica_front/               aplicación Angular y pruebas Playwright
+tests/                      pruebas .NET
+database/schema.sql         esquema MySQL inicial
+database/insert.sql         datos de ejemplo para inicialización
+database/e2e/               seed sintético del entorno E2E
+docs/                       documentación técnica
+docker-compose.yml          entorno local principal
+docker-compose.e2e.yml      entorno temporal E2E
+E2E.md                      guía operativa E2E
+```
+
+## Requisitos
+
+- Docker Desktop con Docker Compose v2 para ejecutar la plataforma completa.
 - Git para clonar el repositorio.
-- Node.js y npm solo si se ejecuta Angular fuera de Docker.
+- Node.js 22 y npm para pruebas/frontend local, y .NET SDK 10 para la API y pruebas .NET.
 
-### Plataforma completa
+## Instalación rápida
 
-1. Clonar el repositorio y entrar a su carpeta:
-
-```bash
-git clone <URL_DEL_REPOSITORIO>
-cd Proyecto_de_Software
-```
-
-2. Crear el archivo `.env` a partir de `.env.example` y configurar `MYSQL_ROOT_PASSWORD`.
-
-```bash
-Copy-Item .env.example .env
-```
-
-3. Configurar `MYSQL_ROOT_PASSWORD` en `.env` y construir y levantar toda la plataforma:
+Clona el repositorio, crea `.env` a partir de `.env.example`, asigna localmente `MYSQL_ROOT_PASSWORD` y ejecuta:
 
 ```bash
 docker compose up --build -d
+docker compose ps
 ```
 
-Angular quedará disponible en `http://localhost:4200`, la API en `http://localhost:8080` y MySQL en `localhost:3307`. No necesitas ejecutar `npm start` para usar Angular con Docker. Si hay un servidor local de Angular usando el puerto 4200, detenlo antes de iniciar Compose.
+La aplicación queda en `http://localhost:4200`, la API en `http://localhost:8080` y MySQL en `localhost:3307`. No publiques ni compartas `.env`. El volumen MySQL es persistente; `docker compose down` detiene servicios y conserva los datos. Consulta [Instalación y ejecución](docs/INSTALACION.md) para SMTP, logs y desarrollo individual.
 
-El contenedor del frontend compila Angular y ejecuta su servidor de producción. La API espera a que MySQL esté disponible y los datos se conservan en el volumen existente.
-
-Esta configuración está preparada para abrir la plataforma desde el mismo equipo: el navegador consulta la API en `localhost:8080`.
-
-Para el uso local, `EMAIL_API_BASE_URL=http://localhost:8080` permite enviar los correos; sus enlaces funcionan al abrirlos en el mismo equipo donde corre Docker. Si el cliente abre el mensaje desde otro dispositivo, configura `EMAIL_API_BASE_URL` en `.env` con la URL HTTPS pública de la API, porque `localhost` apunta al dispositivo que abre el enlace.
-
-Para ver los logs:
+## Pruebas
 
 ```bash
-docker compose logs -f
-```
-
-Para detener los servicios:
-
-```bash
-docker compose down
-```
-
-El volumen de MySQL conserva los datos. Para eliminar tambien esos datos, usar `docker compose down -v`.
-
-### Frontend Angular para desarrollo sin Docker
-
-Para trabajar en Angular con recarga automática, ejecuta en otra terminal (sin el servicio `frontend` de Compose activo):
-
-```bash
+dotnet test tests/Optica_test/Optica.Tests.csproj --configuration Release
 cd Optica_front
-npm install
-npm start
+npm ci
+npm test -- --watch=false
+npm run e2e
 ```
 
-El frontend se abrira normalmente en `http://localhost:4200`.
+Playwright requiere el entorno aislado descrito en [E2E.md](E2E.md); no conecta con la base principal. Consulta [Pruebas](docs/PRUEBAS.md) para preparación, artefactos y alcance real.
 
-### Autenticación y actualización de una base existente
+## Despliegue
 
-El formulario unificado está disponible en `/cliente/login` y `/admin`. Los clientes ingresan con RUT válido o correo; administradores y trabajadores, con su nombre de usuario. La recuperación pide RUT para clientes y nombre de usuario para personal, y envía un código de seis dígitos al correo registrado.
+El repositorio contiene configuración para construir/ejecutar el Compose principal, pero no identifica de forma verificable el mecanismo que actualiza el servidor externo. No se asume que pasar CI despliegue la aplicación. Ver [Despliegue](docs/DESPLIEGUE.md) para lo que sí está confirmado y los datos pendientes.
 
-Los códigos de recuperación se conservan en memoria por cinco minutos. Si la API se reinicia, los códigos pendientes dejan de ser válidos y se puede solicitar uno nuevo.
+## Documentación
 
-Los datos de ejemplo están en `database/insert.sql`.
+- [Instalación, configuración y Docker](docs/INSTALACION.md)
+- [Esquema de base de datos](docs/BASE_DE_DATOS.md)
+- [API y endpoints](docs/API.md)
+- [Seguridad, autenticación y permisos](docs/SEGURIDAD_Y_PERMISOS.md)
+- [Pruebas](docs/PRUEBAS.md)
+- [CI y despliegue](docs/DESPLIEGUE.md)
+- [Entorno E2E](E2E.md)

@@ -8,7 +8,7 @@ public interface IPedidoRepository
 {
     Task<IEnumerable<Pedido>> ObtenerPedidosAsync();
     Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosDetalleAsync();
-    Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino)
+    Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino, DateTime hoy)
         => throw new NotSupportedException("El listado paginado de pedidos no está implementado.");
     Task<IEnumerable<Cliente>> ObtenerClientesActivosAsync();
     Task<IEnumerable<Cliente>> BuscarClientesPorRutAsync(string rut)

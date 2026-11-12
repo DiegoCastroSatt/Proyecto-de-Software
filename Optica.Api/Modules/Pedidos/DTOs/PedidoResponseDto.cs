@@ -11,6 +11,8 @@ public class PedidoResponseDto
     public decimal Total { get; set; }
     public string? Anotaciones { get; set; }
     public string? EstadoNotificacion { get; set; }
+    public DateTime? FechaEntregaEstimada { get; set; }
+    public bool Vencido { get; set; }
 }
 
 public record PedidosPaginaResponseDto(IReadOnlyList<PedidoResponseDto> Pedidos, bool HaySiguiente);

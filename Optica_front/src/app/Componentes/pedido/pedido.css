@@ -153,6 +153,10 @@
   box-shadow: 0 4px 16px color-mix(in srgb, var(--color-principal) 8%, transparent);
 }
 
+.pedido-card--vencido {
+  border-left: 4px solid var(--color-error-oscuro);
+}
+
 .pedido-info {
   display: flex;
   flex-direction: column;
@@ -166,6 +170,11 @@
 }
 
 .pedido-fecha {
+  color: var(--color-texto-secundario);
+  font-size: 0.85rem;
+}
+
+.pedido-fecha-entrega {
   color: var(--color-texto-secundario);
   font-size: 0.85rem;
 }
@@ -202,6 +211,19 @@
 .pedido-estado[data-estado="Cancelado"] {
   background: var(--color-estado-cancelado-fondo);
   color: var(--color-estado-cancelado);
+}
+
+.pedido-vencido-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--color-error-oscuro);
+  color: var(--color-superficie);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .pedido-actions {

@@ -46,13 +46,30 @@ export interface CatalogoItem {
   nombre: string;
 }
 
+export interface AvisoReposicion {
+  idAviso: number;
+  idProducto: number;
+  nombreProducto: string;
+  fecha: string;
+  estado: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BuscarProductoService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8080/api/Productos';
+  private readonly avisosReposicionUrl = 'http://localhost:8080/api/AvisosReposicion';
 
   buscar(termino: string): Observable<Producto[]> {
     return this.http.get<Producto[]>(this.apiUrl, { params: { termino } });
+  }
+
+  solicitarAvisoReposicion(idProducto: number): Observable<AvisoReposicion> {
+    return this.http.post<AvisoReposicion>(
+      `${this.avisosReposicionUrl}/producto/${idProducto}`,
+      {},
+      { withCredentials: true }
+    );
   }
 
   actualizar(id: number, producto: ProductoEditable): Observable<Producto> {
