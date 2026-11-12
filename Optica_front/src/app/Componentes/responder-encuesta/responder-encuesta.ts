@@ -14,6 +14,15 @@ const MENSAJE_ENLACE_INVALIDO = 'Este enlace no es válido o la encuesta ya fue 
 const MENSAJE_ENLACE_VENCIDO =
   'Este enlace venció. Las encuestas pueden responderse hasta 14 días después de recibir el correo.';
 
+/** Control de una pregunta calificada con estrellas: obligatoria y entre 1 y 5. */
+function crearControlCalificacion(): FormControl<number | null> {
+  return new FormControl<number | null>(null, [
+    Validators.required,
+    Validators.min(1),
+    Validators.max(5),
+  ]);
+}
+
 @Component({
   selector: 'app-responder-encuesta',
   standalone: true,
@@ -47,21 +56,9 @@ export class ResponderEncuestaComponent implements OnInit {
   readonly largoComentario = signal(0);
 
   readonly formulario = new FormGroup({
-    calificacionGeneral: new FormControl<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(5),
-    ]),
-    calificacionTrato: new FormControl<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(5),
-    ]),
-    calificacionPuntualidad: new FormControl<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(5),
-    ]),
+    calificacionGeneral: crearControlCalificacion(),
+    calificacionTrato: crearControlCalificacion(),
+    calificacionPuntualidad: crearControlCalificacion(),
     comentario: new FormControl('', {
       nonNullable: true,
       validators: [Validators.maxLength(LARGO_MAXIMO_COMENTARIO)],
