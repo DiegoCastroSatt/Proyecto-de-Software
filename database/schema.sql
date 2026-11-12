@@ -120,6 +120,7 @@ estado ENUM('Pendiente', 'En proceso', 'Listo', 'Entregado', 'Cancelado')
 NOT NULL DEFAULT 'Pendiente',
 total DECIMAL(10,2) NOT NULL DEFAULT 0,
 anotaciones TEXT,
+fecha_entrega_estimada DATE NULL,
 -- RESTRICT evita borrar pedidos al eliminar un cliente; CASCADE en UPDATE permite
 -- anonimizar el RUT del cliente (ANON-{id}) conservando sus pedidos.
 CONSTRAINT fk_pedidos_cliente

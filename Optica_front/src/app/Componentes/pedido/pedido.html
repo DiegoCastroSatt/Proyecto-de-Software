@@ -21,13 +21,19 @@
         } @else {
         <div class="pedidos-list">
           @for (pedido of pedidosFiltrados(); track pedido.idPedido) {
-          <div class="pedido-card">
+          <div class="pedido-card" [class.pedido-card--vencido]="pedido.vencido">
             <div class="pedido-info">
               <span class="pedido-cliente">{{ pedido.nombreCliente }}</span>
               <span class="pedido-fecha">{{ pedido.fecha | date:'dd/MM/yyyy' }}</span>
               <span class="pedido-total">Total: ${{ pedido.total }}</span>
+              @if (pedido.fechaEntregaEstimada) {
+              <span class="pedido-fecha-entrega">Entrega estimada: {{ pedido.fechaEntregaEstimada | date:'dd/MM/yyyy' }}</span>
+              }
             </div>
             <div class="pedido-actions">
+              @if (pedido.vencido) {
+              <span class="pedido-vencido-badge">Atrasado</span>
+              }
               <span class="pedido-estado" [attr.data-estado]="pedido.estado">{{ pedido.estado }}</span>
               <a class="btn-detalle" [routerLink]="['/admin/panel/pedido', pedido.idPedido]">Detalle</a>
             </div>

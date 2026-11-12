@@ -84,7 +84,11 @@ export class DetallePedidoComponent implements OnInit, OnDestroy {
       this.enProceso.set(false);
     })).subscribe({
       next: (res) => {
-        this.pedido.set({ ...pedido, estado: res.estado });
+        this.pedido.set({
+          ...pedido,
+          estado: res.estado,
+          vencido: this.calcularVencido(pedido.fechaEntregaEstimada, res.estado)
+        });
         if (nuevoEstado === 'Listo') {
           switch (res.estadoNotificacion) {
             case 'Enviada':
@@ -123,6 +127,14 @@ export class DetallePedidoComponent implements OnInit, OnDestroy {
     if (this.temporizadorMensaje) clearTimeout(this.temporizadorMensaje);
     this.mensajeTemporal.set({ tipo, texto });
     this.temporizadorMensaje = setTimeout(() => this.mensajeTemporal.set(null), 5000);
+  }
+
+  private calcularVencido(fechaEntregaEstimada: string | undefined, estado: string): boolean {
+    if (!fechaEntregaEstimada) return false;
+    if (estado === 'Entregado' || estado === 'Cancelado') return false;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return new Date(fechaEntregaEstimada) < hoy;
   }
 
   private obtenerMensajeError(error: unknown, mensajePredeterminado: string): string {

@@ -8,6 +8,7 @@ export interface CrearPedido {
   estado: string;
   total: number;
   anotaciones?: string;
+  fechaEntregaEstimada?: string;
 }
 
 export interface PedidoResponse {
@@ -17,6 +18,8 @@ export interface PedidoResponse {
   estado: string;
   total: number;
   anotaciones?: string;
+  fechaEntregaEstimada?: string;
+  vencido?: boolean;
 }
 
 export interface ResultadoActualizacionPedido {

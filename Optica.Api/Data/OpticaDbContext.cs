@@ -355,6 +355,7 @@ public class OpticaDbContext : DbContext
             entity.Property(p => p.Estado).HasColumnName("estado");
             entity.Property(p => p.Total).HasColumnName("total").HasPrecision(10, 2);
             entity.Property(p => p.Anotaciones).HasColumnName("anotaciones");
+            entity.Property(p => p.FechaEntregaEstimada).HasColumnName("fecha_entrega_estimada");
         });
 
         modelBuilder.Entity<CorreoReservaPendiente>(entity =>

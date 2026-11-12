@@ -79,7 +79,8 @@ describe('CrearPedidoComponent', () => {
       fecha: '2026-10-14',
       estado: 'En proceso',
       total: 12000,
-      anotaciones: 'Lentes antireflejo'
+      anotaciones: 'Lentes antireflejo',
+      fechaEntregaEstimada: ''
     });
 
     const formulario = fixture.nativeElement.querySelector('form') as HTMLFormElement;
@@ -109,7 +110,8 @@ describe('CrearPedidoComponent', () => {
       fecha: '2026-10-14',
       estado: 'Pendiente',
       total: 0,
-      anotaciones: ''
+      anotaciones: '',
+      fechaEntregaEstimada: ''
     });
 
     fixture.componentInstance['submitPedido']();

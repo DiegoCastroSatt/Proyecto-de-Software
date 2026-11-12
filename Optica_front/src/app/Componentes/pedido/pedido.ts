@@ -15,10 +15,10 @@ export class PedidoComponent implements OnInit {
 
   protected readonly pedidosFiltrados = computed(() => {
     const termino = this.terminoBusqueda().toLowerCase().trim();
-    if (!termino) {
-      return this.pedidos();
-    }
-    return this.pedidos().filter(p => p.nombreCliente.toLowerCase().includes(termino));
+    const lista = termino
+      ? this.pedidos().filter(p => p.nombreCliente.toLowerCase().includes(termino))
+      : this.pedidos();
+    return [...lista].sort((a, b) => Number(b.vencido ?? false) - Number(a.vencido ?? false));
   });
 
   constructor(private readonly pedidoService: PedidoService) {}
