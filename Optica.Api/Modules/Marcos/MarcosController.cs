@@ -28,7 +28,7 @@ public sealed class MarcosController(OpticaDbContext db) : ControllerBase
         var tipos = await db.TiposMarco.AsNoTracking().Where(t => !disponibles || t.Activo).OrderBy(t => t.Nombre).ToListAsync(ct);
         var productos = await db.Productos.AsNoTracking().Where(p => p.IdTipoMarco != null)
             .Select(p => new { p.IdTipoMarco, p.Stock, p.Estado, p.Categoria }).ToListAsync(ct);
-        productos = productos.Where(p => ValidacionMarco.EsArmazon(p.Categoria)).ToList();
+        productos = productos.Where(p => ValidacionMarco.EsProductoVinculable(p.Categoria)).ToList();
         var stocks = productos.Where(p => p.Stock > 0 && p.Estado == "Disponible")
             .GroupBy(p => p.IdTipoMarco!.Value).ToDictionary(g => g.Key, g => g.Sum(p => p.Stock));
         var vinculados = productos.GroupBy(p => p.IdTipoMarco!.Value).ToDictionary(g => g.Key, g => g.Count());
@@ -102,7 +102,7 @@ public sealed class MarcosController(OpticaDbContext db) : ControllerBase
     {
         var productos = await db.Productos.AsNoTracking().OrderBy(p => p.Nombre)
             .Select(p => new ProductoVinculableMarcoResponse(p.IdProducto, p.Codigo, p.Nombre, p.Categoria, p.Marca, p.Stock, p.Estado, p.IdTipoMarco)).ToListAsync(ct);
-        return Ok(productos.Where(p => ValidacionMarco.EsArmazon(p.Categoria)).ToList());
+        return Ok(productos.Where(p => ValidacionMarco.EsProductoVinculable(p.Categoria)).ToList());
     }
 
     [HttpPut("{id:int}/productos")]
@@ -115,8 +115,8 @@ public sealed class MarcosController(OpticaDbContext db) : ControllerBase
         var productos = await db.Productos.Where(p => p.IdTipoMarco == id || seleccion.Contains(p.IdProducto)).ToListAsync(ct);
         if (seleccion.Any(idProducto => !productos.Any(p => p.IdProducto == idProducto)))
             return BadRequest(new { mensaje = "Uno de los productos ya no existe. Actualiza la lista antes de guardar." });
-        if (productos.Any(p => seleccion.Contains(p.IdProducto) && !ValidacionMarco.EsArmazon(p.Categoria)))
-            return BadRequest(new { mensaje = "Solo se pueden vincular productos de la categoría Armazones." });
+        if (productos.Any(p => seleccion.Contains(p.IdProducto) && !ValidacionMarco.EsProductoVinculable(p.Categoria)))
+            return BadRequest(new { mensaje = "Solo se pueden vincular armazones, lentes ópticos y lentes de sol." });
         foreach (var producto in productos)
             producto.IdTipoMarco = seleccion.Contains(producto.IdProducto) ? id : null;
         await db.SaveChangesAsync(ct);
