@@ -1,3 +1,4 @@
+import { Subject, takeUntil } from 'rxjs';
 import { ComprobanteVentaService } from '../../shared/services/comprobante-venta.service';
 import { Component, OnInit, signal, computed, ElementRef, ViewChild, OnDestroy, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
@@ -89,6 +90,8 @@ export class VerVentasComponent implements OnInit, OnDestroy {
     this.destruido = true;
     this.revisionGrafico++;
     if (this.relojRank !== undefined) clearInterval(this.relojRank);
+    this.cancelarPagina.next();
+    this.cancelarResumen.next();
     this.grafico?.destroy();
     this.grafico = undefined;
   }
@@ -98,23 +101,31 @@ export class VerVentasComponent implements OnInit, OnDestroy {
   protected readonly cargandoHistorial = signal(true);
   protected readonly errorHistorial = signal(false);
   protected readonly desdeRank = computed(() => inicioPeriodo(this.periodoRank(), this.fechaRank()));
-  protected readonly rank = computed(() => productosMasVendidos(
-    this.ventas(), this.periodoRank(), this.limiteRank(), this.fechaRank()
-  ));
+  protected readonly rank = signal<ProductoMasVendido[]>([]);
+  protected readonly pagina = signal(1);
+  protected readonly totalPaginas = signal(0);
+  protected readonly cargandoResumen = signal(true);
+  protected readonly totalVentas = signal(0);
+  private readonly cancelarPagina = new Subject<void>();
+  private readonly cancelarResumen = new Subject<void>();
 
   protected cambiarPeriodoRank(valor: string): void {
     if (valor === 'semana' || valor === 'mes' || valor === 'semestre' || valor === 'anio') {
       this.periodoRank.set(valor);
       this.fechaRank.set(new Date());
+      this.cargarResumen();
     }
   }
 
   protected cambiarLimiteRank(valor: string): void {
-    if (valor === '5' || valor === '10') this.limiteRank.set(Number(valor) as 5 | 10);
+    if (valor === '5' || valor === '10') {
+      this.limiteRank.set(Number(valor) as 5 | 10);
+      this.cargarResumen();
+    }
   }
 
   protected readonly ventas = signal<Venta[]>([]);
-  protected readonly meses = computed<ResumenMensual[]>(() => this.resumirMeses(this.ventas()));
+  protected readonly meses = signal<ResumenMensual[]>([]);
   protected readonly mesActual = computed(() => {
     const clave = this.claveMes(new Date());
     return this.meses().find(mes => mes.clave === clave) ?? {
@@ -127,26 +138,61 @@ export class VerVentasComponent implements OnInit, OnDestroy {
   protected readonly maximoMensual = computed(() => Math.max(...this.meses().map(mes => mes.ingreso), 0));
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.relojRank = setInterval(() => this.fechaRank.set(new Date()), 60_000);
+      this.relojRank = setInterval(() => {
+        this.fechaRank.set(new Date());
+        this.cargarResumen();
+      }, 60_000);
     }
     this.cargarVentas();
   }
 
   protected cargarVentas(): void {
-    this.error.set('');
+    this.cargarPagina(this.pagina());
+    this.cargarResumen();
+  }
+
+  protected cargarPagina(pagina: number): void {
+    this.cancelarPagina.next();
     this.cargandoHistorial.set(true);
     this.errorHistorial.set(false);
-    this.servicio.listar().subscribe({
-      next: ventas => {
-        this.ventas.set(ventas);
-        this.fechaRank.set(new Date());
+    this.servicio.listarPagina(pagina).pipe(takeUntil(this.cancelarPagina)).subscribe({
+      next: resultado => {
+        this.ventas.set(resultado.ventas);
+        this.pagina.set(pagina);
+        this.totalPaginas.set(resultado.totalPaginas);
         this.cargandoHistorial.set(false);
-        void this.actualizarGrafico();
       },
       error: () => {
         this.cargandoHistorial.set(false);
         this.errorHistorial.set(true);
-        this.error.set('No se pudo cargar el historial de ventas.');
+      }
+    });
+  }
+
+  private cargarResumen(): void {
+    this.cancelarResumen.next();
+    this.cargandoResumen.set(true);
+    this.error.set('');
+    const hoy = this.fechaRank();
+    const desde = new Date(hoy.getFullYear(), hoy.getMonth() - 11, 1);
+    const hasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+    // Las ventas se interpretan como fechas locales en el historial.
+    const fechaLocal = (fecha: Date) => new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60_000)
+      .toISOString().slice(0, -1);
+    this.servicio.resumir({
+      desde: fechaLocal(desde), hasta: fechaLocal(hasta),
+      desdeRanking: fechaLocal(this.desdeRank()), hastaRanking: fechaLocal(hoy), limite: this.limiteRank()
+    }).pipe(takeUntil(this.cancelarResumen)).subscribe({
+      next: resultado => {
+        this.cargandoResumen.set(false);
+        this.totalVentas.set(resultado.total);
+        this.rank.set(resultado.ranking);
+        this.meses.set(this.resumirMeses(resultado.meses, hoy));
+        void this.actualizarGrafico();
+      },
+      error: () => {
+        this.cargandoResumen.set(false);
+        this.error.set('No se pudo cargar el resumen de ventas.');
       }
     });
   }
@@ -298,17 +344,16 @@ export class VerVentasComponent implements OnInit, OnDestroy {
     });
   }
 
-  private resumirMeses(ventas: Venta[]): ResumenMensual[] {
-    const hoy = new Date();
+  private resumirMeses(meses: { anio: number; mes: number; ingreso: number; cantidad: number }[], hoy: Date): ResumenMensual[] {
     return Array.from({ length: 12 }, (_, indice) => {
       const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - 11 + indice, 1);
       const clave = this.claveMes(fecha);
-      const delMes = ventas.filter(venta => this.claveMes(new Date(venta.fecha)) === clave);
+      const delMes = meses.find(mes => mes.anio === fecha.getFullYear() && mes.mes === fecha.getMonth() + 1);
       return {
         clave,
         etiqueta: new Intl.DateTimeFormat('es-CL', { month: 'short', year: 'numeric' }).format(fecha).replace('.', ''),
-        ingreso: delMes.reduce((suma, venta) => suma + venta.total, 0),
-        cantidad: delMes.length
+        ingreso: delMes?.ingreso ?? 0,
+        cantidad: delMes?.cantidad ?? 0
       };
     });
   }

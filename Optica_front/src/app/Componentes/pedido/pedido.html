@@ -10,17 +10,22 @@
 
         <div class="search-bar-container">
           <input type="search" class="search-input" placeholder="Buscar pedido por cliente"
-                 (input)="terminoBusqueda.set($any($event.target).value)" />
+                 (input)="buscar($any($event.target).value)" />
         </div>
 
-        @if (pedidosFiltrados().length === 0) {
+        @if (cargando()) {
+        <p role="status">Cargando pedidos…</p>
+        } @else if (error()) {
+        <p class="notificacion-sistema" data-tipo="error" role="alert">No se pudieron cargar los pedidos.</p>
+        <button type="button" (click)="cambiarPagina(pagina())">Reintentar</button>
+        } @else if (pedidos().length === 0) {
         <div class="empty-state">
           <p class="empty-title">Sin pedidos</p>
-          <p class="empty-subtitle">No hay pedidos registrados en el sistema.</p>
+          <p class="empty-subtitle">No se encontraron pedidos.</p>
         </div>
         } @else {
         <div class="pedidos-list">
-          @for (pedido of pedidosFiltrados(); track pedido.idPedido) {
+          @for (pedido of pedidos(); track pedido.idPedido) {
           <div class="pedido-card" [class.pedido-card--vencido]="pedido.vencido">
             <div class="pedido-info">
               <span class="pedido-cliente">{{ pedido.nombreCliente }}</span>
@@ -40,6 +45,32 @@
           </div>
           }
         </div>
+        }
+        @if (!cargando() && !error() && totalPaginas() > 1) {
+          <nav class="paginacion-listado" aria-label="Paginación de pedidos">
+            <button type="button" aria-label="Primera página" [disabled]="pagina() === 1" (click)="cambiarPagina(1)">«</button>
+            <button type="button" aria-label="Página anterior" [disabled]="pagina() === 1" (click)="cambiarPagina(pagina() - 1)">‹</button>
+            @let inicio = pagina() <= 2 ? 1 : pagina() === totalPaginas() ? pagina() - 2 : pagina() - 1;
+            @if (inicio > 1) {
+              <button type="button" (click)="cambiarPagina(1)">1</button>
+            }
+            @if (inicio > 2) {
+              <span class="paginacion-omision" aria-hidden="true">…</span>
+            }
+            @for (numero of [inicio, inicio + 1, inicio + 2]; track numero) {
+              @if (numero >= 1 && numero <= totalPaginas()) {
+                <button type="button" [attr.aria-current]="numero === pagina() ? 'page' : null" [disabled]="numero === pagina()" (click)="cambiarPagina(numero)">{{ numero }}</button>
+              }
+            }
+            @if (inicio + 3 < totalPaginas()) {
+              <span class="paginacion-omision" aria-hidden="true">…</span>
+            }
+            @if (inicio + 2 < totalPaginas()) {
+              <button type="button" (click)="cambiarPagina(totalPaginas())">{{ totalPaginas() }}</button>
+            }
+            <button type="button" aria-label="Página siguiente" [disabled]="pagina() >= totalPaginas()" (click)="cambiarPagina(pagina() + 1)">›</button>
+            <button type="button" aria-label="Última página" [disabled]="pagina() >= totalPaginas()" (click)="cambiarPagina(totalPaginas())">»</button>
+          </nav>
         }
       </div>
     </section>

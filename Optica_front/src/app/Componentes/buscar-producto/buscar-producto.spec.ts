@@ -1,7 +1,6 @@
 import { FormBuilder } from '@angular/forms';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BehaviorSubject, of, throwError } from 'rxjs';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { BuscarProductoComponent } from './buscar-producto';
 import { BuscarProductoService, Producto } from './buscar-producto.service';
 import { ResenasProductoService } from './resenas-producto.service';
@@ -21,11 +20,10 @@ const productos: Producto[] = [
 ];
 
 describe('BuscarProductoComponent', () => {
-  let parametros: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let component: BuscarProductoComponent;
   let fixture: ComponentFixture<BuscarProductoComponent>;
   let service: {
-    buscar: ReturnType<typeof vi.fn>;
+    buscarPagina: ReturnType<typeof vi.fn>;
     actualizar: ReturnType<typeof vi.fn>;
   };
   let resenasService: {
@@ -35,9 +33,14 @@ describe('BuscarProductoComponent', () => {
   };
 
   beforeEach(async () => {
-    parametros = new BehaviorSubject(convertToParamMap({}));
     service = {
-      buscar: vi.fn(() => of(productos)),
+      buscarPagina: vi.fn(({ estado, categoria, color, marca, ordenPrecio }) => {
+        const filtrados = productos.filter(p => (!estado || p.estado === estado) &&
+          (!categoria || p.categoria === categoria) && (!color || p.color === color) && (!marca || p.marca === marca));
+        if (ordenPrecio) filtrados.sort((a, b) => ordenPrecio === 'menor' ? a.precio - b.precio : b.precio - a.precio);
+        return of({ productos: filtrados, haySiguiente: false, categorias: ['Armazones', 'Lentes de sol'],
+          colores: ['Dorado', 'Negro'], marcas: ['Ray-Ban', 'Vogue'] });
+      }),
       actualizar: vi.fn((id: number, producto: Producto) => of({ ...productos[0], ...producto, id }))
     };
     resenasService = {
@@ -50,7 +53,6 @@ describe('BuscarProductoComponent', () => {
       imports: [BuscarProductoComponent],
       providers: [
         FormBuilder,
-        { provide: ActivatedRoute, useValue: { queryParamMap: parametros } },
         { provide: BuscarProductoService, useValue: service },
         { provide: ResenasProductoService, useValue: resenasService },
         { provide: AutenticacionClienteService, useValue: {
@@ -70,18 +72,7 @@ describe('BuscarProductoComponent', () => {
     expect(component['filtrosForm'].controls.estado.value).toBe('');
     expect(component['categorias']()).toEqual(['Armazones', 'Lentes de sol']);
     expect(component['colores']()).toEqual(['Dorado', 'Negro']);
-    expect(service.buscar).toHaveBeenCalledWith('');
-  });
-
-  it('muestra solo los armazones y lentes vinculados al marco de la URL', () => {
-    const coincidencias = productos.map(producto => ({ ...producto, idTipoMarco: 7 }));
-    service.buscar.mockReturnValue(of([...coincidencias, { ...productos[0], id: 3, idTipoMarco: 8 }]));
-    parametros.next(convertToParamMap({ marco: '7' }));
-    component['buscar']();
-
-    expect(component['productosVisibles']()).toEqual(coincidencias);
-    parametros.next(convertToParamMap({}));
-    expect(component['productosVisibles']()).toHaveLength(3);
+    expect(service.buscarPagina).toHaveBeenCalledWith(expect.objectContaining({ termino: '', pagina: 1 }));
   });
 
   it('filtra por categoria y color y ordena por precio ascendente', () => {
@@ -145,7 +136,7 @@ describe('BuscarProductoComponent', () => {
   });
 
   it('muestra un error cuando falla la consulta', () => {
-    service.buscar.mockReturnValueOnce(throwError(() => new Error('offline')));
+    service.buscarPagina.mockReturnValueOnce(throwError(() => new Error('offline')));
     component['buscar']();
 
     expect(component['error']()).toBe('No se pudo consultar el catálogo.');

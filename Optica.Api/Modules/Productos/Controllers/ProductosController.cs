@@ -21,6 +21,25 @@ public class ProductosController : ControllerBase
     public async Task<IActionResult> BuscarProductos([FromQuery] string termino = "") => Ok(await _productoService.BuscarProductos(termino));
 
     [AllowAnonymous]
+    [HttpGet("pagina")]
+    public async Task<IActionResult> BuscarPagina([FromQuery] int pagina = 1, [FromQuery] int tamano = 20,
+        [FromQuery] string? termino = null, [FromQuery] string? estado = null, [FromQuery] string? categoria = null,
+        [FromQuery] string? color = null, [FromQuery] string? marca = null, [FromQuery] string? ordenPrecio = null,
+        [FromQuery] bool incluirOpciones = false, [FromQuery] int? marco = null)
+    {
+        if (pagina < 1 || tamano is < 1 or > 100 || (pagina - 1L) * tamano > int.MaxValue)
+            return BadRequest(new { mensaje = "La página o su tamaño no son válidos." });
+
+        var (productos, total) = await _productoService.BuscarPagina(termino ?? "", estado ?? "", categoria ?? "",
+            color ?? "", marca ?? "", ordenPrecio ?? "", (pagina - 1) * tamano, tamano, marco);
+        var totalPaginas = (int)Math.Ceiling(total / (double)tamano);
+        var haySiguiente = pagina < totalPaginas;
+        if (!incluirOpciones) return Ok(new { productos, haySiguiente, totalPaginas });
+        var opciones = await _productoService.OpcionesBusqueda(termino ?? "");
+        return Ok(new { productos, haySiguiente, totalPaginas, opciones.Categorias, opciones.Colores, opciones.Marcas });
+    }
+
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> ObtenerProducto(int id)
     {

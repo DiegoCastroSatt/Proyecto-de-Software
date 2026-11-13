@@ -24,12 +24,12 @@ public class PedidoService : IPedidoService
         _reloj = reloj ?? TimeProvider.System;
     }
 
-    private bool EsVencido(DateTime? fechaEntregaEstimada, string estado)
+    private bool EsVencido(DateTime? fechaEntregaEstimada, string estado, DateTime? fechaReferencia = null)
     {
         if (fechaEntregaEstimada is null) return false;
         if (estado is "Entregado" or "Cancelado") return false;
         var hoy = TimeZoneInfo.ConvertTime(_reloj.GetUtcNow(), ZonaHoraria).Date;
-        return fechaEntregaEstimada.Value.Date < hoy;
+        return fechaEntregaEstimada.Value.Date < (fechaReferencia ?? hoy);
     }
 
     private IEnumerable<PedidoResponseDto> MarcarVencidos(IEnumerable<PedidoResponseDto> pedidos)
@@ -39,6 +39,15 @@ public class PedidoService : IPedidoService
             pedido.Vencido = EsVencido(pedido.FechaEntregaEstimada, pedido.Estado);
         }
         return pedidos;
+    }
+
+    public async Task<PedidosPaginaResponseDto> ObtenerPaginaAsync(int pagina, int tamano, string termino)
+    {
+        var hoy = TimeZoneInfo.ConvertTime(_reloj.GetUtcNow(), ZonaHoraria).Date;
+        var resultado = await _pedidoRepository.ObtenerPaginaAsync(pagina, tamano, termino.Trim(), hoy);
+        foreach (var pedido in resultado.Pedidos)
+            pedido.Vencido = EsVencido(pedido.FechaEntregaEstimada, pedido.Estado, hoy);
+        return resultado;
     }
 
     public async Task<IEnumerable<PedidoResponseDto>> ObtenerPedidosAsync()
@@ -95,7 +104,7 @@ public class PedidoService : IPedidoService
             throw new KeyNotFoundException("No se encontró un cliente con ese RUT.");
         }
 
-        return MarcarVencidos(await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(rutNormalizado));
+        return MarcarVencidos(await _pedidoRepository.ObtenerPedidosDetallePorRutAsync(cliente.Rut));
     }
 
     public async Task<PedidoResponseDto> CrearPedidoAsync(CreatePedidoDto dto)

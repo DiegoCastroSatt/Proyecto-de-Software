@@ -190,7 +190,8 @@ CREATE TABLE historial_stock (
         FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE RESTRICT,
     CONSTRAINT fk_historial_stock_responsable
         FOREIGN KEY (id_responsable) REFERENCES trabajador_optica(id_trabajador) ON DELETE RESTRICT,
-    INDEX idx_historial_stock_producto_fecha (id_producto, fecha_cambio)
+    INDEX idx_historial_stock_producto_fecha (id_producto, fecha_cambio),
+    INDEX idx_historial_stock_fecha (fecha_cambio, id_cambio)
 );
 
 CREATE TABLE horarios_atencion (
@@ -243,8 +244,9 @@ CREATE TABLE reservas (
     -- La API controla que solo exista una reserva activa para cada horario.
 );
 
-CREATE INDEX idx_recetas_cliente ON recetas(id_cliente);
-CREATE INDEX idx_pedidos_cliente ON pedidos(rut);
+CREATE INDEX idx_recetas_cliente_fecha ON recetas(id_cliente, fecha);
+CREATE INDEX idx_pedidos_rut_fecha ON pedidos(rut, fecha, id_pedido);
+CREATE INDEX idx_pedidos_fecha ON pedidos(fecha, id_pedido);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX idx_reservas_horario ON reservas(id_horario);
 CREATE INDEX idx_reservas_recordatorio ON reservas(estado, recordatorio_enviado_utc);
@@ -304,6 +306,8 @@ CREATE TABLE intentos_correo_pedidos (
         REFERENCES correos_pedidos(id_correo) ON DELETE CASCADE,
     INDEX idx_intentos_correo_pedidos_fecha (id_correo, fecha_utc)
 );
+CREATE INDEX idx_ventas_fecha ON ventas(fecha, id_venta);
+CREATE INDEX idx_productos_nombre ON productos(nombre, id_producto);
 CREATE INDEX idx_productos_categoria ON productos(categoria);
 CREATE INDEX idx_productos_stock ON productos(stock);
 
@@ -340,6 +344,7 @@ CREATE TABLE IF NOT EXISTS resenas_productos (
     fecha_creacion_utc DATETIME NOT NULL,
     fecha_actualizacion_utc DATETIME NULL,
     CONSTRAINT uq_resena_cliente_producto UNIQUE (id_cliente, id_producto),
+    INDEX idx_resenas_producto_fecha (id_producto, fecha_creacion_utc),
     CONSTRAINT ck_resena_calificacion CHECK (calificacion BETWEEN 1 AND 5),
     CONSTRAINT fk_resena_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE RESTRICT,
     CONSTRAINT fk_resena_producto FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE RESTRICT

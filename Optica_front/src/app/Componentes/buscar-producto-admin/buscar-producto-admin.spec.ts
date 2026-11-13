@@ -14,7 +14,7 @@ describe('BuscarProductoAdmin', () => {
       providers: [{
         provide: BuscarProductoService,
         useValue: {
-          buscar: () => of([]),
+          buscarPagina: () => of({ productos: [], haySiguiente: false }),
           obtenerCatalogo: () => of([])
         }
       }]

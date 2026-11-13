@@ -6,3 +6,8 @@ public record VentaResponseDto(int IdVenta, DateTime Fecha, decimal Total, IRead
 public record VentaCreadaResponseDto(int IdVenta, DateTime Fecha, decimal Total, IReadOnlyList<DetalleVentaResponseDto> Productos);
 public record ProductoCajaDto(int IdProducto, string CodigoProducto, string Nombre, decimal Precio, int Stock);
 public record ErrorVentaDto(string Mensaje);
+
+public record VentasPaginaDto(IReadOnlyList<VentaResponseDto> Ventas, bool HaySiguiente, int TotalPaginas);
+public record VentasMesDto(int Anio, int Mes, decimal Ingreso, int Cantidad);
+public record VentaRankingDto(int ProductoId, string Nombre, int Unidades);
+public record VentasResumenDto(int Total, IReadOnlyList<VentasMesDto> Meses, IReadOnlyList<VentaRankingDto> Ranking);

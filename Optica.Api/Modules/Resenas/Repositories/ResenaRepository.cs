@@ -12,6 +12,7 @@ public sealed class ResenaRepository(OpticaDbContext db) : IResenaRepository
     public async Task<IReadOnlyList<ResenaResponseDto>> ListarPorProducto(int idProducto, CancellationToken cancellationToken) =>
         await db.Resenas.AsNoTracking().Where(r => r.IdProducto == idProducto)
             .OrderByDescending(r => r.FechaCreacionUtc)
+            .ThenByDescending(r => r.IdResena)
             .Select(r => new ResenaResponseDto(r.IdResena, r.IdProducto, r.Calificacion, r.Comentario,
                 // Las reseñas de clientes que eliminaron su cuenta se muestran sin identificar.
                 r.Cliente.Rut.StartsWith(EliminacionCuentaClienteService.PrefijoRutAnonimo)
@@ -22,10 +23,14 @@ public sealed class ResenaRepository(OpticaDbContext db) : IResenaRepository
 
     public async Task<ResumenResenasDto> ObtenerResumen(int idProducto, CancellationToken cancellationToken)
     {
-        var consulta = db.Resenas.AsNoTracking().Where(r => r.IdProducto == idProducto);
-        var cantidad = await consulta.CountAsync(cancellationToken);
-        var promedio = cantidad == 0 ? 0 : await consulta.AverageAsync(r => (double)r.Calificacion, cancellationToken);
-        return new ResumenResenasDto(Math.Round(promedio, 1), cantidad);
+        var resumen = await db.Resenas.AsNoTracking()
+            .Where(r => r.IdProducto == idProducto)
+            .GroupBy(r => r.IdProducto)
+            .Select(grupo => new { Cantidad = grupo.Count(), Promedio = grupo.Average(r => (double)r.Calificacion) })
+            .SingleOrDefaultAsync(cancellationToken);
+        return resumen is null
+            ? new ResumenResenasDto(0, 0)
+            : new ResumenResenasDto(Math.Round(resumen.Promedio, 1), resumen.Cantidad);
     }
 
     public async Task<IReadOnlyList<ProductoResenableDto>> ListarProductosComprados(int idCliente, CancellationToken cancellationToken) =>

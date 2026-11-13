@@ -7,7 +7,7 @@ import { PedidoService } from './pedido.service';
 
 describe('PedidoComponent', () => {
   let fixture: ComponentFixture<PedidoComponent>;
-  let servicio: { obtenerPedidos: ReturnType<typeof vi.fn> };
+  let servicio: { obtenerPagina: ReturnType<typeof vi.fn> };
 
   const mockPedidos = [
     { idPedido: 1, nombreCliente: 'Ana Pérez', fecha: '2026-10-01', estado: 'En proceso', total: 12000 },
@@ -16,7 +16,10 @@ describe('PedidoComponent', () => {
 
   beforeEach(async () => {
     servicio = {
-      obtenerPedidos: vi.fn(() => of(mockPedidos))
+      obtenerPagina: vi.fn((_pagina: number, termino: string) => of({
+        pedidos: mockPedidos.filter(pedido => pedido.nombreCliente.toLowerCase().includes(termino.toLowerCase())),
+        haySiguiente: false
+      }))
     };
     await TestBed.configureTestingModule({
       imports: [PedidoComponent],
@@ -27,7 +30,7 @@ describe('PedidoComponent', () => {
   });
 
   it('carga y muestra la lista de pedidos al inicializar', () => {
-    expect(servicio.obtenerPedidos).toHaveBeenCalledTimes(1);
+    expect(servicio.obtenerPagina).toHaveBeenCalledTimes(1);
     const tarjetas = fixture.nativeElement.querySelectorAll('.pedido-card');
     expect(tarjetas.length).toBe(2);
     expect(fixture.nativeElement.textContent).toContain('Ana Pérez');
@@ -82,8 +85,25 @@ describe('PedidoComponent', () => {
     expect(tarjetas[0].textContent).toContain('Ana Pérez');
   });
 
+  it('solicita la siguiente página y vuelve a la primera al buscar', () => {
+    servicio.obtenerPagina.mockReturnValueOnce(of({ pedidos: mockPedidos, haySiguiente: true, totalPaginas: 3 }));
+    fixture.destroy();
+    fixture = TestBed.createComponent(PedidoComponent);
+    fixture.detectChanges();
+
+    const siguiente = fixture.nativeElement.querySelector('.paginacion-listado button[aria-label="Página siguiente"]');
+    siguiente.click();
+    fixture.detectChanges();
+    expect(servicio.obtenerPagina).toHaveBeenLastCalledWith(2, '');
+
+    const input = fixture.nativeElement.querySelector('.search-input') as HTMLInputElement;
+    input.value = 'Carlos';
+    input.dispatchEvent(new Event('input'));
+    expect(servicio.obtenerPagina).toHaveBeenLastCalledWith(1, 'Carlos');
+  });
+
   it('muestra el estado vacío cuando la API devuelve una lista vacía', () => {
-    servicio.obtenerPedidos.mockReturnValueOnce(of([]));
+    servicio.obtenerPagina.mockReturnValueOnce(of({ pedidos: [], haySiguiente: false }));
     fixture.destroy();
     fixture = TestBed.createComponent(PedidoComponent);
     fixture.detectChanges();
@@ -99,9 +119,9 @@ describe('PedidoComponent', () => {
   });
 
   it('muestra estado y total cero sin alterar los datos', () => {
-    servicio.obtenerPedidos.mockReturnValueOnce(of([
+    servicio.obtenerPagina.mockReturnValueOnce(of({ pedidos: [
       { idPedido: 3, nombreCliente: 'Eva Díaz', fecha: '2026-10-03', estado: 'Pendiente', total: 0 }
-    ]));
+    ], haySiguiente: false }));
     fixture.destroy();
     fixture = TestBed.createComponent(PedidoComponent);
     fixture.detectChanges();

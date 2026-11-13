@@ -25,6 +25,16 @@ public class PedidosController : ControllerBase
         return Ok(pedidos);
     }
 
+    [HttpGet("pagina")]
+    public async Task<IActionResult> GetPagina(
+        [FromQuery] int pagina = 1, [FromQuery] int tamano = 20, [FromQuery] string? termino = null)
+    {
+        if (pagina < 1 || tamano is < 1 or > 100 || (pagina - 1L) * tamano > int.MaxValue)
+            return BadRequest(new { mensaje = "La página debe ser positiva y el tamaño debe estar entre 1 y 100." });
+
+        return Ok(await _pedidoService.ObtenerPaginaAsync(pagina, tamano, termino ?? string.Empty));
+    }
+
     [HttpGet("clientes/buscar")]
     public async Task<IActionResult> BuscarClientesPorRut([FromQuery] string rut)
     {

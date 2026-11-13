@@ -66,10 +66,11 @@ public class RecetaRepository : IRecetaRepository
 
     public async Task<List<Receta>> ObtenerRecetasPorClienteId(int clienteId)
     {
-        return await _context.Recetas
+        return await _context.Recetas.AsNoTracking()
             .Include(r => r.Graduaciones)
-        .   Where(r => r.ClienteId == clienteId)
+            .Where(r => r.ClienteId == clienteId)
             .OrderBy(r => r.Fecha)
+            .ThenBy(r => r.Id)
             .ToListAsync();
-}
+    }
 }

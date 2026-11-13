@@ -831,3 +831,60 @@ app-cliente {
 	outline: 2px solid currentColor;
 	outline-offset: 2px;
 }
+
+/* Controles compartidos de paginación */
+.paginacion-listado {
+  --color-pagina-activa: var(--color-principal);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-block: 20px;
+  padding: 12px 6px;
+  border: 1px solid var(--color-borde-panel);
+  border-radius: 14px;
+  background: var(--color-fondo-panel);
+}
+
+.paginacion-listado button,
+.paginacion-omision {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--color-superficie);
+  color: var(--color-principal);
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.paginacion-listado button { cursor: pointer; }
+.paginacion-listado button[aria-label] { font-size: 1.2rem; }
+.paginacion-omision { border-radius: 10px; }
+
+.paginacion-listado button:enabled:hover {
+  border-color: var(--color-pagina-activa);
+  background: var(--color-fondo-panel);
+}
+
+.paginacion-listado button:focus-visible {
+  outline: 2px solid var(--color-pagina-activa);
+  outline-offset: 2px;
+}
+
+.paginacion-listado button:disabled {
+  cursor: default;
+  opacity: .5;
+}
+
+.paginacion-listado button[aria-current="page"] {
+  background: var(--color-pagina-activa);
+  color: var(--color-superficie);
+  box-shadow: 0 0 0 3px var(--sombra-principal-15);
+  opacity: 1;
+}
