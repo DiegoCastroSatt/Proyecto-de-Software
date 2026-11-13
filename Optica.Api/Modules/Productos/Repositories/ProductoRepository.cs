@@ -53,9 +53,10 @@ public class ProductoRepository : IProductoRepository
     }
 
     public async Task<(List<Producto> Productos, int Total)> BuscarPagina(string termino, string estado, string categoria,
-        string color, string marca, string ordenPrecio, int desplazamiento, int limite)
+        string color, string marca, string ordenPrecio, int desplazamiento, int limite, int? marco = null)
     {
         var consulta = ConsultaProductos(termino);
+        if (marco.HasValue) consulta = consulta.Where(p => p.IdTipoMarco == marco.Value);
         if (estado.Length > 0) consulta = consulta.Where(p => p.Estado == estado);
         if (categoria.Length > 0) consulta = consulta.Where(p => p.Categoria == categoria);
         if (color.Length > 0) consulta = consulta.Where(p => p.Color == color);

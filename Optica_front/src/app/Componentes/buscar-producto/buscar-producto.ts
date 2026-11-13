@@ -1,3 +1,4 @@
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,13 +11,15 @@ import { obtenerOrigenApi } from '../../shared/services/api-origin';
 
 @Component({
   selector: 'app-busqueda-producto',
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, RouterLink],
   templateUrl: './buscar-producto.html',
   styleUrl: './buscar-producto.css'
 })
 export class BuscarProductoComponent implements OnInit {
   @Input() esAdministrador = false;
 
+  private readonly ruta = inject(ActivatedRoute, { optional: true });
+  protected readonly idMarco = signal<number | null>(null);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly productosVisibles = signal<Producto[]>([]);
   protected readonly categorias = signal<string[]>([]);
@@ -88,6 +91,14 @@ export class BuscarProductoComponent implements OnInit {
     if (!this.esAdministrador) {
       this.filtrosForm.controls.estado.setValue('');
       this.cargarSesionYProductosResenables();
+      if (this.ruta) {
+        this.ruta.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(parametros => {
+          const marco = Number(parametros.get('marco'));
+          this.idMarco.set(Number.isInteger(marco) && marco > 0 && marco <= 2147483647 ? marco : null);
+          this.buscar();
+        });
+        return;
+      }
     }
     if (this.esAdministrador) {
       this.cargarCatalogos();
@@ -148,7 +159,8 @@ export class BuscarProductoComponent implements OnInit {
     this.cargando.set(true);
     this.error.set('');
     this.productoService.buscarPagina({
-      ...this.filtrosForm.getRawValue(), pagina, termino: this.terminoAplicado, incluirOpciones
+      ...this.filtrosForm.getRawValue(), pagina, termino: this.terminoAplicado, incluirOpciones,
+      ...(this.idMarco() !== null ? { marco: this.idMarco()! } : {})
     }).pipe(takeUntil(this.cancelarCatalogo), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: resultado => {
         this.pagina.set(pagina);

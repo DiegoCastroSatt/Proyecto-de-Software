@@ -6,10 +6,10 @@ using Optica.Api.Modules.Productos.Models;
 public class ProductoService : IProductoService
 {
     public async Task<(List<ProductoResponseDto> Productos, int Total)> BuscarPagina(string termino, string estado, string categoria,
-        string color, string marca, string ordenPrecio, int desplazamiento, int limite)
+        string color, string marca, string ordenPrecio, int desplazamiento, int limite, int? marco = null)
     {
         var (productos, total) = await _productoRepository.BuscarPagina(
-            termino, estado, categoria, color, marca, ordenPrecio, desplazamiento, limite);
+            termino, estado, categoria, color, marca, ordenPrecio, desplazamiento, limite, marco);
         return (productos.Select(Mapear).ToList(), total);
     }
 

@@ -5,7 +5,7 @@ public interface IProductoService
     Task<ProductoResponseDto> CrearProducto(CrearProductoDto dto, int idResponsable);
     Task<List<ProductoResponseDto>> BuscarProductos(string termino);
     Task<(List<ProductoResponseDto> Productos, int Total)> BuscarPagina(string termino, string estado, string categoria, string color,
-        string marca, string ordenPrecio, int desplazamiento, int limite) => throw new NotSupportedException();
+        string marca, string ordenPrecio, int desplazamiento, int limite, int? marco = null) => throw new NotSupportedException();
     Task<(string[] Categorias, string[] Colores, string[] Marcas)> OpcionesBusqueda(string termino) =>
         throw new NotSupportedException();
     Task<ReporteInventarioResponseDto> ConsultarReporteInventario(CancellationToken cancellationToken);
